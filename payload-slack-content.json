@@ -29,7 +29,7 @@
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": ":testops-notify: created by <www.go.com|Mobile Test Engineering>"
+                            "text": ":testops-notify: created by <https://mozilla-hub.atlassian.net/wiki/spaces/MTE/overview#Test-Operations|Mobile Test Engineering>"
                         }
                     ]
                 }
