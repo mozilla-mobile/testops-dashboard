@@ -1,6 +1,11 @@
 PLATFORM = [
     'mobile',
-    'ecosystem'
+    'ecosystem',
+    'thunderbird'
+]
+
+PROJECTS_THUNDERBIRD = [
+    'thunderbird'
 ]
 
 PROJECTS_ECOSYSTEM = [
