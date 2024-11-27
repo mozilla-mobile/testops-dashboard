@@ -22,7 +22,8 @@ REPORT_TYPES = [
     'issue-regression',
     'jira-qa-requests',
     'jira-qa-needed',
-    'bugzilla-qe-verify'
+    'bugzilla-qe-verify',
+    'milestones'
 ]
 
 # JQL query All QA Requests since 2022 filter_id: 13856

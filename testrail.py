@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 
 from lib.testrail_conn import APIClient
+'''
 from database import (
     Database,
     Projects,
@@ -11,7 +12,7 @@ from database import (
     ReportTestCaseCoverage,
     # ReportTestRunCounts
 )
-
+'''
 from utils.datetime_utils import DatetimeUtils as dt
 
 
@@ -21,11 +22,16 @@ class TestRail:
         try:
             TESTRAIL_HOST = os.environ['TESTRAIL_HOST']
             self.client = APIClient(TESTRAIL_HOST)
-            self.client.user = os.environ['TESTRAIL_USERNAME']
+            self.client.user =  os.environ['TESTRAIL_USERNAME']
             self.client.password = os.environ['TESTRAIL_PASSWORD']
         except KeyError:
             print("ERROR: Missing testrail env var")
             sys.exit(1)
+
+    # API: Milestones
+    # https://mozilla.testrail.io/index.php?/api/v2/get_milestones/59
+    def milestones(self, project_id):
+        return self.client.send_get('get_milestones/{0}'.format(project_id))
 
     # API: Projects
     def projects(self):
@@ -81,8 +87,8 @@ class TestRailClient(TestRail):
 
     def __init__(self):
         super().__init__()
-        self.db = DatabaseTestRail()
-
+        #self.db = DatabaseTestRail()
+    '''
     def data_pump(self, project='all', suite='all'):
         # call database for 'all' values
         # convert inputs to a list so we can easily
@@ -157,7 +163,7 @@ class TestRailClient(TestRail):
 
         # Insert data in 'totals' array into DB
         self.db.report_test_coverage_insert(projects_id, payload)
-
+    
     def testrail_run_counts_update(self, project, num_days):
         start_date = dt.start_date(num_days)
 
@@ -181,7 +187,30 @@ class TestRailClient(TestRail):
         # Insert data in 'totals' array into DB
         self.db.report_test_runs_insert(projects_id, totals)
 
+'''
+    def test_rail_milestones(self, project_id):
+        payload = self.milestones('59')
+        
+        df = pd.json_normalize(payload)
 
+        selected_columns = {
+            "id": "id",
+            "project_id": "project_id",
+            "name": "name",
+            "started_on": "started_on",
+            "is_completed": "is_completed",
+            "description": "description",
+            "completed_on": "completed_on",
+            "url": "url"
+        }
+        # Select specific columns
+        df_selected = df[selected_columns.keys()]
+        df_selected['started_on'] = df_selected['started_on'].apply(dt.convert_epoch_to_datetime) # noqa
+
+        df_selected.to_csv('output.csv', index=False)
+        print(df_selected)
+
+'''
 class DatabaseTestRail(Database):
 
     def __init__(self):
@@ -294,7 +323,7 @@ class DatabaseTestRail(Database):
             if t['testrail_completed_on']:
                 created_on = dt.convert_epoch_to_datetime(t['testrail_created_on']) # noqa
                 completed_on = dt.convert_epoch_to_datetime(t['testrail_completed_on']) # noqa
-                '''
+                
                 report = ReportTestRunCounts(
                     projects_id=project_id,
                     testrail_run_id=t['testrail_run_id'],
@@ -304,6 +333,8 @@ class DatabaseTestRail(Database):
                     test_case_blocked_count=t['blocked_count'],
                     testrail_created_on=created_on,
                     testrail_completed_on=completed_on)
-                '''
+                
+                
                 # self.session.add(report)
                 self.session.commit()
+'''
