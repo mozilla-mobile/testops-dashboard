@@ -75,6 +75,7 @@ Source APIs
 **Data Sources**
 
 * Testrail
+* Bugzilla
 * Github - TBD
 * Taskcluster - TBD
 * Bitrise.io - TBD
