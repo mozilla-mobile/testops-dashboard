@@ -149,6 +149,7 @@ def main():
     if args.report_type == 'jira-qa-requests':
         h = JiraClient()
         h.jira_qa_requests()
+        #h.jira_qa_requests_new_issue_types()
     if args.report_type == 'jira-qa-needed':
         h = JiraClient()
         h.jira_qa_needed()
