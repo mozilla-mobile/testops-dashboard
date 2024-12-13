@@ -4,15 +4,16 @@ import sys
 import pandas as pd
 
 from lib.testrail_conn import APIClient
-'''
+
 from database import (
     Database,
     Projects,
     TestSuites,
     ReportTestCaseCoverage,
+    # ReportMilestones,
     # ReportTestRunCounts
 )
-'''
+
 from utils.datetime_utils import DatetimeUtils as dt
 
 
@@ -22,8 +23,9 @@ class TestRail:
         try:
             TESTRAIL_HOST = os.environ['TESTRAIL_HOST']
             self.client = APIClient(TESTRAIL_HOST)
-            self.client.user =  os.environ['TESTRAIL_USERNAME']
+            self.client.user = os.environ['TESTRAIL_USERNAME']
             self.client.password = os.environ['TESTRAIL_PASSWORD']
+
         except KeyError:
             print("ERROR: Missing testrail env var")
             sys.exit(1)
@@ -87,8 +89,8 @@ class TestRailClient(TestRail):
 
     def __init__(self):
         super().__init__()
-        #self.db = DatabaseTestRail()
-    '''
+        self.db = DatabaseTestRail()
+
     def data_pump(self, project='all', suite='all'):
         # call database for 'all' values
         # convert inputs to a list so we can easily
@@ -119,7 +121,7 @@ class TestRailClient(TestRail):
                 self.testrail_coverage_update(projects_id,
                                               testrail_project_id, suite['id'])
 
-    def testrail_project_ids(self, project):
+    def testrail_project_ids(self, project='all'):
         """ Return the ids needed to be able to query the TestRail API for
         a specific test suite from a specific project
 
@@ -163,7 +165,7 @@ class TestRailClient(TestRail):
 
         # Insert data in 'totals' array into DB
         self.db.report_test_coverage_insert(projects_id, payload)
-    
+
     def testrail_run_counts_update(self, project, num_days):
         start_date = dt.start_date(num_days)
 
@@ -187,11 +189,16 @@ class TestRailClient(TestRail):
         # Insert data in 'totals' array into DB
         self.db.report_test_runs_insert(projects_id, totals)
 
-'''
-    def test_rail_milestones(self, project_id):
-        payload = self.milestones('59')
-        
-        df = pd.json_normalize(payload)
+    def test_rail_milestones(self, project='all'):
+        project_ids_list = self.testrail_project_ids(project)
+        print(project_ids_list)
+        project_id = [value[1] for value in project_ids_list]
+        milestones_all = pd.DataFrame()
+
+        for project in project_id:
+            payload = self.milestones(project)
+            df = pd.json_normalize(payload)
+            milestones_all = pd.concat([milestones_all, df], ignore_index=True)
 
         selected_columns = {
             "id": "id",
@@ -203,14 +210,39 @@ class TestRailClient(TestRail):
             "completed_on": "completed_on",
             "url": "url"
         }
+
         # Select specific columns
-        df_selected = df[selected_columns.keys()]
-        df_selected['started_on'] = df_selected['started_on'].apply(dt.convert_epoch_to_datetime) # noqa
+        df_selected = milestones_all[selected_columns.keys()]
+        print("---------------")
+        print(df_selected['completed_on'].dtype)  # Float
+        print(df_selected['started_on'].dtype)  # Int
 
-        df_selected.to_csv('output.csv', index=False)
+        df_selected['started_on'] = pd.to_numeric(df_selected['started_on'], errors='coerce')  # noqa Ensure numeric for epoch
+        df_selected['started_on'] = pd.to_datetime(df_selected['started_on'], unit='s', errors='coerce'). # noqa
+
+        df_selected['completed_on'] = pd.to_numeric(df_selected['completed_on'], errors='coerce')  # noqa Ensure numeric for epoch
+        df_selected['completed_on'] = pd.to_datetime(df_selected['completed_on'], unit='s', errors='coerce'). # noqa
+
+        '''
+        These work with datatypes warnings
+        # Step 1: Replace invalid values with NaN and cast to numeric (epoch seconds)
+        df_selected.loc[:,'started_on'] = pd.to_numeric(df_selected['started_on'], errors='coerce')
+
+        # Step 2: Convert epoch timestamps to datetime64
+        df_selected.loc[:,'started_on'] = pd.to_datetime(df_selected['started_on'], unit='s', errors='coerce')
+
+        # Step 1: Replace invalid values with NaN and cast to numeric (epoch seconds)
+        df_selected.loc[:,'completed_on'] = pd.to_numeric(df_selected['completed_on'], errors='coerce')
+
+        # Step 2: Convert epoch timestamps to datetime64
+        df_selected.loc[:,'completed_on'] = pd.to_datetime(df_selected['completed_on'], unit='s', errors='coerce')
+
+        df_selected['completed_on'] = df_selected['completed_on'].dt.strftime('%Y-%m-%dT%H')
+        '''
         print(df_selected)
+        self.db.report_milestones_insert(df_selected)
 
-'''
+
 class DatabaseTestRail(Database):
 
     def __init__(self):
@@ -230,6 +262,22 @@ class DatabaseTestRail(Database):
                             test_suite_name=test_suite_name)
         self.session.add(suites)
         self.session.commit()
+
+    def report_milestones_insert(sefl, payload):
+        for index, row in payload.iterrows():
+            print(row)
+            '''
+            report = ReportMilestones(milestone_id=row['id'],
+                                            project_id=row['project_id'], # noqa
+                                            milestone_name=row['name'], # noqa
+                                            milestone_start_date=row['start_on'], # noqa
+                                            milestone_complete=row['is_completed'],
+                                            milestone_end_date=row['completed_on'],
+                                            milestone_description=row['description'],
+                                            milestone_url=row['url'])
+            #self.session.add(report)
+            #self.session.commit()
+            '''
 
     def report_test_coverage_payload(self, cases):
         """given testrail data (cases), calculate test case counts by type"""
@@ -323,7 +371,7 @@ class DatabaseTestRail(Database):
             if t['testrail_completed_on']:
                 created_on = dt.convert_epoch_to_datetime(t['testrail_created_on']) # noqa
                 completed_on = dt.convert_epoch_to_datetime(t['testrail_completed_on']) # noqa
-                
+
                 report = ReportTestRunCounts(
                     projects_id=project_id,
                     testrail_run_id=t['testrail_run_id'],
@@ -333,8 +381,6 @@ class DatabaseTestRail(Database):
                     test_case_blocked_count=t['blocked_count'],
                     testrail_created_on=created_on,
                     testrail_completed_on=completed_on)
-                
-                
+
                 # self.session.add(report)
                 self.session.commit()
-'''
