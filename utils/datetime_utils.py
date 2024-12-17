@@ -15,7 +15,7 @@ class DatetimeUtils:
         return int(t)
 
     def convert_epoch_to_datetime(int_epoch_date):
-        if int_epoch_date == '' or int_epoch_date == 0 or int_epoch_date == 'Nan':  # noqa
+        if int_epoch_date == '' or int_epoch_date == 0 or int_epoch_date == 'NaN':  # noqa
             return None
         else:
             ts = datetime.fromtimestamp(int_epoch_date)
