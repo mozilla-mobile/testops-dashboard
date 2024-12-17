@@ -84,6 +84,7 @@ class APIClient:
             while True:
                 response = requests.get(f"{url}&limit={limit}&offset={offset}", headers=headers)
                 data = response.json()
+                print(data)
 
                 # Check if 'cases' key exists in the response
                 if 'cases' in data:
@@ -91,6 +92,12 @@ class APIClient:
 
                     # Break if fewer items are returned than the limit, indicating the last page
                     if len(data['cases']) < limit:
+                        break
+                if 'milestones' in data:
+                    all_items.extend(data['milestones'])
+
+                    # Break if fewer items are returned than the limit, indicating the last page
+                    if len(data['milestones']) < limit:
                         break
                 else:
                     all_items = data
