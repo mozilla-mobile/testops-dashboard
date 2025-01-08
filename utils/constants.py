@@ -5,7 +5,8 @@ PLATFORM = [
 
 PROJECTS_ECOSYSTEM = [
     'experimenter',
-    'nimbus'
+    'nimbus',
+    'ALL'
 ]
 
 PROJECTS_MOBILE = [
