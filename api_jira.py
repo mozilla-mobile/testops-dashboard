@@ -182,7 +182,7 @@ class JiraClient(Jira):
         payload = self.filters()
         print(payload)
 
-        self.db.qa_requests_delete()
+        self.db.qa_requests_delete(ReportJiraQARequests)
 
         data_frame = self.db.report_jira_qa_requests_payload(payload)
         print(data_frame)
@@ -194,7 +194,7 @@ class JiraClient(Jira):
         print("This is the payload returning from filter")
         print(payload)
 
-        self.db.qa_requests_delete()
+        self.db.qa_requests_delete(ReportJIraQARequestsNewIssueType)
 
         data_frame = self.db.report_jira_qa_requests__new_issue_types_payload(payload) # noqa
         print(data_frame)
@@ -215,11 +215,11 @@ class DatabaseJira(Database):
         super().__init__()
         self.db = Database()
 
-    def qa_requests_delete(self):
+    def qa_requests_delete(self, table):
         """ Wipe out all test suite data.
         NOTE: we'll renew this data from Testrail every session."""
         print("Delete entries from db first")
-        self.session.query(ReportJiraQARequests).delete()
+        self.session.query(table).delete()
         self.session.commit()
 
     def report_jira_qa_requests_payload(self, payload):
