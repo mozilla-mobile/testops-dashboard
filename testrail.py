@@ -27,7 +27,6 @@ class TestRail:
             self.client = APIClient(TESTRAIL_HOST)
             self.client.user = os.environ['TESTRAIL_USERNAME']
             self.client.password = os.environ['TESTRAIL_PASSWORD']
-
         except KeyError:
             print("ERROR: Missing testrail env var")
             sys.exit(1)

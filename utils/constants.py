@@ -23,7 +23,7 @@ REPORT_TYPES = [
     'jira-qa-requests',
     'jira-qa-needed',
     'bugzilla-qe-verify',
-    'milestones'
+    'testrail-milestones'
 ]
 
 # JQL query All QA Requests since 2022 filter_id: 13856

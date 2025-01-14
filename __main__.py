@@ -46,8 +46,7 @@ def parse_args(cmdln_args):
 def validate_project(platform, project, report_type):
     # Conditionally require --platform and --project
     # if --report-type is 'test-case-coverage'
-    # if report_type == 'test-case-coverage':
-    if report_type in ('test-case-coverage', 'milestones'):
+    if report_type in ('test-case-coverage', 'testrail-milestones'):
         if not project:
             print("--project is required for the report selected")
         if not platform:
@@ -75,7 +74,7 @@ def main():
         else:
             num_days = ''
         h.testrail_run_counts_update(args.project, num_days)
-    if args.report_type == 'milestones':
+    if args.report_type == 'testrail-milestones':
         h = TestRailClient()
         h.test_rail_milestones()
     if args.report_type == 'issue-regression':
