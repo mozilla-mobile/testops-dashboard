@@ -20,7 +20,8 @@ from database import (
     ReportJIraQARequestsNewIssueType
 )
 from utils.datetime_utils import DatetimeUtils as dt
-from constants import FILTER_ID_ALL_REQUESTS_2022, MAX_RESULT
+from constants import FILTER_ID_ALL_REQUESTS_2022, FILTER_ID_NEW_ISSUE_TYPES, MAX_RESULT # noqa
+from constants import JQL_QUERY, STORY_POINTS, FIREFOX_RELEASE_TRAIN, ENGINEERING_TEAM, DEFAULT_COLUMNS, COLUMNS_ISSUE_TYPE, TESTED_TRAINS # noqa
 from constants import FILTER_ID_QA_NEEDED_iOS
 from constants import QATT_FIELDS, QATT_BOARD, QATT_PARENT_TICKETS_IN_BOARD # noqa
 from constants import SEARCH, WORKLOG_URL_TEMPLATE
@@ -47,7 +48,6 @@ class Jira:
             self.client = JiraAPIClient(JIRA_HOST)
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
-
         except KeyError:
             print("ERROR: Missing jira env var")
             sys.exit(1)
@@ -63,8 +63,9 @@ class Jira:
         return self.client.get_search(query, data_type='issues')
 
     def filters_new_issue_type(self):
-        query = JQL_QUERY + NEW_FILTER_ID + '&fields=' \
-                + DEFAULT_COLUMNS_ISSUE_TYPE + ',' + STORY_POINTS + ',' \
+        query = JQL_QUERY + FILTER_ID_NEW_ISSUE_TYPES + '&fields=' \
+                + DEFAULT_COLUMNS + COLUMNS_ISSUE_TYPE + ',' \
+                + STORY_POINTS + ',' \
                 + FIREFOX_RELEASE_TRAIN + ',' + TESTED_TRAINS + ',' \
                 + ENGINEERING_TEAM + '&' + MAX_RESULT
 
@@ -195,7 +196,7 @@ class JiraClient(Jira):
 
         self.db.qa_requests_delete()
 
-        data_frame = self.db.report_jira_qa_requests__new_issue_types_payload(payload)
+        data_frame = self.db.report_jira_qa_requests__new_issue_types_payload(payload) # noqa
         print(data_frame)
 
         self.db.report_jira_qa_requests_insert_new_issue_types(data_frame)
@@ -267,6 +268,7 @@ class DatabaseJira(Database):
 
     def report_jira_qa_requests__new_issue_types_payload(self, payload):
         # Normalize the JSON data
+        self.session.query(ReportJIraQARequestsNewIssueType).delete()
         df = pd.json_normalize(payload, sep='_')
 
         # Check if 'jira_assignee_username' exists
@@ -292,7 +294,7 @@ class DatabaseJira(Database):
             'fields_assignee_emailAddress': 'jira_assignee_username',
             'fields_labels': 'jira_labels',
             'fields_customfield_11930': 'jira_tested_train',
-            'fields_issuetype_name':'jira_issue_type',
+            'fields_issuetype_name': 'jira_issue_type',
             'fields_parent_key': 'jira_parent_link'
         }
 
@@ -338,18 +340,17 @@ class DatabaseJira(Database):
         for index, row in payload.iterrows():
             print(row)
             report = ReportJIraQARequestsNewIssueType(jira_key=row['jira_key'],
-                                          jira_created_at=row['jira_created_at'].date(), # noqa
-                                          jira_summary=row['jira_summary'], # noqa
-                                          jira_firefox_release_train=row['jira_firefox_release_train'], # noqa
-                                          jira_engineering_team=row['jira_engineering_team'], # noqa
-                                          jira_story_points=row['jira_story_points'], # noqa
-                                          jira_status=row['jira_status'], # noqa
-                                          jira_assignee_username=row['jira_assignee_username'], # noqa
-                                          jira_labels=row['jira_labels'],
-                                          jira_tested_train=row['jira_tested_train'],
-                                          jira_issue_type=row['jira_issue_type'],
-                                          jira_parent_link=row['jira_parent_link']
-                                    )
+                                                      jira_created_at=row['jira_created_at'].date(), # noqa
+                                                      jira_summary=row['jira_summary'], # noqa
+                                                      jira_firefox_release_train=row['jira_firefox_release_train'], # noqa
+                                                      jira_engineering_team=row['jira_engineering_team'], # noqa
+                                                      jira_story_points=row['jira_story_points'], # noqa
+                                                      jira_status=row['jira_status'], # noqa
+                                                      jira_assignee_username=row['jira_assignee_username'], # noqa
+                                                      jira_labels=row['jira_labels'], # noqa
+                                                      jira_tested_train=row['jira_tested_train'], # noqa
+                                                      jira_issue_type=row['jira_issue_type'], # noqa
+                                                      jira_parent_link=row['jira_parent_link']) # noqa
             self.session.add(report)
         self.session.commit()
 
