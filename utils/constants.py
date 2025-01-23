@@ -1,11 +1,17 @@
 PLATFORM = [
     'mobile',
-    'ecosystem'
+    'ecosystem',
+    'desktop'
 ]
 
 PROJECTS_ECOSYSTEM = [
     'experimenter',
     'nimbus',
+    'ALL'
+]
+
+PROJECTS_DESKTOP = [
+    'firefox-desktop',
     'ALL'
 ]
 
