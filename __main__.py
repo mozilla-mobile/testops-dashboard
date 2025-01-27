@@ -5,7 +5,7 @@ from bugz import BugzillaClient
 from github import GithubClient
 from jira import JiraClient
 from testrail import TestRailClient
-from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PLATFORM, REPORT_TYPES # noqa
+from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORM, REPORT_TYPES # noqa
 
 
 def parse_args(cmdln_args):
@@ -54,6 +54,9 @@ def validate_project(platform, project, report_type):
 
     if platform == 'mobile' and project not in PROJECTS_MOBILE:
         print(f"Error: Invalid project '{project}' for mobile. Valid options are {PROJECTS_MOBILE}") # noqa 
+        sys.exit(1)
+    elif platform == 'desktop' and project not in PROJECTS_DESKTOP:
+        print(f"Error: Invalid project '{project}' for desktop. Valid options are {PROJECTS_DESKTOP}") # noqa
         sys.exit(1)
     elif platform == 'ecosystem' and project not in PROJECTS_ECOSYSTEM:
         print(f"Error: Invalid project '{project}' for ecosystem. Valid options are {PROJECTS_ECOSYSTEM}") # noqa
