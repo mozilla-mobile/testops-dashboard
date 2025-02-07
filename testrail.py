@@ -34,7 +34,8 @@ class TestRail:
     # API: Milestones
     # https://mozilla.testrail.io/index.php?/api/v2/get_milestones/59
     def milestones(self, testrail_project_id):
-        return self.client.send_get('get_milestones/{0}'.format(testrail_project_id))
+        return self.client.send_get(
+            'get_milestones/{0}'.format(testrail_project_id))
 
     # API: Projects
     def projects(self):
@@ -238,6 +239,7 @@ class TestRailClient(TestRail):
 
             self.db.report_milestones_insert(projects_id, df_selected)
 
+
 class DatabaseTestRail(Database):
 
     def __init__(self):
@@ -266,7 +268,8 @@ class DatabaseTestRail(Database):
         for index, row in payload.iterrows():
             print(row)
 
-            report = ReportTestRailMilestones(testrail_milestone_id=row['testrail_milestone_id'],
+            report = ReportTestRailMilestones(
+                                      testrail_milestone_id=row['testrail_milestone_id'], # noqa
                                       projects_id=projects_id,
                                       name=row['name'],
                                       started_on=row['started_on'],
