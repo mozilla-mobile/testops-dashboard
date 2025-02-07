@@ -76,7 +76,7 @@ def main():
         h.testrail_run_counts_update(args.project, num_days)
     if args.report_type == 'testrail-milestones':
         h = TestRailClient()
-        h.test_rail_milestones()
+        h.testrail_milestones(args.project.lower())
     if args.report_type == 'issue-regression':
         h = GithubClient()
         h.github_issue_regression(args.project)

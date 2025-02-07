@@ -11,7 +11,7 @@ from database import (
     Projects,
     TestSuites,
     ReportTestCaseCoverage,
-    ReportMilestones,
+    ReportTestRailMilestones,
     # ReportTestRunCounts
 )
 
@@ -33,8 +33,8 @@ class TestRail:
 
     # API: Milestones
     # https://mozilla.testrail.io/index.php?/api/v2/get_milestones/59
-    def milestones(self, project_id):
-        return self.client.send_get('get_milestones/{0}'.format(project_id))
+    def milestones(self, testrail_project_id):
+        return self.client.send_get('get_milestones/{0}'.format(testrail_project_id))
 
     # API: Projects
     def projects(self):
@@ -190,53 +190,53 @@ class TestRailClient(TestRail):
         # Insert data in 'totals' array into DB
         self.db.report_test_runs_insert(projects_id, totals)
 
-    def test_rail_milestones(self, project='all'):
-        project_ids_list = self.testrail_project_ids(project)
+    def testrail_milestones(self, project='all'):
+        self.db.testrail_milestons_delete()
 
-        project_id = [value[1] for value in project_ids_list]
+        project_ids_list = self.testrail_project_ids(project)
         milestones_all = pd.DataFrame()
 
-        for project in project_id:
-            payload = self.milestones(project)
-            df = pd.json_normalize(payload)
-            milestones_all = pd.concat([milestones_all, df], ignore_index=True)
+        for project_ids in project_ids_list:
+            projects_id = project_ids[0]
+            testrail_project_id = project_ids[1]
 
-        selected_columns = {
-            "id": "milestone_id",
-            "project_id": "project_id",
-            "name": "name",
-            "started_on": "started_on",
-            "is_completed": "is_completed",
-            "description": "description",
-            "completed_on": "completed_on",
-            "url": "url"
-        }
+            payload = self.milestones(testrail_project_id)
+            milestones_all = pd.json_normalize(payload)
 
-        # Select specific columns
-        df_selected = milestones_all[selected_columns.keys()]
-        # Rename columns
-        df_selected = df_selected.rename(columns=selected_columns)
+            selected_columns = {
+                "id": "testrail_milestone_id",
+                "name": "name",
+                "started_on": "started_on",
+                "is_completed": "is_completed",
+                "description": "description",
+                "completed_on": "completed_on",
+                "url": "url"
+            }
 
-        # Convert valid timestamps, leave empty ones as NaT
-        df_selected['started_on'] = df_selected['started_on'].apply(
-            lambda x: pd.to_datetime(x, unit='s', errors='coerce') if pd.notna(x) else pd.NaT # noqa
-        )
-        df_selected['completed_on'] = df_selected['completed_on'].apply(
-            lambda x: pd.to_datetime(x, unit='s', errors='coerce') if pd.notna(x) else pd.NaT # noqa
-        )
+            # Select specific columns
+            df_selected = milestones_all[selected_columns.keys()]
+            # Rename columns
+            df_selected = df_selected.rename(columns=selected_columns)
 
-        # Replace NaT with None
-        df_selected['completed_on'] = df_selected['completed_on'].replace({np.nan: None}) # noqa
-        df_selected['started_on'] = df_selected['started_on'].replace({np.nan: None}) # noqa
+            # Convert valid timestamps, leave empty ones as NaT
+            df_selected['started_on'] = df_selected['started_on'].apply(
+                lambda x: pd.to_datetime(x, unit='s', errors='coerce') if pd.notna(x) else pd.NaT # noqa
+            )
+            df_selected['completed_on'] = df_selected['completed_on'].apply(
+                lambda x: pd.to_datetime(x, unit='s', errors='coerce') if pd.notna(x) else pd.NaT # noqa
+            )
 
-        # Add new columns based on information given
-        df_selected['testing_status'] = df_selected['description'].apply(pl.extract_testing_status) # noqa
-        df_selected['testing_recommendation'] = df_selected['description'].apply(pl.extract_testing_recommendation) # noqa
-        df_selected['build_name'] = df_selected['name'].apply(pl.extract_build_name) # noqa
-        df_selected['build_version'] = df_selected['build_name'].apply(pl.extract_build_version) # noqa
-        print(df_selected)
-        self.db.report_milestones_insert(df_selected)
+            # Replace NaT with None
+            df_selected['completed_on'] = df_selected['completed_on'].replace({np.nan: None}) # noqa
+            df_selected['started_on'] = df_selected['started_on'].replace({np.nan: None}) # noqa
 
+            # Add new columns based on information given
+            df_selected['testing_status'] = df_selected['description'].apply(pl.extract_testing_status) # noqa
+            df_selected['testing_recommendation'] = df_selected['description'].apply(pl.extract_testing_recommendation) # noqa
+            df_selected['build_name'] = df_selected['name'].apply(pl.extract_build_name) # noqa
+            df_selected['build_version'] = df_selected['build_name'].apply(pl.extract_build_version) # noqa
+
+            self.db.report_milestones_insert(projects_id, df_selected)
 
 class DatabaseTestRail(Database):
 
@@ -258,15 +258,16 @@ class DatabaseTestRail(Database):
         self.session.add(suites)
         self.session.commit()
 
-    def report_milestones_insert(self, payload):
-        self.session.query(ReportMilestones).delete()
+    def testrail_milestons_delete(self):
+        self.session.query(ReportTestRailMilestones).delete()
         self.session.commit()
 
+    def report_milestones_insert(self, projects_id, payload):
         for index, row in payload.iterrows():
             print(row)
 
-            report = ReportMilestones(milestone_id=row['milestone_id'],
-                                      project_id=row['project_id'],
+            report = ReportTestRailMilestones(testrail_milestone_id=row['testrail_milestone_id'],
+                                      projects_id=projects_id,
                                       name=row['name'],
                                       started_on=row['started_on'],
                                       is_completed=row['is_completed'],

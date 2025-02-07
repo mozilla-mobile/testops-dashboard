@@ -51,8 +51,8 @@ class ReportBugzillaQEVerifyCount(Base):
     __table__ = Table('report_bugzilla_qe_needed_count', Base.metadata, autoload=True) # noqa
 
 
-class ReportMilestones(Base):
-    __table__ = Table('report_milestones', Base.metadata, autoload=True) # noqa
+class ReportTestRailMilestones(Base):
+    __table__ = Table('report_testrail_milestones', Base.metadata, autoload=True) # noqa
 
 
 class Database:
