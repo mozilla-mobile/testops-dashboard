@@ -2,17 +2,21 @@ import os
 import sys
 
 import pandas as pd
+import numpy as np
 
 from lib.testrail_conn import APIClient
+
 from database import (
     Database,
     Projects,
     TestSuites,
     ReportTestCaseCoverage,
+    ReportTestRailMilestones,
     # ReportTestRunCounts
 )
 
 from utils.datetime_utils import DatetimeUtils as dt
+from utils.payload_utils import PayloadUtils as pl
 
 
 class TestRail:
@@ -26,6 +30,12 @@ class TestRail:
         except KeyError:
             print("ERROR: Missing testrail env var")
             sys.exit(1)
+
+    # API: Milestones
+    # https://mozilla.testrail.io/index.php?/api/v2/get_milestones/59
+    def milestones(self, testrail_project_id):
+        return self.client.send_get(
+            'get_milestones/{0}'.format(testrail_project_id))
 
     # API: Projects
     def projects(self):
@@ -181,6 +191,58 @@ class TestRailClient(TestRail):
         # Insert data in 'totals' array into DB
         self.db.report_test_runs_insert(projects_id, totals)
 
+    def testrail_milestones(self, project):
+        self.db.testrail_milestons_delete()
+
+        # project_ids_list = self.testrail_project_ids(project)
+
+        # Mobile project list for Milestones until we fix Issue #55
+        # https://github.com/mozilla-mobile/testops-dashboard/issues/55
+        project_ids_list = [[1, 59], [2, 48], [3, 14], [4, 27]]
+        milestones_all = pd.DataFrame()
+
+        for project_ids in project_ids_list:
+            projects_id = project_ids[0]
+            testrail_project_id = project_ids[1]
+
+            payload = self.milestones(testrail_project_id)
+            milestones_all = pd.json_normalize(payload)
+
+            selected_columns = {
+                "id": "testrail_milestone_id",
+                "name": "name",
+                "started_on": "started_on",
+                "is_completed": "is_completed",
+                "description": "description",
+                "completed_on": "completed_on",
+                "url": "url"
+            }
+
+            # Select specific columns
+            df_selected = milestones_all[selected_columns.keys()]
+            # Rename columns
+            df_selected = df_selected.rename(columns=selected_columns)
+
+            # Convert valid timestamps, leave empty ones as NaT
+            df_selected['started_on'] = df_selected['started_on'].apply(
+                lambda x: pd.to_datetime(x, unit='s', errors='coerce') if pd.notna(x) else pd.NaT # noqa
+            )
+            df_selected['completed_on'] = df_selected['completed_on'].apply(
+                lambda x: pd.to_datetime(x, unit='s', errors='coerce') if pd.notna(x) else pd.NaT # noqa
+            )
+
+            # Replace NaT with None
+            df_selected['completed_on'] = df_selected['completed_on'].replace({np.nan: None}) # noqa
+            df_selected['started_on'] = df_selected['started_on'].replace({np.nan: None}) # noqa
+
+            # Add new columns based on information given
+            df_selected['testing_status'] = df_selected['description'].apply(pl.extract_testing_status) # noqa
+            df_selected['testing_recommendation'] = df_selected['description'].apply(pl.extract_testing_recommendation) # noqa
+            df_selected['build_name'] = df_selected['name'].apply(pl.extract_build_name) # noqa
+            df_selected['build_version'] = df_selected['build_name'].apply(pl.extract_build_version) # noqa
+
+            self.db.report_milestones_insert(projects_id, df_selected)
+
 
 class DatabaseTestRail(Database):
 
@@ -201,6 +263,31 @@ class DatabaseTestRail(Database):
                             test_suite_name=test_suite_name)
         self.session.add(suites)
         self.session.commit()
+
+    def testrail_milestons_delete(self):
+        self.session.query(ReportTestRailMilestones).delete()
+        self.session.commit()
+
+    def report_milestones_insert(self, projects_id, payload):
+        for index, row in payload.iterrows():
+            print(row)
+
+            report = ReportTestRailMilestones(
+                                      testrail_milestone_id=row['testrail_milestone_id'], # noqa
+                                      projects_id=projects_id,
+                                      name=row['name'],
+                                      started_on=row['started_on'],
+                                      is_completed=row['is_completed'],
+                                      completed_on=row['completed_on'],
+                                      description=row['description'],
+                                      url=row['url'],
+                                      testing_status=row['testing_status'],
+                                      testing_recommendation=row['testing_recommendation'], # noqa
+                                      build_name=row['build_name'],
+                                      build_version=row['build_version']
+                                      )
+            self.session.add(report)
+            self.session.commit()
 
     def report_test_coverage_payload(self, cases):
         """given testrail data (cases), calculate test case counts by type"""

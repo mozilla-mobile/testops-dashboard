@@ -29,7 +29,7 @@ def parse_args(cmdln_args):
     parser.add_argument(
         "--report-type",
         help="Indicate report type",
-        required=True,
+        required=False,
         choices=REPORT_TYPES
     )
 
@@ -46,7 +46,7 @@ def parse_args(cmdln_args):
 def validate_project(platform, project, report_type):
     # Conditionally require --platform and --project
     # if --report-type is 'test-case-coverage'
-    if report_type == 'test-case-coverage':
+    if report_type in ('test-case-coverage', 'testrail-milestones'):
         if not project:
             print("--project is required for the report selected")
         if not platform:
@@ -74,6 +74,9 @@ def main():
         else:
             num_days = ''
         h.testrail_run_counts_update(args.project, num_days)
+    if args.report_type == 'testrail-milestones':
+        h = TestRailClient()
+        h.testrail_milestones(args.project.lower())
     if args.report_type == 'issue-regression':
         h = GithubClient()
         h.github_issue_regression(args.project)
