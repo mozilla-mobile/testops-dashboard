@@ -194,7 +194,12 @@ class TestRailClient(TestRail):
     def testrail_milestones(self, project='all'):
         self.db.testrail_milestons_delete()
 
-        project_ids_list = self.testrail_project_ids(project)
+        # project_ids_list = self.testrail_project_ids(project)
+
+        # Mobile project list for Milestones until we fix Issue #55
+        # https://github.com/mozilla-mobile/testops-dashboard/issues/55
+        project_ids_list = [[1, 59], [2, 48], [3, 14], [4, 27]]
+
         milestones_all = pd.DataFrame()
 
         for project_ids in project_ids_list:
