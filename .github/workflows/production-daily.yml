@@ -57,10 +57,16 @@ jobs:
         if: always()
         run: python ./__main__.py --report-type jira-qa-needed
 
+        continue-on-error: true
       - name: Bugzilla query
         if: always()
         run: python ./__main__.py --report-type bugzilla-qe-verify
 
+        continue-on-error: true
+      - name: Update DB - testrail milestones
+        run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones
+
+        continue-on-error: true
       - name: Set job log URL
         if: always()
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
