@@ -5,7 +5,7 @@ from bugz import BugzillaClient
 from github import GithubClient
 from jira import JiraClient
 from testrail import TestRailClient
-from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORM, REPORT_TYPES # noqa
+from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
 
 
 def parse_args(cmdln_args):
@@ -21,9 +21,9 @@ def parse_args(cmdln_args):
 
     parser.add_argument(
         "--platform",
-        help="Select the platform Mobile or Ecosystem",
+        help="Select the platform Mobile, Ecosystem or Desktop",
         required=False,
-        choices=PLATFORM,
+        choices=PLATFORMS,
         )
 
     parser.add_argument(
@@ -58,6 +58,9 @@ def validate_project(platform, project, report_type):
     elif platform == 'ecosystem' and project not in PROJECTS_ECOSYSTEM:
         print(f"Error: Invalid project '{project}' for ecosystem. Valid options are {PROJECTS_ECOSYSTEM}") # noqa
         sys.exit(1)
+    elif platform == 'desktop' and project not in PROJECTS_DESKTOP:
+        print(f"Error: Invalid project '{project}' for desktop. Valid options are {PROJECTS_DESKTOP}") # noqa
+        sys.exit(1)
 
 
 def args_to_list(platform, projects):
@@ -85,7 +88,8 @@ def main():
     args = parse_args(sys.argv[1:])
     validate_project(args.platform, args.project, args.report_type)
     arg_list = args_to_list(args.platform.lower(), args.project.lower())
-
+    print(arg_list)
+    sys.exit(1)
     if args.report_type == 'test-case-coverage':
         h = TestRailClient()
         h.data_pump(arg_list)
