@@ -88,8 +88,7 @@ def main():
     args = parse_args(sys.argv[1:])
     validate_project(args.platform, args.project, args.report_type)
     arg_list = args_to_list(args.platform.lower(), args.project.lower())
-    print(arg_list)
-    sys.exit(1)
+
     if args.report_type == 'test-case-coverage':
         h = TestRailClient()
         h.data_pump(arg_list)

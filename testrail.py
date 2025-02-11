@@ -182,8 +182,8 @@ class TestRailClient(TestRail):
 
     def testrail_milestones(self, project):
         self.db.testrail_milestons_delete()
-        project_ids_list = self.testrail_project_ids(project)
 
+        project_ids_list = self.testrail_project_ids(project)
         milestones_all = pd.DataFrame()
 
         for project_ids in project_ids_list:
@@ -191,42 +191,58 @@ class TestRailClient(TestRail):
             testrail_project_id = project_ids[1]
 
             payload = self.milestones(testrail_project_id)
-            milestones_all = pd.json_normalize(payload)
+            if not payload:
+                print(f"No milestones found for project {testrail_project_id}. Skipping...") # noqa
+                milestones_all = pd.DataFrame()  # Empty DataFrame to avoid errors # noqa
 
-            selected_columns = {
-                "id": "testrail_milestone_id",
-                "name": "name",
-                "started_on": "started_on",
-                "is_completed": "is_completed",
-                "description": "description",
-                "completed_on": "completed_on",
-                "url": "url"
-            }
+            else:
+                # Convert JSON to DataFrame
+                milestones_all = pd.json_normalize(payload)
 
-            # Select specific columns
-            df_selected = milestones_all[selected_columns.keys()]
-            # Rename columns
-            df_selected = df_selected.rename(columns=selected_columns)
+            # Ensure DataFrame is not empty before processing
+            if milestones_all.empty:
+                print(f"Milestones DataFrame is empty for project {testrail_project_id}. Skipping...") # noqa
+                # Continue to next project (if inside a loop)
+            else:
+                # Define selected columns
+                selected_columns = {
+                    "id": "testrail_milestone_id",
+                    "name": "name",
+                    "started_on": "started_on",
+                    "is_completed": "is_completed",
+                    "description": "description",
+                    "completed_on": "completed_on",
+                    "url": "url"
+                }
 
-            # Convert valid timestamps, leave empty ones as NaT
-            df_selected['started_on'] = df_selected['started_on'].apply(
-                lambda x: pd.to_datetime(x, unit='s', errors='coerce') if pd.notna(x) else pd.NaT # noqa
-            )
-            df_selected['completed_on'] = df_selected['completed_on'].apply(
-                lambda x: pd.to_datetime(x, unit='s', errors='coerce') if pd.notna(x) else pd.NaT # noqa
-            )
+                # Select specific columns (only if they exist)
+                existing_columns = [col for col in selected_columns.keys() if col in milestones_all.columns] # noqa
+                df_selected = milestones_all[existing_columns].rename(columns={k: v for k, v in selected_columns.items() if k in milestones_all.columns}) # noqa
 
-            # Replace NaT with None
-            df_selected['completed_on'] = df_selected['completed_on'].replace({np.nan: None}) # noqa
-            df_selected['started_on'] = df_selected['started_on'].replace({np.nan: None}) # noqa
+                # Convert valid timestamps, leave empty ones as NaT
+                if 'started_on' in df_selected.columns:
+                    df_selected['started_on'] = pd.to_datetime(df_selected['started_on'], unit='s', errors='coerce') # noqa
+                    df_selected['started_on'] = df_selected['started_on'].replace({np.nan: None}) # noqa
 
-            # Add new columns based on information given
-            df_selected['testing_status'] = df_selected['description'].apply(pl.extract_testing_status) # noqa
-            df_selected['testing_recommendation'] = df_selected['description'].apply(pl.extract_testing_recommendation) # noqa
-            df_selected['build_name'] = df_selected['name'].apply(pl.extract_build_name) # noqa
-            df_selected['build_version'] = df_selected['build_name'].apply(pl.extract_build_version) # noqa
+                if 'completed_on' in df_selected.columns:
+                    df_selected['completed_on'] = pd.to_datetime(df_selected['completed_on'], unit='s', errors='coerce') # noqa
+                    df_selected['completed_on'] = df_selected['completed_on'].replace({np.nan: None}) # noqa
 
-            self.db.report_milestones_insert(projects_id, df_selected)
+                # Apply transformations only if description column exists
+                if 'description' in df_selected.columns:
+                    df_selected['testing_status'] = df_selected['description'].apply(pl.extract_testing_status) # noqa
+                    df_selected['testing_recommendation'] = df_selected['description'].apply(pl.extract_testing_recommendation) # noqa
+
+                # Apply transformations only if name column exists
+                if 'name' in df_selected.columns:
+                    df_selected['build_name'] = df_selected['name'].apply(pl.extract_build_name) # noqa
+                    df_selected['build_version'] = df_selected['build_name'].apply(pl.extract_build_version) # noqa
+
+                # Insert into database only if there is data
+                if not df_selected.empty:
+                    self.db.report_milestones_insert(projects_id, df_selected)
+                else:
+                    print(f"No milestones data to insert into database for project {testrail_project_id}.") # noqa
 
 
 class DatabaseTestRail(Database):
