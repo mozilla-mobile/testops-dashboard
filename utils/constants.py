@@ -1,4 +1,4 @@
-PLATFORM = [
+PLATFORMS = [
     'mobile',
     'ecosystem',
     'desktop'
