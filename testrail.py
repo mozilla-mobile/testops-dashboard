@@ -98,7 +98,7 @@ class TestRailClient(TestRail):
         # convert inputs to a list so we can easily
         # loop thru them
         project_ids_list = self.testrail_project_ids(project)
-
+        print(project_ids_list)
         # TODO:
         # currently only setup for test_case report
         # fix this for test run data
@@ -112,6 +112,7 @@ class TestRailClient(TestRail):
 
             testrail_project_id = project_ids[1]
             suites = self.test_suites(testrail_project_id)
+
             for suite in suites:
                 """
                 print("testrail_project_id: {0}".format(testrail_project_id))
@@ -122,7 +123,6 @@ class TestRailClient(TestRail):
                                            suite['id'], suite['name'])
                 self.testrail_coverage_update(projects_id,
                                               testrail_project_id, suite['id'])
-
     def testrail_project_ids(self, project):
         """ Return the ids needed to be able to query the TestRail API for
         a specific test suite from a specific project
@@ -135,25 +135,13 @@ class TestRailClient(TestRail):
            in DB for convenience and use them to query test suites
            from each respective project
         """
+        # Query with filtering
+        q = self.db.session.query(Projects).filter(Projects.project_name_abbrev.in_(project))
 
-        q = self.db.session.query(Projects)
-
-        if project == 'all':
-            p = q.all()
-        else:
-            p = []
-            proj = q.filter_by(project_name_abbrev=project).first()
-            p.append(proj)
-        ids = []
-        tmp = []
-
-        for item in p:
-            if type(item.testrail_project_id == int):
-                tmp.append(item.id)
-                tmp.append(item.testrail_project_id)
-                ids.append(tmp)
-            tmp = []
-        return ids
+        # Fetch results
+        results = q.all()
+        project_ids_list = [[project.id, project.testrail_project_id] for project in results]
+        return project_ids_list
 
     def testrail_coverage_update(self, projects_id,
                                  testrail_project_id, test_suite_id):
@@ -193,12 +181,8 @@ class TestRailClient(TestRail):
 
     def testrail_milestones(self, project):
         self.db.testrail_milestons_delete()
+        project_ids_list = self.testrail_project_ids(project)
 
-        # project_ids_list = self.testrail_project_ids(project)
-
-        # Mobile project list for Milestones until we fix Issue #55
-        # https://github.com/mozilla-mobile/testops-dashboard/issues/55
-        project_ids_list = [[1, 59], [2, 48], [3, 14], [4, 27]]
         milestones_all = pd.DataFrame()
 
         for project_ids in project_ids_list:
