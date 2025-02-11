@@ -123,6 +123,7 @@ class TestRailClient(TestRail):
                                            suite['id'], suite['name'])
                 self.testrail_coverage_update(projects_id,
                                               testrail_project_id, suite['id'])
+    
     def testrail_project_ids(self, project):
         """ Return the ids needed to be able to query the TestRail API for
         a specific test suite from a specific project
@@ -136,11 +137,11 @@ class TestRailClient(TestRail):
            from each respective project
         """
         # Query with filtering
-        q = self.db.session.query(Projects).filter(Projects.project_name_abbrev.in_(project))
+        q = self.db.session.query(Projects).filter(Projects.project_name_abbrev.in_(project)) # noqa
 
         # Fetch results
         results = q.all()
-        project_ids_list = [[project.id, project.testrail_project_id] for project in results]
+        project_ids_list = [[project.id, project.testrail_project_id] for project in results] # noqa
         return project_ids_list
 
     def testrail_coverage_update(self, projects_id,

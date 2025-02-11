@@ -59,6 +59,7 @@ def validate_project(platform, project, report_type):
         print(f"Error: Invalid project '{project}' for ecosystem. Valid options are {PROJECTS_ECOSYSTEM}") # noqa
         sys.exit(1)
 
+
 def args_to_list(platform, projects):
     projects_list = []
     # we need to convert projects data, if str,  to a list  (if not already)
@@ -78,6 +79,7 @@ def args_to_list(platform, projects):
         else:
             projects_list = [projects]
     return projects_list
+
 
 def main():
     args = parse_args(sys.argv[1:])
