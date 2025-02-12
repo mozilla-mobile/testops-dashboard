@@ -51,16 +51,16 @@ jobs:
 
 
       - name: Jira query
-        run: python ./__main__.py --report-type jira-qa-requests
+        run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
 
       - name: Jira query
         if: always()
-        run: python ./__main__.py --report-type jira-qa-needed
+        run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-needed
 
         continue-on-error: true
       - name: Bugzilla query
         if: always()
-        run: python ./__main__.py --report-type bugzilla-qe-verify
+        run: python ./__main__.py --platform mobile --project ALL --report-type bugzilla-qe-verify
 
         continue-on-error: true
       - name: Update DB - testrail milestones
