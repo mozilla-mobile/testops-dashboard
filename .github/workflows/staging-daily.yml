@@ -3,7 +3,14 @@ name: Testops Report DAILY - Staging
 # Daily @4am UTC
 on:
   schedule:
-    - cron:  "0 4 * * *" 
+    - cron:  "0 4 * * *"
+
+  workflow_dispatch:
+    inputs:
+      branchName:
+        description: 'Default branch'
+        required: true
+        default: 'master'
 
 jobs:
   deploy:
@@ -37,7 +44,14 @@ jobs:
             echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
             echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
             echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
+            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
+            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
+
             echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
+
+      - name: Jira query
+        run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
 
       #- name: Update DB - test runs 
       #  run: python ./__main__.py --report-type test-run-counts --project fenix --start-date 2021-08-15 --end-date 2021-10-01 
