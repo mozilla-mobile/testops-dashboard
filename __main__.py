@@ -1,6 +1,7 @@
 import argparse
 import sys
 
+from bitrise import BitriseClient
 from bugz import BugzillaClient
 from github import GithubClient
 from jira import JiraClient
@@ -115,6 +116,9 @@ def main():
     if args.report_type == 'bugzilla-qe-verify':
         h = BugzillaClient()
         h.bugzilla_qe_verify()
+    if args.report_type == 'bitrise-builds':
+        h = BitriseClient()
+        h.builds_count()
 
 
 if __name__ == '__main__':

@@ -55,6 +55,10 @@ class ReportTestRailMilestones(Base):
     __table__ = Table('report_testrail_milestones', Base.metadata, autoload=True) # noqa
 
 
+class ReportBitriseBuildsCount(Base):
+    __table__ = Table('report_bitrise_builds_count', Base.metadata, autoload=True) # noqa
+
+
 class Database:
 
     def __init__(self):
