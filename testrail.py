@@ -34,8 +34,8 @@ class TestRail:
     # API: Milestones
     # https://mozilla.testrail.io/index.php?/api/v2/get_milestones/59
     def milestones(self, testrail_project_id):
-        return self.client.send_get_milestones(
-            'get_milestones/{0}'.format(testrail_project_id))
+        return self.client.send_get(
+            'get_milestones/{0}'.format(testrail_project_id), data_type='milestones')
 
     # API: Projects
     def projects(self):
@@ -49,7 +49,7 @@ class TestRail:
     def test_cases(self, testrail_project_id, testrail_test_suite_id):
         return self.client.send_get(
             'get_cases/{0}&suite_id={1}'
-            .format(testrail_project_id, testrail_test_suite_id))
+            .format(testrail_project_id, testrail_test_suite_id), data_type='cases')
 
     def test_case(self, testrail_test_case_id):
         return self.client.send_get(
@@ -63,7 +63,7 @@ class TestRail:
     # API: Suites
     def test_suites(self, testrail_project_id):
         return self.client \
-                   .send_get('get_suites/{0}'.format(testrail_project_id))
+                   .send_get('get_suites/{0}'.format(testrail_project_id), data_type='suites')
 
     def test_suite(self, testrail_test_suite_id):
         return self.client \
