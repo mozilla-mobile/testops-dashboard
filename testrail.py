@@ -34,7 +34,7 @@ class TestRail:
     # API: Milestones
     # https://mozilla.testrail.io/index.php?/api/v2/get_milestones/59
     def milestones(self, testrail_project_id):
-        return self.client.send_get(
+        return self.client.send_get_milestones(
             'get_milestones/{0}'.format(testrail_project_id))
 
     # API: Projects
@@ -105,7 +105,7 @@ class TestRailClient(TestRail):
 
         # Test suite data is dynamic. Wipe out old test suite data
         # in database before updating.
-        self.db.test_suites_delete()
+        # self.db.test_suites_delete()
 
         for project_ids in project_ids_list:
             projects_id = project_ids[0]
