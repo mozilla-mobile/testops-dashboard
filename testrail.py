@@ -35,7 +35,7 @@ class TestRail:
     # https://mozilla.testrail.io/index.php?/api/v2/get_milestones/59
     def milestones(self, testrail_project_id):
         return self.client.send_get(
-            'get_milestones/{0}'.format(testrail_project_id), data_type='milestones')
+            'get_milestones/{0}'.format(testrail_project_id), data_type='milestones') # noqa
 
     # API: Projects
     def projects(self):
@@ -49,7 +49,7 @@ class TestRail:
     def test_cases(self, testrail_project_id, testrail_test_suite_id):
         return self.client.send_get(
             'get_cases/{0}&suite_id={1}'
-            .format(testrail_project_id, testrail_test_suite_id), data_type='cases')
+            .format(testrail_project_id, testrail_test_suite_id), data_type='cases') # noqa
 
     def test_case(self, testrail_test_case_id):
         return self.client.send_get(
@@ -63,7 +63,7 @@ class TestRail:
     # API: Suites
     def test_suites(self, testrail_project_id):
         return self.client \
-                   .send_get('get_suites/{0}'.format(testrail_project_id), data_type='suites')
+                   .send_get('get_suites/{0}'.format(testrail_project_id), data_type='suites') # noqa
 
     def test_suite(self, testrail_test_suite_id):
         return self.client \
@@ -105,7 +105,7 @@ class TestRailClient(TestRail):
 
         # Test suite data is dynamic. Wipe out old test suite data
         # in database before updating.
-        # self.db.test_suites_delete()
+        self.db.test_suites_delete()
 
         for project_ids in project_ids_list:
             projects_id = project_ids[0]
