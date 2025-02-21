@@ -27,7 +27,7 @@ class APIClient:
             base_url += '/'
         self.__url = base_url + 'index.php?/api/v2/'
 
-    def send_get(self, uri, filepath=None):
+    def send_get(self, uri, data_type, filepath=None):
         """Issue a GET request (read) against the API.
 
         Args:
@@ -38,7 +38,7 @@ class APIClient:
         Returns:
             A dict containing the result of the request.
         """
-        return self.__send_request('GET', uri, filepath)
+        return self.__send_request('GET', uri, data_type, filepath)
 
     def send_post(self, uri, data):
         """Issue a POST request (write) against the API.
@@ -54,9 +54,8 @@ class APIClient:
         """
         return self.__send_request('POST', uri, data)
 
-    def __send_request(self, method, uri, data):
+    def __send_request(self, method, uri, data_type, data):
         url = self.__url + uri
-
         auth = str(
             base64.b64encode(
                 bytes('%s:%s' % (self.user, self.password), 'utf-8')
@@ -84,20 +83,13 @@ class APIClient:
             while True:
                 response = requests.get(f"{url}&limit={limit}&offset={offset}", headers=headers)
                 data = response.json()
-                print(data)
 
-                # Check if 'cases' key exists in the response
-                if 'cases' in data:
-                    all_items.extend(data['cases'])
+                # Check if 'cases' or 'milestones' key exists in the response
+                if data_type in data:
+                    print(data[data_type])
+                    all_items.extend(data[data_type])  # Append cases or milestones
 
-                    # Break if fewer items are returned than the limit, indicating the last page
-                    if len(data['cases']) < limit:
-                        break
-                if 'milestones' in data:
-                    all_items.extend(data['milestones'])
-
-                    # Break if fewer items are returned than the limit, indicating the last page
-                    if len(data['milestones']) < limit:
+                    if len(data[data_type]) < limit:
                         break
                 else:
                     all_items = data
