@@ -1,16 +1,15 @@
-import os, sys
+import os
 import json
 import yaml
 from atlassian import Confluence
-import pandas as pd
 import requests
 
 
 # Confluence env vars 
-#BASE_URL = "https://your-confluence-instance.atlassian.net/wiki/rest/api"
+# BASE_URL = "https://your-confluence-instance.atlassian.net/wiki/rest/api"
 ATLASSIAN_API_TOKEN = os.environ['ATLASSIAN_API_TOKEN']
-ATLASSIAN_USERNAME= os.environ['ATLASSIAN_USERNAME']
-ATLASSIAN_HOST= os.environ['ATLASSIAN_HOST']
+ATLASSIAN_USERNAME = os.environ['ATLASSIAN_USERNAME']
+ATLASSIAN_HOST = os.environ['ATLASSIAN_HOST']
 
 BASE_URL = f"https://{ATLASSIAN_HOST}/wiki/rest/api"
 auth = (ATLASSIAN_USERNAME, ATLASSIAN_API_TOKEN)
@@ -23,7 +22,7 @@ confluence = Confluence(
     password=ATLASSIAN_API_TOKEN
 )
 
-#PAGE_ID = "419954941"
+# PAGE_ID = "419954941"
 PAGE_ID = "1346961433"
 page_url = f"{BASE_URL}/content/{PAGE_ID}"
 YAML_FILE_PATH = "confluence-reports.yaml"
@@ -75,11 +74,11 @@ def image_attachments_upload():
 
     # upload image files 1 by 1
     for filename in os.listdir(image_dir):
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')):
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')): # noqa
             file_path = os.path.join(image_dir, filename)
             print(f"Uploading: {filename}...")
 
-            with open(file_path, "rb") as file:
+            with open(file_path, "rb"):
                 response = confluence.attach_file(
                     filename=file_path,
                     page_id=PAGE_ID
@@ -102,7 +101,8 @@ def page():
     return response.json()
 
 
-def table_row_write(report_title, report_description, attachment_filename, looker_graph_url):
+def table_row_write(report_title, report_description,
+    attachment_filename, looker_graph_url):
     return f"""
     <row>
     <td><b>{report_title}</b></td>
@@ -115,7 +115,6 @@ def table_row_write(report_title, report_description, attachment_filename, looke
 
 def page_html(image_name):
     html_content = ""
-    sections = ""
 
     with open(YAML_FILE_PATH, "r") as file:
         config = yaml.safe_load(file)
@@ -186,4 +185,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
