@@ -1,0 +1,85 @@
+wiki_page:
+  sections:
+    - name: "Mobile Feature Request Workload"
+      reports:
+        - report-title: "Workload per Platform 2025"
+          report-description: "Number of Feature Requests per platform in 2025"
+          attachment-filename: "workload-per-platform-2025.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2707"
+
+        - report-title: "Workload per Platform 2024"
+          report-description: "Number of Feature Requests per platform in 2024"
+          attachment-filename: "workload-per-platform-2024.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2710"
+
+        - report-title: "YoY Feature Requests"
+          report-description: "Number of Feature Requests YoY per Platform"
+          attachment-filename: "yoy-feature-requests.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2711"
+          
+        - report-title: "Feature Requests per cycle"
+          report-description: "Number of Feature Requests each half of the year and per Platform"
+          attachment-filename: "feature-requests-per-cycle.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/TBD"
+          
+        - report-title: "Feature Requests per Release Train"
+          report-description: "TBD"
+          attachment-filename: "feature-requests-per-release-train.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2711"
+          
+    - name: "Sofvision Workload"
+      reports:
+        - report-title: "Android Workload per Release Cycle"
+          report-description: "Workload per Release Cycle.\n\n Tasks for each requests are sized with Story Points \n\n Team is at capacity when they reach 22 SP (margin 5)"
+          attachment-filename: "android-workload-per-release-cycle.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/TBD"
+          
+        - report-title: "iOS Workload per Release Cycle"
+          report-description: "Workload per Release Cycle.\n\n Tasks for each requests are sized with Story Points \n\n Team is at capacity when they reach 22 SP (margin 5)"
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/TBD"
+          
+        - report-title: "Android Workload per Release Cycle per Person"
+          report-description: "TBD"
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/TBD"
+          
+        - report-title: "Fenix Releases Tested"
+          report-description: "TBD"
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/TBD"
+          
+        - report-title: "Firefox-iOS Releases Tested"
+          report-description: "TBD"
+          attachment-filename: "firefox-ios-releases-tested.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/TBD"
+
+    - name: "Mobile Test Automation Coverage"
+      reports:
+        - report-title: "Firefox-iOS"
+          report-description: "Test Automation Coverage for Firefox-iOS "
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/601"
+          
+        - report-title: "Fenix"
+          report-description: "Test Automation Coverage for Fenix "
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/562"
+
+    - name: "Mobile Feature Requests"
+      reports:
+        - report-title: "Mobile Feature Requests"
+          report-description: "All graphs in Dashboard"
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1854"
+          
+        - report-title: "iOS Feature Requests"
+          report-description: "TBD"
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1846"
+          
+        - report-title: "Android Feature Requests"
+          report-description: "TBD"
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1864"
+
