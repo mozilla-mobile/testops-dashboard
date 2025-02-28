@@ -5,6 +5,7 @@ from bugz import BugzillaClient
 from github import GithubClient
 from jira import JiraClient
 from testrail import TestRailClient
+import api_confluence
 from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
 
 
@@ -89,6 +90,9 @@ def main():
     validate_project(args.platform, args.project, args.report_type)
     arg_list = args_to_list(args.platform.lower(), args.project.lower())
 
+    if args.report_type == 'confluence-updates':
+        api_confluence.main()
+    sys.exit()
     if args.report_type == 'test-case-coverage':
         h = TestRailClient()
         h.data_pump(arg_list)
