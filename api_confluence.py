@@ -100,7 +100,7 @@ def page():
 
 
 def table_row_write(report_title, report_description,
-    attachment_filename, looker_graph_url):
+                    attachment_filename, looker_graph_url):
     return f"""
             <row>
         <td><b>{report_title}</b></td>
@@ -125,8 +125,7 @@ def page_html(image_name):
             row = table_row_write(report["report-title"],
                                   report["report-description"],
                                   report["attachment-filename"],
-                                  report["looker-graph-url"]
-            )
+                                  report["looker-graph-url"])
             rows += row
 
         html_content += f"""
