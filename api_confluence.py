@@ -5,7 +5,7 @@ from atlassian import Confluence
 import requests
 
 
-# Confluence env vars 
+# Confluence env vars
 # BASE_URL = "https://your-confluence-instance.atlassian.net/wiki/rest/api"
 ATLASSIAN_API_TOKEN = os.environ['ATLASSIAN_API_TOKEN']
 ATLASSIAN_USERNAME = os.environ['ATLASSIAN_USERNAME']
@@ -42,26 +42,24 @@ def image_attachments_delete():
             attachment_id = attachment['id']
             delete_url = f"{BASE_URL}/content/{attachment_id}"
 
-            delete_response = requests.delete(delete_url, headers=headers, auth=auth)
+            delete_response = requests.delete(delete_url, headers=headers, auth=auth) # noqa
             if delete_response.status_code == 204:
                 print(f"Attachment {attachment_id} deleted successfully.")
             else:
                 print(f"Failed to delete attachment {attachment_id}.")
     else:
-        print(f"Failed to fetch attachments: {response.status_code}, {response.text}")
+        print(f"Failed to fetch attachments: {response.status_code}, {response.text}") # noqa
 
 
 def image_attachments_list():
     # fetch all attachments on page
     response = requests.get(f"{BASE_URL}/content/{PAGE_ID}/child/attachment",
-        auth=auth, headers=headers)
+                            auth=auth, headers=headers)
 
     if response.status_code == 200:
         attachments = response.json()["results"]
-        """
         for att in attachments:
             print(f"Filename: {att['title']} - ID: {att['id']}")
-        """
         return response
     else:
         print("❌ Failed to retrieve attachments")
@@ -104,13 +102,13 @@ def page():
 def table_row_write(report_title, report_description,
     attachment_filename, looker_graph_url):
     return f"""
-    <row>
-    <td><b>{report_title}</b></td>
-    <td>{report_description}</td>
-    <td>
-    <a href="{looker_graph_url}"><ac:image><ri:attachment ri:filename="{attachment_filename}"/></ac:image></a></td>
-    </row>
-    """
+            <row>
+        <td><b>{report_title}</b></td>
+        <td>{report_description}</td>
+        <td>
+        <a href="{looker_graph_url}"><ac:image><ri:attachment ri:filename="{attachment_filename}"/></ac:image></a></td>
+        </row>
+        """ # noqa
 
 
 def page_html(image_name):
@@ -125,9 +123,9 @@ def page_html(image_name):
         rows = ""
         for report in section["reports"]:
             row = table_row_write(report["report-title"],
-                report["report-description"],
-                report["attachment-filename"],
-                report["looker-graph-url"]
+                                  report["report-description"],
+                                  report["attachment-filename"],
+                                  report["looker-graph-url"]
             )
             rows += row
 
@@ -161,8 +159,8 @@ def page_payload_write(update_payload):
     update_url = f"{BASE_URL}/content/{PAGE_ID}"
     headers.update({"Content-Type": "application/json"})
 
-    update_response = requests.put(update_url,
-        auth=auth, headers=headers, data=json.dumps(update_payload))
+    update_response = requests.put(update_url, auth=auth, headers=headers,
+                                   data=json.dumps(update_payload))
 
     if update_response.status_code == 200:
         print("Page updated successfully!")
