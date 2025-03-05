@@ -66,33 +66,36 @@ def validate_project(platform, project, report_type):
 
 def args_to_list(platform, projects):
     projects_list = []
-    # we need to convert projects data, if str,  to a list  (if not already)
-    if isinstance(projects, str):
-        if projects == 'all':
-            if platform == 'desktop':
-                for project in PROJECTS_DESKTOP[:-1]:
-                    projects_list.append(project)
 
-            if platform == 'mobile':
-                for project in PROJECTS_MOBILE[:-1]:
-                    projects_list.append(project)
+    if platform != '' and projects != '':
+        platform = platform.lower()
+        projects = projects.lower()
 
-            if platform == 'ecosystem':
-                for project in PROJECTS_ECOSYSTEM[:-1]:
-                    projects_list.append(project)
-        else:
-            projects_list = [projects]
+        if isinstance(projects, str):
+            if projects == 'all':
+                if platform == 'desktop':
+                    for project in PROJECTS_DESKTOP[:-1]:
+                        projects_list.append(project)
+
+                if platform == 'mobile':
+                    for project in PROJECTS_MOBILE[:-1]:
+                        projects_list.append(project)
+
+                if platform == 'ecosystem':
+                    for project in PROJECTS_ECOSYSTEM[:-1]:
+                        projects_list.append(project)
+            else:
+                projects_list = [projects]
     return projects_list
 
 
 def main():
     args = parse_args(sys.argv[1:])
     validate_project(args.platform, args.project, args.report_type)
-    arg_list = args_to_list(args.platform.lower(), args.project.lower())
+    arg_list = args_to_list(args.platform, args.project)
 
     if args.report_type == 'confluence-updates':
         api_confluence.main()
-        sys.exit()
     if args.report_type == 'test-case-coverage':
         h = TestRailClient()
         h.data_pump(arg_list)
