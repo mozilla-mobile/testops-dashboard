@@ -92,7 +92,7 @@ def main():
 
     if args.report_type == 'confluence-updates':
         api_confluence.main()
-    sys.exit()
+        sys.exit()
     if args.report_type == 'test-case-coverage':
         h = TestRailClient()
         h.data_pump(arg_list)
