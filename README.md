@@ -69,13 +69,12 @@ Description
 
     
 
-Source APIs
+Connected APIs
 ---------------
-
-**Data Sources**
 
 * Testrail
 * Bugzilla
+* Confluence
 * Github - TBD
 * Taskcluster - TBD
 * Bitrise.io - TBD

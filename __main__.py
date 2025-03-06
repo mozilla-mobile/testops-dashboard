@@ -5,6 +5,7 @@ from bugz import BugzillaClient
 from github import GithubClient
 from jira import JiraClient
 from testrail import TestRailClient
+import api_confluence
 from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
 
 
@@ -65,7 +66,9 @@ def validate_project(platform, project, report_type):
 
 def args_to_list(platform, projects):
     projects_list = []
-    # we need to convert projects data, if str,  to a list  (if not already)
+    platform = (platform or "").lower()
+    projects = (projects or "").lower()
+
     if isinstance(projects, str):
         if projects == 'all':
             if platform == 'desktop':
@@ -87,8 +90,10 @@ def args_to_list(platform, projects):
 def main():
     args = parse_args(sys.argv[1:])
     validate_project(args.platform, args.project, args.report_type)
-    arg_list = args_to_list(args.platform.lower(), args.project.lower())
+    arg_list = args_to_list(args.platform, args.project)
 
+    if args.report_type == 'confluence-updates':
+        api_confluence.main()
     if args.report_type == 'test-case-coverage':
         h = TestRailClient()
         h.data_pump(arg_list)
