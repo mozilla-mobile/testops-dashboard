@@ -1,10 +1,10 @@
 import argparse
 import sys
 
-from bugz import BugzillaClient
-from github import GithubClient
-from jira import JiraClient
-from testrail import TestRailClient
+from api_bugzilla import BugzillaClient
+from api_github import GithubClient
+from api_jira import JiraClient
+from api_testrail import TestRailClient
 import api_confluence
 from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
 
