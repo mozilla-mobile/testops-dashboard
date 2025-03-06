@@ -83,7 +83,7 @@ def args_to_list(platform, projects):
                 for project in PROJECTS_ECOSYSTEM[:-1]:
                     projects_list.append(project)
         else:
-                projects_list = [projects]
+            projects_list = [projects]
     return projects_list
 
 
