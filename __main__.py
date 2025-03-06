@@ -67,7 +67,7 @@ def validate_project(platform, project, report_type):
 def args_to_list(platform, projects):
     projects_list = []
 
-    if platform != '' and projects != '':
+    if not platform or not projects:
         platform = platform.lower()
         projects = projects.lower()
 
