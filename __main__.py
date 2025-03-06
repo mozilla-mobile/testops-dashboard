@@ -66,25 +66,23 @@ def validate_project(platform, project, report_type):
 
 def args_to_list(platform, projects):
     projects_list = []
+    platform = (platform or "").lower()
+    projects = (projects or "").lower()
 
-    if not platform or not projects:
-        platform = platform.lower()
-        projects = projects.lower()
+    if isinstance(projects, str):
+        if projects == 'all':
+            if platform == 'desktop':
+                for project in PROJECTS_DESKTOP[:-1]:
+                    projects_list.append(project)
 
-        if isinstance(projects, str):
-            if projects == 'all':
-                if platform == 'desktop':
-                    for project in PROJECTS_DESKTOP[:-1]:
-                        projects_list.append(project)
+            if platform == 'mobile':
+                for project in PROJECTS_MOBILE[:-1]:
+                    projects_list.append(project)
 
-                if platform == 'mobile':
-                    for project in PROJECTS_MOBILE[:-1]:
-                        projects_list.append(project)
-
-                if platform == 'ecosystem':
-                    for project in PROJECTS_ECOSYSTEM[:-1]:
-                        projects_list.append(project)
-            else:
+            if platform == 'ecosystem':
+                for project in PROJECTS_ECOSYSTEM[:-1]:
+                    projects_list.append(project)
+        else:
                 projects_list = [projects]
     return projects_list
 
