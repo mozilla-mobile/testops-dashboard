@@ -38,6 +38,9 @@ jobs:
             echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
             echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
             echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
 
       #- name: Update DB - test runs 
       #  run: python ./__main__.py --report-type test-run-counts --project ALL --num-days 7
