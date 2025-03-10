@@ -41,5 +41,5 @@ jobs:
             ls
             ls looker_images/
 
-      #- name: Update Confluence Page
-      #  run: python3 ./api_confluence.py
+      - name: Update Confluence Page
+        run: python3 ./api_confluence.py
