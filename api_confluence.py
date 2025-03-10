@@ -26,7 +26,7 @@ confluence = Confluence(
 PAGE_ID = "1346961433"
 page_url = f"{BASE_URL}/content/{PAGE_ID}"
 YAML_FILE_PATH = "confluence-reports.yaml"
-IMAGE_PATH = "images"
+IMAGE_PATH = "looker_images"
 
 
 def image_attachments_delete():
