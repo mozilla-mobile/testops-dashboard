@@ -104,6 +104,7 @@ def get_looks_in_folder(access_token, FOLDER_ID):
     looks = response.json()
     return looks
 
+
 def main():
     access_token = get_looker_token()
     # Ensure the directory exists, create if not
