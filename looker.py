@@ -109,19 +109,13 @@ def main():
     access_token = get_looker_token()
     # Ensure the directory exists, create if not
     os.makedirs(IMAGES_DIR, exist_ok=True)
-    '''
+
     all_looks = get_looks_in_folder(access_token, FOLDER_ID)
     for look in all_looks:
         print(f"- ID: {look['id']}, Title: {look['title']}")
         task_id = create_render_task(access_token, look['id'])
         result_url = wait_for_render_task(access_token, task_id)
         download_image(access_token, result_url, look['title'], IMAGES_DIR)
-    '''
-    all_dashboards = 1864
-    task_id = create_render_dashboard_task(access_token, all_dashboards)
-    result_url = wait_for_render_task(access_token, task_id)
-    download_image(access_token, result_url, "dashboard", IMAGES_DIR)
-
 
 if __name__ == "__main__":
     main()
