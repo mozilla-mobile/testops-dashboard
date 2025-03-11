@@ -96,7 +96,7 @@ wiki_page:
       reports:
         - report-title: "Mobile Feature Requests"
           report-description: "All graphs in Dashboard"
-          attachment-filename: "404.png"
+          attachment-filename: "dashboard-mobile-feature-testing-requests.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1854"
           
         - report-title: "iOS Feature Requests"
@@ -108,4 +108,16 @@ wiki_page:
           report-description: "TBD"
           attachment-filename: "404.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1864"
+
+    - name: "Test Automation Coverage Dashboards"
+      reports:
+        - report-title: "Fenix Test Automation Coverage"
+          report-description: "All graphs in Dashboard"
+          attachment-filename: "dashboard-test-automation-coverage-fenix.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/562"
+          
+        - report-title: "iOS Test Automation Coverage"
+          report-description: "TBD"
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/601"
 
