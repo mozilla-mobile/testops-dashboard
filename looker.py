@@ -8,7 +8,7 @@ LOOKER_CLIENT_ID = os.environ['LOOKER_CLIENT_ID']
 LOOKER_SECRET = os.environ['LOOKER_SECRET']
 
 FOLDER_ID = 177
-IMAGES_DIR = "looker_images"
+IMAGES_DIR = "images"
 
 
 # Authenticate and Get Access Token
@@ -25,6 +25,17 @@ def get_looker_token():
 # Request a render task for the Look
 def create_render_task(access_token, look_id, image_format="png", width=400, height=200): # noqa
     url = f"{LOOKER_HOST}/api/4.0/render_tasks/looks/{look_id}/{image_format}?width={width}&height={height}" # noqa
+    headers = {"Authorization": f"Bearer {access_token}"}
+    payload = {"width": width, "height": height}
+
+    response = requests.post(url, headers=headers, json=payload)
+    response.raise_for_status()
+
+    return response.json()["id"]
+
+# Request a render task for the Dashboard
+def create_render_dashboard_task(access_token, dashboard_id, image_format="png", width=400, height=200): # noqa
+    url = f"{LOOKER_HOST}/api/4.0/render_tasks/dashboards/{dashboard_id}/{image_format}?width={width}&height={height}" # noqa
     headers = {"Authorization": f"Bearer {access_token}"}
     payload = {"width": width, "height": height}
 

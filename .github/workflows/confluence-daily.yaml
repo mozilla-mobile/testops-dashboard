@@ -2,8 +2,8 @@ name: Testops Confluence Update
 
 # Daily @2am UTC
 on:
-  # schedule:
-  #  - cron:  "0 2 * * *"
+  schedule:
+    - cron:  "0 2 * * *"
   workflow_dispatch:
     inputs:
       branchName:
@@ -39,7 +39,7 @@ jobs:
         run: |
             python3 ./looker.py
             ls
-            ls looker_images/
+            ls images/
 
-      #- name: Update Confluence Page
-      #  run: python3 ./api_confluence.py
+      - name: Update Confluence Page
+        run: python3 ./api_confluence.py
