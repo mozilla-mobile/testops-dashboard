@@ -117,5 +117,6 @@ def main():
         result_url = wait_for_render_task(access_token, task_id)
         download_image(access_token, result_url, look['title'], IMAGES_DIR)
 
+
 if __name__ == "__main__":
     main()
