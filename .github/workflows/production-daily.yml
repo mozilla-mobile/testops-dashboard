@@ -67,9 +67,7 @@ jobs:
         continue-on-error: true
       - name: Update DB - testrail milestones
         run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones
-      - name: Update Confluence page(s) 
-        run: python ./__main__.py --report-type confluence-updates 
-
+  
         continue-on-error: true
       - name: Set job log URL
         if: always()
