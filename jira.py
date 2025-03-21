@@ -1,17 +1,21 @@
 import os
 import sys
 
+from datetime import datetime
+
 import pandas as pd
 
 from lib.jira_conn import JiraAPIClient
 from database import (
     Database,
     ReportJiraQARequests,
-    ReportJiraQANeeded
+    ReportJiraQANeeded,
+    ReportJiraSoftvisionWorklogs
 )
 from utils.datetime_utils import DatetimeUtils as dt
 from utils.constants import FILTER_ID_ALL_REQUESTS_2022, MAX_RESULT
 from utils.constants import FILTER_ID_QA_NEEDED_iOS
+from utils.constants import QATT_FIELDS, FILTER_QATT
 
 # JQL query All QA Requests since 2022 filter_id: 13856
 # Extra fields needed
@@ -22,11 +26,19 @@ DEFAULT_COLUMNS = "id,key,status,created,summary,labels,assignee,"
 
 JQL_QUERY = 'jql=filter='
 
+WORKLOG_URL_TEMPLATE = f"issue/{{issue_key}}/worklog"
+
+JQL_CHILDREN = "filter=15948&jql=parent="
+
+SEARCH = "search"
+ISSUES = "issues"
+
 
 class Jira:
 
     def __init__(self):
         try:
+            # Change in github secrets: remove last part
             JIRA_HOST = os.environ['JIRA_HOST']
             self.client = JiraAPIClient(JIRA_HOST)
             self.client.user = os.environ['JIRA_USER']
@@ -38,22 +50,75 @@ class Jira:
 
     # API: Filters
     def filters(self):
-        query = JQL_QUERY + FILTER_ID_ALL_REQUESTS_2022 + '&fields=' \
+        query = SEARCH + '?' + JQL_QUERY + FILTER_ID_ALL_REQUESTS_2022 \
+                + '&fields=' \
                 + DEFAULT_COLUMNS + ',' + STORY_POINTS + ',' \
                 + FIREFOX_RELEASE_TRAIN + ',' \
                 + ENGINEERING_TEAM + '&' + MAX_RESULT
 
-        return self.client.get_search(query)
+        return self.client.get_search(query, data_type='issues')
 
     def filter_qa_needed(self):
-        query = JQL_QUERY + FILTER_ID_QA_NEEDED_iOS + '&' + MAX_RESULT
-        return self.client.get_search(query)
+        query = SEARCH + '?' + JQL_QUERY + FILTER_ID_QA_NEEDED_iOS \
+                + '&' + MAX_RESULT
+        return self.client.get_search(query, data_type='issues')
+
+    def filter_sv_parent_in_board(self):
+        query = SEARCH + '?' + JQL_QUERY + FILTER_QATT + '&' + QATT_FIELDS
+        return self.client.get_search(query, data_type='issues')
+
+    # API: Issues
+    def filter_child_issues(self, parent_key):
+        query = SEARCH + '?' + JQL_CHILDREN + parent_key
+        return self.client.get_search(query, data_type='issues')
+
+    # API: Worklogs
+    def filter_worklogs(self, issue_key):
+        query = WORKLOG_URL_TEMPLATE.format(issue_key=issue_key)
+        return self.client.get_search(query, data_type='worklogs')
 
 
 class JiraClient(Jira):
     def __init__(self):
         super().__init__()
         self.db = DatabaseJira()
+
+    def jira_softvision_worklogs(self):
+        worklog_data = []
+        issues = self.filter_sv_parent_in_board()
+        # parents = {issue["key"]: issue["fields"]["summary"] for issue in issues} # noqa
+
+        for issue in issues:
+            childs = self.filter_child_issues(issue["key"])
+
+            for child in childs:
+                child_key = child.get("key", "Unknown")
+                worklog = self.filter_worklogs(child_key)
+
+                for log in worklog:
+                    author = log["author"]["displayName"]
+                    time_spent = log["timeSpent"]
+                    time_spent_seconds = log["timeSpentSeconds"]
+                    started_raw = log["started"]
+
+                    # Safe handling of missing or empty comments
+                    comment = log.get("comment", "")
+                    if not isinstance(comment, str) or comment.strip() == "":
+                        comment = "No Comment"
+                    # Convert to readable format
+                    try:
+                        started_dt = datetime.strptime(started_raw[:19], "%Y-%m-%dT%H:%M:%S") # noqa
+                        started_str = started_dt.strftime("%Y-%m-%d %H:%M:%S")
+                    except Exception as e:
+                        print(f"Error parsing date {started_raw}: {e}")
+                        started_str = started_raw
+
+                    worklog_data.append([issue["key"], child_key, author, time_spent, time_spent_seconds, started_str, comment]) # noqa
+
+        # Create DataFrame
+        df = pd.DataFrame(worklog_data, columns=["parent_key", "child_key", "author", "time_spent", "time_seconds", "started_date", "comment"]) # noqa
+        print(df)
+        #self.db.report_jira_sv_worklogs_insert(df)
 
     def jira_qa_requests(self):
         payload = self.filters()
@@ -170,4 +235,16 @@ class DatabaseJira(Database):
                                     jira_qa_needed_verified_nightly=payload[2])
 
         self.session.add(report)
+        self.session.commit()
+
+    def report_jira_sv_worklogs_insert(self, payload):
+        for index, row in payload.iterrows():
+            report = ReportJiraSoftvisionWorklogs(parent_key=row['parent_key'],
+                                                  child_key=row['child_key'],
+                                                  author=row['author'],
+                                                  time_spent=row['time_spent'],
+                                                  time_spent_seconds=row['time_seconds'], # noqa
+                                                  started_date=row['started_date'], # noqa
+                                                  comment=row['comment'])
+            self.session.add(report)
         self.session.commit()
