@@ -36,6 +36,10 @@ REPORT_TYPES = [
     'jira-softvision-worklogs'
 ]
 
+# JQL query options
+SEARCH = "search"
+ISSUES = "issues"
+
 # JQL query All QA Requests since 2022 filter_id: 13856
 FILTER_ID_ALL_REQUESTS_2022 = "13856"
 MAX_RESULT = "maxResults=100"
@@ -44,8 +48,10 @@ MAX_RESULT = "maxResults=100"
 FILTER_ID_QA_NEEDED_iOS = "13789"
 
 # JQL Softvision Worklogs
-FILTER_QATT = "15948"
 QATT_FIELDS = "key,summary"
+QATT_BOARD = "15948"
+QATT_PARENT_TICKETS_IN_BOARD = f"filter={QATT_BOARD}&jql=parent="
+WORKLOG_URL_TEMPLATE = "issue/{issue_key}/worklog"
 
 # Bugzilla queries
 BUGZILLA_URL = "bugzilla.mozilla.org"

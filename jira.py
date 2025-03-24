@@ -15,8 +15,8 @@ from database import (
 from utils.datetime_utils import DatetimeUtils as dt
 from utils.constants import FILTER_ID_ALL_REQUESTS_2022, MAX_RESULT
 from utils.constants import FILTER_ID_QA_NEEDED_iOS
-from utils.constants import QATT_FIELDS, FILTER_QATT
-
+from utils.constants import QATT_FIELDS, QATT_BOARD, QATT_PARENT_TICKETS_IN_BOARD # noqa
+from utils.constants import SEARCH, WORKLOG_URL_TEMPLATE
 # JQL query All QA Requests since 2022 filter_id: 13856
 # Extra fields needed
 STORY_POINTS = "customfield_10037"
@@ -25,13 +25,6 @@ ENGINEERING_TEAM = "customfield_10134"
 DEFAULT_COLUMNS = "id,key,status,created,summary,labels,assignee,"
 
 JQL_QUERY = 'jql=filter='
-
-WORKLOG_URL_TEMPLATE = f"issue/{{issue_key}}/worklog"
-
-JQL_CHILDREN = "filter=15948&jql=parent="
-
-SEARCH = "search"
-ISSUES = "issues"
 
 
 class Jira:
@@ -64,12 +57,12 @@ class Jira:
         return self.client.get_search(query, data_type='issues')
 
     def filter_sv_parent_in_board(self):
-        query = SEARCH + '?' + JQL_QUERY + FILTER_QATT + '&' + QATT_FIELDS
+        query = SEARCH + '?' + JQL_QUERY + QATT_BOARD + '&' + QATT_FIELDS
         return self.client.get_search(query, data_type='issues')
 
     # API: Issues
     def filter_child_issues(self, parent_key):
-        query = SEARCH + '?' + JQL_CHILDREN + parent_key
+        query = SEARCH + '?' + QATT_PARENT_TICKETS_IN_BOARD + parent_key
         return self.client.get_search(query, data_type='issues')
 
     # API: Worklogs
@@ -86,12 +79,11 @@ class JiraClient(Jira):
     def jira_softvision_worklogs(self):
         worklog_data = []
         issues = self.filter_sv_parent_in_board()
-        # parents = {issue["key"]: issue["fields"]["summary"] for issue in issues} # noqa
 
         for issue in issues:
-            childs = self.filter_child_issues(issue["key"])
+            children = self.filter_child_issues(issue["key"])
 
-            for child in childs:
+            for child in children:
                 child_key = child.get("key", "Unknown")
                 worklog = self.filter_worklogs(child_key)
 
@@ -117,12 +109,11 @@ class JiraClient(Jira):
 
         # Create DataFrame
         df = pd.DataFrame(worklog_data, columns=["parent_key", "child_key", "author", "time_spent", "time_seconds", "started_date", "comment"]) # noqa
-        print(df)
-        #self.db.report_jira_sv_worklogs_insert(df)
+        self.db.jira_worklogs_delete()
+        self.db.report_jira_sv_worklogs_insert(df)
 
     def jira_qa_requests(self):
         payload = self.filters()
-        print("This is the payload returning from filter")
         print(payload)
 
         self.db.qa_requests_delete()
@@ -247,4 +238,8 @@ class DatabaseJira(Database):
                                                   started_date=row['started_date'], # noqa
                                                   comment=row['comment'])
             self.session.add(report)
+        self.session.commit()
+
+    def jira_worklogs_delete(self):
+        self.session.query(ReportJiraSoftvisionWorklogs).delete()
         self.session.commit()

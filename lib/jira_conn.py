@@ -60,7 +60,6 @@ class JiraAPIClient:
             # Extend the results
             all_results.extend(data[data_type])
 
-            # Print progress
             print(f"Retrieved {len(all_results)} of {data.get('total', 'unknown')} total {data_type}") # noqa
 
             # If we've retrieved all results, break the loop
