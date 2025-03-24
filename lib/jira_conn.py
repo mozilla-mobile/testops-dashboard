@@ -1,4 +1,3 @@
-
 """Jira API binding for Python 3.x
 
 Learn more:
@@ -20,7 +19,7 @@ class JiraAPIClient:
             base_url += '/'
         self.__url = base_url
 
-    def get_search(self, query):
+    def get_search(self, query, data_type):
         """Issue a GET request (read) against the API.
 
         Args:
@@ -30,42 +29,45 @@ class JiraAPIClient:
         Returns:
             JSON representation of the search results.
         """
-        return self.__send_request('GET', query)
+        return self.__send_request('GET', query, data_type)
 
-    def __send_request(self, method, query):
-        url = self.__url + '?' + query
+    def __send_request(self, method, query, data_type):
+
+        url = self.__url + query
         # Store all results
         all_results = []
-        params = {}
-
+        params = {"startAt": 0, "maxResults": 100}  # Set pagination params
         headers = {"Content-Type": "application/json"}
 
-        # Pagination variables
-        max_results = 100
-        total = None
-        params['startAt'] = 0
+        print(f"Fetching data from: {url}")
 
         while True:
             # Send GET request
             response = requests.get(
-                        url,
-                        headers=headers,
-                        auth=HTTPBasicAuth(self.user, self.password),
-                        params=params)
+                url,
+                headers=headers,
+                auth=HTTPBasicAuth(self.user, self.password),
+                params=params
+            )
 
             data = response.json()
 
-            all_results.extend(data['issues'])
-            if total is None:
-                total = data['total']
-
-            # Increment the startAt parameter
-            params['startAt'] += max_results
-
-            # Check if we've retrieved all results
-            if params['startAt'] >= total:
+            # Ensure the expected key exists in the response
+            if data_type not in data:
+                print(f"⚠️ Warning: {data_type} not found in response! Full response: {data}") # noqa
                 break
 
-        # Print the total number of issues retrieved
-        print(f"Total issues retrieved: {len(all_results)}")
+            # Extend the results
+            all_results.extend(data[data_type])
+
+            print(f"Retrieved {len(all_results)} of {data.get('total', 'unknown')} total {data_type}") # noqa
+
+            # If we've retrieved all results, break the loop
+            if params['startAt'] + params['maxResults'] >= data.get('total', 0): # noqa
+                break
+
+            # Increment the startAt parameter to get the next batch
+            params['startAt'] += params['maxResults']
+
+        print(f"✅ Total {data_type} retrieved: {len(all_results)}")
         return all_results
