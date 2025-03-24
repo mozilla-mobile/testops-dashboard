@@ -55,8 +55,9 @@ class ReportTestRailMilestones(Base):
     __table__ = Table('report_testrail_milestones', Base.metadata, autoload=True) # noqa
 
 
-class ReportSentryUnassignedIssues(Base):
-    __table__ = Table('report_sentry_unassigned_issues', Base.metadata, autoload=True) # noqa
+class ReportJiraSoftvisionWorklogs(Base):
+    __table__ = Table('report_jira_softvision_worklogs', Base.metadata, autoload=True) # noqa
+
 
 class Database:
 

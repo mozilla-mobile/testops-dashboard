@@ -121,11 +121,9 @@ def main():
     if args.report_type == 'bugzilla-qe-verify':
         h = BugzillaClient()
         h.bugzilla_qe_verify()
-    # python ./__main__.py --report-type sentry-crash-data
-    if args.report_type == 'sentry-crash-data':
-        print("Got Sentry?")
-        h = SentryClient()
-        h.sentry_top_unassigned_issues('136.2')
+    if args.report_type == 'jira-softvision-worklogs':
+        h = JiraClient()
+        h.jira_softvision_worklogs()
 
 
 if __name__ == '__main__':
