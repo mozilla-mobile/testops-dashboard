@@ -19,18 +19,10 @@ from utils.constants import JQL_QUERY, STORY_POINTS, FIREFOX_RELEASE_TRAIN, ENGI
 from utils.constants import FILTER_ID_QA_NEEDED_iOS
 from utils.constants import QATT_FIELDS, QATT_BOARD, QATT_PARENT_TICKETS_IN_BOARD # noqa
 from utils.constants import SEARCH, WORKLOG_URL_TEMPLATE
-# JQL query All QA Requests since 2022 filter_id: 13856
-# Extra fields needed
-STORY_POINTS = "customfield_10037"
-FIREFOX_RELEASE_TRAIN = "customfield_10155"
-ENGINEERING_TEAM = "customfield_10134"
-DEFAULT_COLUMNS = "id,key,status,created,summary,labels,assignee"
-DEFAULT_COLUMNS_ISSUE_TYPE = "id,key,status,created,summary,labels,assignee,issuetype,parent"
-TESTED_TRAINS = "customfield_11930"
 
+
+DEFAULT_COLUMNS_ISSUE_TYPE = "id,key,status,created,summary,labels,assignee,issuetype,parent" # noqa
 NEW_FILTER_ID = "14266"
-
-JQL_QUERY = 'jql=filter='
 
 
 class Jira:
@@ -57,9 +49,9 @@ class Jira:
         return self.client.get_search(query, data_type='issues')
 
     def filters_new_issue_type(self):
-        query = SEARCH + '?' + JQL_QUERY + FILTER_ID_NEW_ISSUE_TYPES + '&fields=' \
-                + DEFAULT_COLUMNS + COLUMNS_ISSUE_TYPE + ',' \
-                + STORY_POINTS + ',' \
+        query = SEARCH + '?' + JQL_QUERY + FILTER_ID_NEW_ISSUE_TYPES \
+                + '&fields=' + DEFAULT_COLUMNS \
+                + COLUMNS_ISSUE_TYPE + ',' + STORY_POINTS + ',' \
                 + FIREFOX_RELEASE_TRAIN + ',' + TESTED_TRAINS + ',' \
                 + ENGINEERING_TEAM + '&' + MAX_RESULT
 
