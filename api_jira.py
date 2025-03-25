@@ -63,13 +63,13 @@ class Jira:
         return self.client.get_search(query, data_type='issues')
 
     def filters_new_issue_type(self):
-        query = JQL_QUERY + FILTER_ID_NEW_ISSUE_TYPES + '&fields=' \
+        query = SEARCH + '?' + JQL_QUERY + FILTER_ID_NEW_ISSUE_TYPES + '&fields=' \
                 + DEFAULT_COLUMNS + COLUMNS_ISSUE_TYPE + ',' \
                 + STORY_POINTS + ',' \
                 + FIREFOX_RELEASE_TRAIN + ',' + TESTED_TRAINS + ',' \
                 + ENGINEERING_TEAM + '&' + MAX_RESULT
 
-        return self.client.get_search(query)
+        return self.client.get_search(query, data_type='issues')
 
     def filter_qa_needed(self):
         query = SEARCH + '?' + JQL_QUERY + FILTER_ID_QA_NEEDED_iOS \
