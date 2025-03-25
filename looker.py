@@ -23,7 +23,7 @@ def get_looker_token():
 
 
 # Request a render task for the Look
-def create_render_task(access_token, look_id, image_format="png", width=400, height=100): # noqa
+def create_render_task(access_token, look_id, image_format="png", width=400, height=400): # noqa
     url = f"{LOOKER_HOST}/api/4.0/render_tasks/looks/{look_id}/{image_format}?width={width}&height={height}" # noqa
     headers = {"Authorization": f"Bearer {access_token}"}
     payload = {"width": width, "height": height}
