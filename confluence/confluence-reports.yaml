@@ -90,7 +90,7 @@ wiki_page:
         - report-title: "Fenix"
           report-description: "Test Automation Coverage for Fenix Smoke"
           attachment-filename: "fenix-test-automation-coverage-smoke-pie-chart.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/dembed/looks/2740"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2740"
 
     - name: "Mobile Feature Requests Dashboards"
       reports:
@@ -98,12 +98,12 @@ wiki_page:
           report-description: "All graphs in Dashboard"
           attachment-filename: "dashboard-mobile-feature-testing-requests.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1854"
-          
+
         - report-title: "iOS Feature Requests"
           report-description: "TBD"
           attachment-filename: "404.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1846"
-          
+
         - report-title: "Android Feature Requests"
           report-description: "TBD"
           attachment-filename: "404.png"
@@ -115,9 +115,23 @@ wiki_page:
           report-description: "All graphs in Dashboard"
           attachment-filename: "dashboard-test-automation-coverage-fenix.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/562"
-          
+
         - report-title: "iOS Test Automation Coverage"
           report-description: "TBD"
           attachment-filename: "404.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/601"
+
+    - name: "Android UI Test Insights Dashboard"
+      reports:
+        - report-title: "Android UI Test Insights"
+          report-description: "All graphs in Dashboard"
+          attachment-filename: "dashboard-android-ui-test-insights.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/dashboards/1939"
+
+    - name: "Android CI Insights Dashboard"
+      reports:
+        - report-title: "Android CI Insights"
+          report-description: "All graphs in Dashboard"
+          attachment-filename: "dashboard-android-ci-insights.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/dashboards/2176"
 
