@@ -33,7 +33,7 @@ REPORT_TYPES = [
     'jira-softvision-worklogs',
     'bugzilla-qe-verify',
     'confluence-updates',
-    'github-issue-regression',
+    'sentry-crash-data',
 ]
 
 # JQL query options

@@ -1,10 +1,11 @@
 import argparse
 import sys
 
-from api_bugzilla import BugzillaClient
-from api_github import GithubClient
-from api_jira import JiraClient
-from api_testrail import TestRailClient
+from bugz import BugzillaClient
+from github import GithubClient
+from jira import JiraClient
+from testrail import TestRailClient
+from api_sentry import SentryClient
 import api_confluence
 from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
 
@@ -120,9 +121,11 @@ def main():
     if args.report_type == 'bugzilla-qe-verify':
         h = BugzillaClient()
         h.bugzilla_qe_verify()
-    if args.report_type == 'jira-softvision-worklogs':
-        h = JiraClient()
-        h.jira_softvision_worklogs()
+    # python ./__main__.py --report-type sentry-crash-data
+    if args.report_type == 'sentry-crash-data':
+        print("Got Sentry?")
+        h = SentryClient()
+        h.sentry_top_unassigned_issues('136.2')
 
 
 if __name__ == '__main__':
