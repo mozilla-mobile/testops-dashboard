@@ -30,7 +30,7 @@ REPORT_TYPES = [
     'testrail-milestones',
     'jira-qa-requests',
     'jira-qa-needed',
-    'jira-softvision-worklogs'
+    'jira-softvision-worklogs',
     'bugzilla-qe-verify',
     'confluence-updates',
     'github-issue-regression',
