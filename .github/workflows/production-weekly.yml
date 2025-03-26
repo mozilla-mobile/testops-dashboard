@@ -46,7 +46,7 @@ jobs:
       #  run: python ./__main__.py --report-type test-run-counts --project ALL --num-days 7
 
       - name: Update DB - test coverage 
-        run: python ./__main__.py --report-type test-case-coverage --platform mobile --project ALL 
+        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL 
 
       - name: Set job log URL
         if: always()
