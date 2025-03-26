@@ -1,10 +1,10 @@
 import argparse
 import sys
 
-from bugz import BugzillaClient
-from github import GithubClient
-from jira import JiraClient
-from testrail import TestRailClient
+from api_bugzilla import BugzillaClient
+from api_github import GithubClient
+from api_jira import JiraClient
+from api_testrail import TestRailClient
 import api_confluence
 from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
 
@@ -94,10 +94,10 @@ def main():
 
     if args.report_type == 'confluence-updates':
         api_confluence.main()
-    if args.report_type == 'test-case-coverage':
+    if args.report_type == 'testrail-test-case-coverage':
         h = TestRailClient()
         h.data_pump(arg_list)
-    if args.report_type == 'test-run-counts':
+    if args.report_type == 'testrail-test-run-counts':
         h = TestRailClient()
         if args.num_days:
             num_days = args.num_days
@@ -107,7 +107,7 @@ def main():
     if args.report_type == 'testrail-milestones':
         h = TestRailClient()
         h.testrail_milestones(arg_list)
-    if args.report_type == 'issue-regression':
+    if args.report_type == 'github-issue-regression':
         h = GithubClient()
         h.github_issue_regression(args.project)
         h = GithubClient()

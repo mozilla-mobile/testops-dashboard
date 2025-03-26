@@ -25,15 +25,15 @@ PROJECTS_MOBILE = [
 ]
 
 REPORT_TYPES = [
-    'test-case-coverage',
-    'test-run-counts',
-    'issue-regression',
+    'testrail-test-case-coverage',
+    'testrail-test-run-counts',
+    'testrail-milestones',
     'jira-qa-requests',
     'jira-qa-needed',
-    'bugzilla-qe-verify',
-    'testrail-milestones',
-    'confluence-updates',
     'jira-softvision-worklogs'
+    'bugzilla-qe-verify',
+    'confluence-updates',
+    'github-issue-regression',
 ]
 
 # JQL query options
