@@ -50,7 +50,7 @@ jobs:
             echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
 
       - name: Update DB - test runs
-        run: python ./__main__.py --report-type test-case-coverage --platform mobile --project ALL
+        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
 
       - name: Jira query qa-requests
         run: python ./__main__.py --report-type jira-qa-requests

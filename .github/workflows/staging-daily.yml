@@ -61,7 +61,7 @@ jobs:
         run: python ./__main__.py --report-type jira-softvision-worklogs
 
       #- name: Update DB - test runs 
-      #  run: python ./__main__.py --report-type test-run-counts --project fenix --start-date 2021-08-15 --end-date 2021-10-01 
+      #  run: python ./__main__.py --report-type testrail-test-run-counts --project fenix --start-date 2021-08-15 --end-date 2021-10-01 
 
       #- name: Update DB - test coverage 
-      #  run: python ./__main__.py --report-type test-case-coverage --project ALL 
+      #  run: python ./__main__.py --report-type testrail-test-case-coverage --project ALL 
