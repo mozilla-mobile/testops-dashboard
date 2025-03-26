@@ -55,6 +55,9 @@ class ReportTestRailMilestones(Base):
     __table__ = Table('report_testrail_milestones', Base.metadata, autoload=True) # noqa
 
 
+class ReportSentryUnassignedIssues(Base):
+    __table__ = Table('report_sentry_unassigned_issues', Base.metadata, autoload=True) # noqa
+
 class Database:
 
     def __init__(self):

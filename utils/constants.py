@@ -33,6 +33,7 @@ REPORT_TYPES = [
     'bugzilla-qe-verify',
     'testrail-milestones',
     'confluence-updates',
+    'sentry-crash-data',
 ]
 
 # JQL query All QA Requests since 2022 filter_id: 13856
