@@ -8,7 +8,7 @@ LOOKER_CLIENT_ID = os.environ['LOOKER_CLIENT_ID']
 LOOKER_SECRET = os.environ['LOOKER_SECRET']
 
 FOLDER_ID = 177
-IMAGES_DIR = "confluence/images"
+IMAGES_DIR = "config/confluence/images"
 
 
 # Authenticate and Get Access Token
