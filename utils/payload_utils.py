@@ -12,7 +12,7 @@ class PayloadUtils:
 
     def extract_testing_recommendation(description):
         if isinstance(description, str):  # Check if description is a string
-            match = re.search(r"QA_RECOMMENDATION:\s*\[([^\]]+)\]", description)
+            match = re.search(r"QA_RECOMMENDATION:\s*\[([^\]]+)\]", description) # noqa
             if match:
                 return match.group(1)
         return None  # Return No
