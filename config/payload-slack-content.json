@@ -7,7 +7,7 @@
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": ":looker: Looker Github Action :github: - Weekly Graphs Update",
+                        "text": ":looker: Looker Github Action :github: - ${{ env.WORKFLOW_NAME }}",
                         "emoji": true
                     }
                 },
