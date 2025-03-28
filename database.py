@@ -59,6 +59,10 @@ class ReportJiraSoftvisionWorklogs(Base):
     __table__ = Table('report_jira_softvision_worklogs', Base.metadata, autoload=True) # noqa
 
 
+class ReportBitriseBuildsCount(Base):
+    __table__ = Table('report_bitrise_builds_count', Base.metadata, autoload=True) # noqa
+
+
 class Database:
 
     def __init__(self):

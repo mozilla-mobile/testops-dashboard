@@ -34,6 +34,8 @@ REPORT_TYPES = [
     'bugzilla-qe-verify',
     'confluence-updates',
     'github-issue-regression',
+    'testrail-milestones',
+    'bitrise-builds'
 ]
 
 # JQL query options
