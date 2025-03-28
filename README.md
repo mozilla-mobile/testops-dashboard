@@ -75,9 +75,11 @@ Connected APIs
 * Testrail
 * Bugzilla
 * Confluence
+* Looker
+* Bitrise.io
 * Github - TBD
 * Taskcluster - TBD
-* Bitrise.io - TBD
+
 
 Database
 ---------------
