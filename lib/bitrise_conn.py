@@ -1,6 +1,3 @@
-import datetime
-import time
-
 import logging
 import requests
 
@@ -13,7 +10,9 @@ class BitriseAPIClient:
 
     def __init__(self, base_url):
         try:
-            self.API_HEADER = {'accept': 'application/json'}
+            self.token = ''
+            self.API_HEADER = {'accept': 'application/json',
+                               'Authorization': self.token}
             self.BITRISE_APP_SLUG = ''
             self.__url = base_url
 
@@ -56,14 +55,8 @@ class BitriseAPIClient:
             raise _logger.error('GET /apps/ {}'.format(resp.status_code))
         return resp.json()
 
-    def get_builds(self, BITRISE_APP_SLUG):
+    def get_builds(self, BITRISE_APP_SLUG, past_date_timestamp):
         url = self.__url
-        days_ago = 1
-        today = datetime.datetime.utcnow().date()
-        past_date = today - datetime.timedelta(days=days_ago)
-        print(past_date)
-        past_date_timestamp = int(time.mktime(past_date.timetuple()))
-        print(past_date_timestamp)
 
         # Change to BITRISE_HOST
         resp = \
@@ -73,3 +66,28 @@ class BitriseAPIClient:
         if resp.status_code != 200:
             raise _logger.error('GET /apps/ {}'.format(resp.status_code))
         return resp.json()
+
+    def get_builds_time(self, BITRISE_APP_SLUG, after):
+        builds_data = []
+        next_cursor = None  # Start without pagination cursor
+        base_url = f"https://api.bitrise.io/v0.1/apps/{self.BITRISE_APP_SLUG}/builds" # noqa
+
+        while True:
+            url = f"{base_url}?after={after}"
+            print(url)
+            if next_cursor:
+                url += f"&next={next_cursor}"
+
+            response = requests.get(url, headers=self.API_HEADER)
+            if response.status_code != 200:
+                print(f"Error fetching builds: {response.status_code}")
+                return builds_data
+
+            page_data = response.json().get("data", [])
+            builds_data.extend(page_data)
+
+            next_cursor = response.json().get("paging", {}).get("next")
+            if not next_cursor or next_cursor.lower() == "string":
+                break
+
+        return builds_data

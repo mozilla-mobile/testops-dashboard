@@ -58,6 +58,7 @@ class ReportTestRailMilestones(Base):
 class ReportJiraSoftvisionWorklogs(Base):
     __table__ = Table('report_jira_softvision_worklogs', Base.metadata, autoload=True) # noqa
 
+
 class ReportBitriseBuildsCount(Base):
     __table__ = Table('report_bitrise_builds_count', Base.metadata, autoload=True) # noqa
 

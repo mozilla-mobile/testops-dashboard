@@ -8,7 +8,7 @@ from api_jira import JiraClient
 from api_testrail import TestRailClient
 import api_confluence
 
-from bitrise import BitriseClient
+from api_bitrise import BitriseClient
 
 from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
 
@@ -129,7 +129,8 @@ def main():
         h.jira_softvision_worklogs()
     if args.report_type == 'bitrise-builds':
         h = BitriseClient()
-        h.builds_count()
+        # h.builds_daily_count()
+        h.builds_detailed_info()
 
 
 if __name__ == '__main__':
