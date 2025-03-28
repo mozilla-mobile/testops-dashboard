@@ -5,14 +5,14 @@ class PayloadUtils:
 
     def extract_testing_status(description):
         if isinstance(description, str):  # Check if description is a string
-            match = re.search(r"TESTING_STATUS: \[([^\]]+)\]", description)
+            match = re.search(r"TESTING_STATUS:\s*\[([A-Z]+)\]", description)
             if match:
                 return match.group(1)
         return None  # Return No
 
     def extract_testing_recommendation(description):
         if isinstance(description, str):  # Check if description is a string
-            match = re.search(r"QA_RECOMMENDATION: \[([^\]]+)\]", description)
+            match = re.search(r"QA_RECOMMENDATION:\s*\[([^\]]+)\]", description) # noqa
             if match:
                 return match.group(1)
         return None  # Return No
