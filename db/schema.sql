@@ -369,3 +369,24 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2025-03-24 16:53:33
+
+--
+-- Table structure for table `report_bitrise_builds_count`
+--
+
+DROP TABLE IF EXISTS `report_bitrise_builds_count`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_bitrise_builds_count` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `build_number` int NOT NULL,
+  `branch` varchar(250) DEFAULT NULL,
+  `status` int DEFAULT NULL,
+  `status_text` varchar(250) DEFAULT NULL,
+  `triggered_workflow` varchar(250) DEFAULT NULL,
+  `triggered_by` varchar(250) DEFAULT NULL,
+  `triggered_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
