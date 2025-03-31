@@ -69,6 +69,10 @@ jobs:
         run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones
   
         continue-on-error: true
+      - name: Update DB - bitrise builds
+        run: python3 ./__main__.py --report-type bitrise-builds
+
+        continue-on-error: true
       - name: Set job log URL
         if: always()
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV

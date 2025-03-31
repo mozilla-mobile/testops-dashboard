@@ -41,3 +41,8 @@ class DatetimeUtils:
 
         d = end_date - timedelta(days=n)
         return d.strftime(format_date)
+
+    def parse_iso_timestamp(ts):
+        if ts:
+            return datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        return None

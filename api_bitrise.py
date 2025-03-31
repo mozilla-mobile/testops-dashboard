@@ -1,13 +1,12 @@
-import time
 import sys
 import os
 
 import pandas as pd
-from datetime import datetime
 from datetime import timezone
 from sqlalchemy import func
 
 from lib.bitrise_conn import BitriseAPIClient
+from utils.datetime_utils import DatetimeUtils as dt
 from database import (
     Database,
     ReportBitriseBuildsCount
@@ -40,23 +39,9 @@ class BitriseClient(Bitrise):
         super().__init__()
         self.db = DatabaseBitrise()
 
-    def builds_daily_count(self):
-        days_ago = 1
-        today = datetime.datetime.utcnow().date()
-        past_date = today - datetime.timedelta(days=days_ago)
-        print(past_date)
-        past_date_timestamp = int(time.mktime(past_date.timetuple()))
-        print(past_date_timestamp)
-
-        # Pull JSON blob from Bitrise
-        # payload = self.builds(past_date_timestamp)
-
-        # data_frame = self.db.report_bitrise_builds_count(payload)
-        # self.db.report_bitrise_builds_count_insert(data_frame)
-
-    def builds_detailed_info(self):
+    def bitrise_builds_detailed_info(self):
         # Read latest timestamp from database
-        after = self.get_latest_build()
+        after = self.get_latest_build_from_database()
         print(after)
 
         # Query bitrise using after that date
@@ -68,7 +53,7 @@ class BitriseClient(Bitrise):
 
         self.db.report_bitrise_builds_info(payload_filtered)
 
-    def get_latest_build(self):
+    def get_latest_build_from_database(self):
         # Fetch latest triggered_at
         latest_ts = self.db.session.query(func.max(ReportBitriseBuildsCount.triggered_at)).scalar() # noqa
         print(latest_ts)
@@ -92,11 +77,6 @@ class DatabaseBitrise(Database):
         super().__init__()
         self.db = Database()
 
-    def parse_iso_timestamp(self, ts):
-        if ts:
-            return datetime.fromisoformat(ts.replace("Z", "+00:00"))
-        return None
-
     def report_bitrise_builds_info(self, payload):
         for index, row in payload.iterrows():
             report = ReportBitriseBuildsCount(
@@ -106,7 +86,7 @@ class DatabaseBitrise(Database):
                 status_text=row['status_text'],
                 triggered_workflow=row['triggered_workflow'],
                 triggered_by=row['triggered_by'],
-                triggered_at=self.parse_iso_timestamp(row['triggered_at'])
+                triggered_at=dt.parse_iso_timestamp(row['triggered_at'])
             )
             self.session.add(report)
             self.session.commit()
@@ -116,12 +96,4 @@ class DatabaseBitrise(Database):
         total_count = payload.get("paging", {}).get("total_item_count")
 
         data = [total_count]
-        print(data)
         return data
-
-    def report_bitrise_builds_count_insert(self, payload):
-        # report = ReportBitriseBuildsCount(total_builds=payload[0])
-
-        # self.session.add(report)
-        # self.session.commit()
-        return

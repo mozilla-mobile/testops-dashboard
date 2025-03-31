@@ -129,8 +129,7 @@ def main():
         h.jira_softvision_worklogs()
     if args.report_type == 'bitrise-builds':
         h = BitriseClient()
-        # h.builds_daily_count()
-        h.builds_detailed_info()
+        h.bitrise_builds_detailed_info()
 
 
 if __name__ == '__main__':
