@@ -81,23 +81,53 @@ class JiraClient(Jira):
         issues = self.filter_sv_parent_in_board()
 
         for issue in issues:
-            children = self.filter_child_issues(issue["key"])
+            parent_key = issue["key"]
+            children = self.filter_child_issues(parent_key)
 
+            # ---- Get worklogs for the parent itself ----
+            parent_worklogs = self.filter_worklogs(parent_key)
+            for log in parent_worklogs:
+                author = log["author"]["displayName"]
+                time_spent = log["timeSpent"]
+                time_spent_seconds = log["timeSpentSeconds"]
+                started_raw = log["started"]
+
+                comment = log.get("comment", "")
+                if not isinstance(comment, str) or comment.strip() == "":
+                    comment = "No Comment"
+
+                try:
+                    started_dt = datetime.strptime(started_raw[:19], "%Y-%m-%dT%H:%M:%S") # noqa
+                    started_str = started_dt.strftime("%Y-%m-%d %H:%M:%S")
+                except Exception as e:
+                    print(f"Error parsing date {started_raw}: {e}")
+                    started_str = started_raw
+
+                worklog_data.append([
+                    parent_key,  # parent_key
+                    None,        # child_key is None for parent logs
+                    author,
+                    time_spent,
+                    time_spent_seconds,
+                    started_str,
+                    comment
+                ])
+
+            # ---- Get worklogs for each child ----
             for child in children:
                 child_key = child.get("key", "Unknown")
-                worklog = self.filter_worklogs(child_key)
+                child_worklogs = self.filter_worklogs(child_key)
 
-                for log in worklog:
+                for log in child_worklogs:
                     author = log["author"]["displayName"]
                     time_spent = log["timeSpent"]
                     time_spent_seconds = log["timeSpentSeconds"]
                     started_raw = log["started"]
 
-                    # Safe handling of missing or empty comments
                     comment = log.get("comment", "")
                     if not isinstance(comment, str) or comment.strip() == "":
                         comment = "No Comment"
-                    # Convert to readable format
+
                     try:
                         started_dt = datetime.strptime(started_raw[:19], "%Y-%m-%dT%H:%M:%S") # noqa
                         started_str = started_dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -105,10 +135,20 @@ class JiraClient(Jira):
                         print(f"Error parsing date {started_raw}: {e}")
                         started_str = started_raw
 
-                    worklog_data.append([issue["key"], child_key, author, time_spent, time_spent_seconds, started_str, comment]) # noqa
+                    worklog_data.append([
+                        parent_key,
+                        child_key,
+                        author,
+                        time_spent,
+                        time_spent_seconds,
+                        started_str,
+                        comment
+                    ])
 
-        # Create DataFrame
-        df = pd.DataFrame(worklog_data, columns=["parent_key", "child_key", "author", "time_spent", "time_seconds", "started_date", "comment"]) # noqa
+        df = pd.DataFrame(worklog_data, columns=[
+            "parent_key", "child_key", "author", "time_spent", "time_seconds", "started_date", "comment" # noqa
+        ])
+
         self.db.jira_worklogs_delete()
         self.db.report_jira_sv_worklogs_insert(df)
 
