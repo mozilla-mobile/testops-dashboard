@@ -30,7 +30,7 @@ class Bitrise:
         return self.client.builds(self.client.BITRISE_APP_SLUG, past_date_timestamp) # noqa
 
     def builds_after_date(self, after):
-        return self.client.builds_after_time(self.client.BITRISE_APP_SLUG, after)
+        return self.client.builds_after_time(self.client.BITRISE_APP_SLUG, after) # noqa
 
 
 class BitriseClient(Bitrise):
