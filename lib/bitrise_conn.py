@@ -45,7 +45,7 @@ class BitriseAPIClient:
                 raise _logger.error('GET /apps/ {}'.format(resp.status_code))
             return resp.json()
 
-    def get_workflows(self, BITRISE_APP_SLUG):
+    def workflows(self, BITRISE_APP_SLUG):
         url = self.__url
         resp = \
             requests.get('{0}{1}'
@@ -55,19 +55,19 @@ class BitriseAPIClient:
             raise _logger.error('GET /apps/ {}'.format(resp.status_code))
         return resp.json()
 
-    def get_builds(self, BITRISE_APP_SLUG, past_date_timestamp):
+    def builds(self, BITRISE_APP_SLUG):
         url = self.__url
 
         # Change to BITRISE_HOST
         resp = \
             requests.get('{0}{1}'
-                         '/builds?after={2}'.format(url, BITRISE_APP_SLUG, past_date_timestamp), # noqa
+                         '/builds'.format(url, BITRISE_APP_SLUG), # noqa
                          headers=self.API_HEADER)
         if resp.status_code != 200:
             raise _logger.error('GET /apps/ {}'.format(resp.status_code))
         return resp.json()
 
-    def get_builds_time(self, BITRISE_APP_SLUG, after):
+    def builds_after_time(self, BITRISE_APP_SLUG, after):
         builds_data = []
         next_cursor = None  # Start without pagination cursor
         base_url = f"https://api.bitrise.io/v0.1/apps/{self.BITRISE_APP_SLUG}/builds" # noqa

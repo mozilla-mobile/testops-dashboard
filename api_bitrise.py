@@ -27,10 +27,10 @@ class Bitrise:
 
     # API: Builds
     def builds(self, past_date_timestamp):
-        return self.client.get_builds(self.client.BITRISE_APP_SLUG, past_date_timestamp) # noqa
+        return self.client.builds(self.client.BITRISE_APP_SLUG, past_date_timestamp) # noqa
 
-    def get_builds_range_date(self, after):
-        return self.client.get_builds_time(self.client.BITRISE_APP_SLUG, after)
+    def builds_after_date(self, after):
+        return self.client.builds_after_time(self.client.BITRISE_APP_SLUG, after)
 
 
 class BitriseClient(Bitrise):
@@ -41,11 +41,11 @@ class BitriseClient(Bitrise):
 
     def bitrise_builds_detailed_info(self):
         # Read latest timestamp from database
-        after = self.get_latest_build_from_database()
+        after = self.database_latest_build()
         print(after)
 
         # Query bitrise using after that date
-        data = self.get_builds_range_date(after)
+        data = self.builds_after_date(after)
 
         payload = pd.DataFrame(data, columns=["build_number", "branch", "status", "status_text", "triggered_workflow", "triggered_by", "triggered_at"]) # noqa
         payload_filtered = payload[payload["status_text"] != "in-progress"]
@@ -53,7 +53,7 @@ class BitriseClient(Bitrise):
 
         self.db.report_bitrise_builds_info(payload_filtered)
 
-    def get_latest_build_from_database(self):
+    def database_latest_build(self):
         # Fetch latest triggered_at
         latest_ts = self.db.session.query(func.max(ReportBitriseBuildsCount.triggered_at)).scalar() # noqa
         print(latest_ts)
