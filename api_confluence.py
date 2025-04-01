@@ -23,15 +23,20 @@ confluence = Confluence(
 )
 
 # PAGE_ID = "419954941"
-PAGE_ID = "1346961433"
-page_url = f"{BASE_URL}/content/{PAGE_ID}"
-YAML_FILE_PATH = "config/confluence/confluence-reports.yaml"
-IMAGE_PATH = "config/confluence/images"
+# PAGE_ID = "1346961433"
+
+#YAML_FILE_PATH = "config/confluence/confluence-reports.yaml"
+PATH_IMAGES = "config/confluence/images"
+PATH_YAML_FILES = "config/confluence"
 
 
-def image_attachments_delete():
+def page_url(page_id):
+    return f"{BASE_URL}/content/{page_id}"
+
+
+def image_attachments_delete(page_id):
     # get list of attachments for page
-    attachments_url = f"{BASE_URL}/content/{PAGE_ID}/child/attachment"
+    attachments_url = f"{BASE_URL}/content/{page_id}/child/attachment"
     response = requests.get(attachments_url, headers=headers, auth=auth)
 
     if response.status_code == 200:
@@ -51,9 +56,9 @@ def image_attachments_delete():
         print(f"Failed to fetch attachments: {response.status_code}, {response.text}") # noqa
 
 
-def image_attachments_list():
+def image_attachments_list(page_id):
     # fetch all attachments on page
-    response = requests.get(f"{BASE_URL}/content/{PAGE_ID}/child/attachment",
+    response = requests.get(f"{BASE_URL}/content/{page_id}/child/attachment",
                             auth=auth, headers=headers)
 
     if response.status_code == 200:
@@ -66,9 +71,9 @@ def image_attachments_list():
         print(response.text)
 
 
-def image_attachments_upload():
+def image_attachments_upload(page_id):
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    image_dir = os.path.join(script_dir, IMAGE_PATH)
+    image_dir = os.path.join(script_dir, PATH_IMAGES)
 
     # upload image files 1 by 1
     for filename in os.listdir(image_dir):
@@ -79,7 +84,7 @@ def image_attachments_upload():
             with open(file_path, "rb"):
                 response = confluence.attach_file(
                     filename=file_path,
-                    page_id=PAGE_ID
+                    page_id=page_id
                 )
 
             if response:
@@ -90,13 +95,17 @@ def image_attachments_upload():
     print("Upload process completed!")
 
 
-def page():
+def page(page_url):
+    """
+    give page url, returns page object as JSON 
+    """
     response = requests.get(page_url, auth=auth, headers=headers)
     if response.status_code != 200:
         print("Failed to retrieve the page")
         print(response.text)
         exit()
     return response.json()
+
 
 
 def table_row_write(report_title, report_description,
@@ -111,10 +120,14 @@ def table_row_write(report_title, report_description,
         """ # noqa
 
 
-def page_html(image_name):
+def page_html(image_name, page_id):
+    yaml_page_name = f"page-id-{page_id}.yaml"
+    yaml_page_path = f"{PATH_YAML_FILES}/{yaml_page_name}"
+    
     html_content = ""
 
-    with open(YAML_FILE_PATH, "r") as file:
+    #with open(YAML_FILE_PATH, "r") as file:
+    with open(yaml_page_path, "r") as file:
         config = yaml.safe_load(file)
 
     section = ""
@@ -136,10 +149,10 @@ def page_html(image_name):
     return html_content
 
 
-def page_payload(page_data, current_version, new_content):
+def page_payload(page_id, page_data, current_version, new_content):
     # Update the page with new content
     update_payload = {
-        "id": PAGE_ID,
+        "id": page_id,
         "type": "page",
         "title": page_data["title"],
         "space": {"key": page_data["space"]["key"]},
@@ -154,8 +167,8 @@ def page_payload(page_data, current_version, new_content):
     return update_payload
 
 
-def page_payload_write(update_payload):
-    update_url = f"{BASE_URL}/content/{PAGE_ID}"
+def page_payload_write(page_id, update_payload):
+    update_url = f"{BASE_URL}/content/{page_id}"
     headers.update({"Content-Type": "application/json"})
 
     update_response = requests.put(update_url, auth=auth, headers=headers,
@@ -168,16 +181,33 @@ def page_payload_write(update_payload):
         print(update_response.text)
 
 
+def pages():
+    """
+    iterates over confluence YAML files and generates pages 
+    """
+
+    # iterate over filenames in the PATH_YAML_FILES = "config/confluence"
+    # hardcoding 1 page for now
+    page_ids = ["1346961433"]
+
+    for page_id in page_ids:
+        url = page_url(page_id)
+        image_attachments_list(page_id)
+        image_attachments_delete(page_id)
+        image_attachments_list(page_id)
+
+        image_name = image_attachments_upload(page_id)
+        #print(url)
+        #import sys
+        page_data = page(url)
+        current_version = page_data["version"]["number"]
+        new_content = page_html(image_name, page_id)
+        payload = page_payload(page_id, page_data, current_version, new_content)
+        page_payload_write(page_id, payload)
+
+
 def main():
-    image_attachments_list()
-    image_attachments_delete()
-    image_attachments_list()
-    image_name = image_attachments_upload()
-    page_data = page()
-    current_version = page_data["version"]["number"]
-    new_content = page_html(image_name)
-    payload = page_payload(page_data, current_version, new_content)
-    page_payload_write(payload)
+    pages()
 
 
 if __name__ == "__main__":
