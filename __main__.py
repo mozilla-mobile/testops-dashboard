@@ -1,11 +1,15 @@
 import argparse
 import sys
 
+
 from api_bugzilla import BugzillaClient
 from api_github import GithubClient
 from api_jira import JiraClient
 from api_testrail import TestRailClient
 import api_confluence
+
+from api_bitrise import BitriseClient
+
 from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
 
 
@@ -123,6 +127,9 @@ def main():
     if args.report_type == 'jira-softvision-worklogs':
         h = JiraClient()
         h.jira_softvision_worklogs()
+    if args.report_type == 'bitrise-builds':
+        h = BitriseClient()
+        h.bitrise_builds_detailed_info()
 
 
 if __name__ == '__main__':
