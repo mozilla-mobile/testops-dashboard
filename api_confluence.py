@@ -7,7 +7,7 @@ from atlassian import Confluence
 import requests
 
 
-# Confluence env vars
+# Confluence ENV vars
 # URL_WIKI_REST_API = "https://your-confluence-instance.atlassian.net/wiki/rest/api"
 ATLASSIAN_API_TOKEN = os.environ['ATLASSIAN_API_TOKEN']
 ATLASSIAN_USERNAME = os.environ['ATLASSIAN_USERNAME']
@@ -16,14 +16,12 @@ URL_WIKI_REST_API = f"{ATLASSIAN_HOST}/wiki/rest/api"
 
 auth = (ATLASSIAN_USERNAME, ATLASSIAN_API_TOKEN)
 headers = {"Accept": "application/json"}
-# Confluence connection
 confluence = Confluence(
     url=ATLASSIAN_HOST,
     username=ATLASSIAN_USERNAME,
     password=ATLASSIAN_API_TOKEN
 )
 
-#YAML_FILE_PATH = "config/confluence/confluence-reports.yaml"
 PATH_IMAGES = "config/confluence/images"
 PATH_YAML_FILES = "config/confluence"
 
@@ -36,7 +34,6 @@ def url_attachments(page_id):
 
 def image_attachments_delete(page_id):
     # get list of attachments for page
-    # attachments_url = f"{URL_WIKI_REST_API}/content/{page_id}/child/attachment"
     url = url_attachments(page_id)
     response = requests.get(url, headers=headers, auth=auth)
 
@@ -58,7 +55,7 @@ def image_attachments_delete(page_id):
 
 
 def image_attachments_list(page_id):
-    # fetch all attachments on page
+    # fetch all page attachments
     url = url_attachments(page_id)
     response = requests.get(f"{url}", auth=auth, headers=headers)
 
@@ -126,17 +123,8 @@ def page_html(page_id, sections):
     yaml_page_path = f"{PATH_YAML_FILES}/{yaml_page_name}"
     
     html_content = ""
-    #TODO: this doesn't change the actual page title
-    #html_content += f"<h1>{page_title}</h1>"
-
-    """
-    #with open(YAML_FILE_PATH, "r") as file:
-    with open(yaml_page_path, "r") as file:
-        config = yaml.safe_load(file)
-    """
 
     section = ""
-    #for section in config["wiki_page"]["sections"]:
     for section in sections:
         print(f"Section: {section['name']}")
         rows = ""
@@ -191,24 +179,9 @@ def pages():
     """
     iterates over confluence YAML files and generates pages 
     """
-
-    # TODO: iterate over filenames in the PATH_YAML_FILES = "config/confluence"
-    # hardcoding 1 page for now
-    #page_ids = ["1346961433", "1436811681","1352925191"]
-    # we need to open config files here in a loop
-    # so we can pull out both page_id and page_name
-
-    """
-    directory = "/path/to/your/directory"
-
-    for filepath in glob.glob(f"{directory}/*.txt"):  # Only .txt files
-        with open(filepath, 'r', encoding='utf-8') as file:
-            content = file.read()
-            print(f"Contents of {filepath}:\n{content}\n")
-    """
     for filepath in glob.glob(f"{PATH_YAML_FILES}/*.yaml"):  # Only YAML files
-        #for page_id in page_ids:
         with open(filepath, 'r', encoding='utf-8') as file:
+            print(f"LOAD CONFIG FILE - {filepath}")
             config = yaml.safe_load(file)
 
             page_title = config["wiki_page"].get("page_title")
