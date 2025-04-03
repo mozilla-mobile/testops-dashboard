@@ -1,4 +1,5 @@
 import os
+import glob
 import sys
 import json
 import yaml
@@ -119,15 +120,21 @@ def table_row_write(report_title, report_description,
         """ # noqa
 
 
-def page_html(image_name, page_id):
+# def page_html(image_name, page_id):
+def page_html(config, page_id):
     yaml_page_name = f"page-id-{page_id}.yaml"
     yaml_page_path = f"{PATH_YAML_FILES}/{yaml_page_name}"
     
     html_content = ""
+    #TODO: this doesn't change the actual page title
+    page_title = config["wiki_page"].get("page_title")
+    #html_content += f"<h1>{page_title}</h1>"
 
+    """
     #with open(YAML_FILE_PATH, "r") as file:
     with open(yaml_page_path, "r") as file:
         config = yaml.safe_load(file)
+    """
 
     section = ""
     for section in config["wiki_page"]["sections"]:
@@ -187,23 +194,40 @@ def pages():
 
     # TODO: iterate over filenames in the PATH_YAML_FILES = "config/confluence"
     # hardcoding 1 page for now
-    page_ids = ["1346961433", "1436811681","1352925191"]
+    #page_ids = ["1346961433", "1436811681","1352925191"]
     # we need to open config files here in a loop
     # so we can pull out both page_id and page_name
 
-    for page_id in page_ids:
-        url = url_page(page_id)
+    """
+    directory = "/path/to/your/directory"
 
-        image_attachments_list(page_id)
-        image_attachments_delete(page_id)
-        image_attachments_list(page_id)
-        image_name = image_attachments_upload(page_id)
+    for filepath in glob.glob(f"{directory}/*.txt"):  # Only .txt files
+        with open(filepath, 'r', encoding='utf-8') as file:
+            content = file.read()
+            print(f"Contents of {filepath}:\n{content}\n")
+    """
+    for filepath in glob.glob(f"{PATH_YAML_FILES}/*.yaml"):  # Only YAML files
+        #for page_id in page_ids:
+        with open(filepath, 'r', encoding='utf-8') as file:
+            config = yaml.safe_load(file)
 
-        page_data = page_object(url)
-        current_version = page_data["version"]["number"]
-        new_content = page_html(image_name, page_id)
-        payload = page_payload(page_id, page_data, current_version, new_content)
-        page_payload_write(page_id, payload)
+            page_title = config["wiki_page"].get("page_title")
+            page_id = config["wiki_page"].get("page_id")
+
+            url = url_page(page_id)
+
+            print(f"PROCESS ATTACHMENTS - page_id: {page_id}")
+            image_attachments_list(page_id)
+            image_attachments_delete(page_id)
+            image_attachments_list(page_id)
+            image_attachments_upload(page_id)
+
+            print(f"UPDATE PAGE - page_id: {page_id}")
+            page_data = page_object(url)
+            current_version = page_data["version"]["number"]
+            new_content = page_html(config, page_id)
+            payload = page_payload(page_id, page_data, current_version, new_content)
+            page_payload_write(page_id, payload)
 
 
 def main():
