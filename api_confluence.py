@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import yaml
 from atlassian import Confluence
@@ -6,38 +7,37 @@ import requests
 
 
 # Confluence env vars
-# BASE_URL = "https://your-confluence-instance.atlassian.net/wiki/rest/api"
+# URL_WIKI_REST_API = "https://your-confluence-instance.atlassian.net/wiki/rest/api"
 ATLASSIAN_API_TOKEN = os.environ['ATLASSIAN_API_TOKEN']
 ATLASSIAN_USERNAME = os.environ['ATLASSIAN_USERNAME']
-ATLASSIAN_HOST = os.environ['ATLASSIAN_HOST']
+ATLASSIAN_HOST = f"https://{os.environ['ATLASSIAN_HOST']}"
+URL_WIKI_REST_API = f"{ATLASSIAN_HOST}/wiki/rest/api"
 
-BASE_URL = f"https://{ATLASSIAN_HOST}/wiki/rest/api"
 auth = (ATLASSIAN_USERNAME, ATLASSIAN_API_TOKEN)
 headers = {"Accept": "application/json"}
 # Confluence connection
-ATLASSIAN_HOST = f"https://{ATLASSIAN_HOST}"
 confluence = Confluence(
     url=ATLASSIAN_HOST,
     username=ATLASSIAN_USERNAME,
     password=ATLASSIAN_API_TOKEN
 )
 
-# PAGE_ID = "419954941"
-# PAGE_ID = "1346961433"
-
 #YAML_FILE_PATH = "config/confluence/confluence-reports.yaml"
 PATH_IMAGES = "config/confluence/images"
 PATH_YAML_FILES = "config/confluence"
 
 
-def page_url(page_id):
-    return f"{BASE_URL}/content/{page_id}"
+def url_page(page_id):
+    return f"{URL_WIKI_REST_API}/content/{page_id}"
 
+def url_attachments(page_id):
+    return f"{URL_WIKI_REST_API}/content/{page_id}/child/attachment"
 
 def image_attachments_delete(page_id):
     # get list of attachments for page
-    attachments_url = f"{BASE_URL}/content/{page_id}/child/attachment"
-    response = requests.get(attachments_url, headers=headers, auth=auth)
+    # attachments_url = f"{URL_WIKI_REST_API}/content/{page_id}/child/attachment"
+    url = url_attachments(page_id)
+    response = requests.get(url, headers=headers, auth=auth)
 
     if response.status_code == 200:
         attachments = response.json()['results']
@@ -45,7 +45,7 @@ def image_attachments_delete(page_id):
         # delete each attachment
         for attachment in attachments:
             attachment_id = attachment['id']
-            delete_url = f"{BASE_URL}/content/{attachment_id}"
+            delete_url = f"{URL_WIKI_REST_API}/content/{attachment_id}"
 
             delete_response = requests.delete(delete_url, headers=headers, auth=auth) # noqa
             if delete_response.status_code == 204:
@@ -58,8 +58,8 @@ def image_attachments_delete(page_id):
 
 def image_attachments_list(page_id):
     # fetch all attachments on page
-    response = requests.get(f"{BASE_URL}/content/{page_id}/child/attachment",
-                            auth=auth, headers=headers)
+    url = url_attachments(page_id)
+    response = requests.get(f"{url}", auth=auth, headers=headers)
 
     if response.status_code == 200:
         attachments = response.json()["results"]
@@ -95,7 +95,7 @@ def image_attachments_upload(page_id):
     print("Upload process completed!")
 
 
-def page(page_url):
+def page_object(page_url):
     """
     give page url, returns page object as JSON 
     """
@@ -105,7 +105,6 @@ def page(page_url):
         print(response.text)
         exit()
     return response.json()
-
 
 
 def table_row_write(report_title, report_description,
@@ -168,7 +167,7 @@ def page_payload(page_id, page_data, current_version, new_content):
 
 
 def page_payload_write(page_id, update_payload):
-    update_url = f"{BASE_URL}/content/{page_id}"
+    update_url = f"{URL_WIKI_REST_API}/content/{page_id}"
     headers.update({"Content-Type": "application/json"})
 
     update_response = requests.put(update_url, auth=auth, headers=headers,
@@ -186,20 +185,21 @@ def pages():
     iterates over confluence YAML files and generates pages 
     """
 
-    # iterate over filenames in the PATH_YAML_FILES = "config/confluence"
+    # TODO: iterate over filenames in the PATH_YAML_FILES = "config/confluence"
     # hardcoding 1 page for now
-    page_ids = ["1346961433"]
+    page_ids = ["1346961433", "1436811681","1352925191"]
+    # we need to open config files here in a loop
+    # so we can pull out both page_id and page_name
 
     for page_id in page_ids:
-        url = page_url(page_id)
+        url = url_page(page_id)
+
         image_attachments_list(page_id)
         image_attachments_delete(page_id)
         image_attachments_list(page_id)
-
         image_name = image_attachments_upload(page_id)
-        #print(url)
-        #import sys
-        page_data = page(url)
+
+        page_data = page_object(url)
         current_version = page_data["version"]["number"]
         new_content = page_html(image_name, page_id)
         payload = page_payload(page_id, page_data, current_version, new_content)
