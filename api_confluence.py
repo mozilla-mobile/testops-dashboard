@@ -121,13 +121,12 @@ def table_row_write(report_title, report_description,
 
 
 # def page_html(image_name, page_id):
-def page_html(config, page_id):
+def page_html(page_id, sections):
     yaml_page_name = f"page-id-{page_id}.yaml"
     yaml_page_path = f"{PATH_YAML_FILES}/{yaml_page_name}"
     
     html_content = ""
     #TODO: this doesn't change the actual page title
-    page_title = config["wiki_page"].get("page_title")
     #html_content += f"<h1>{page_title}</h1>"
 
     """
@@ -137,7 +136,8 @@ def page_html(config, page_id):
     """
 
     section = ""
-    for section in config["wiki_page"]["sections"]:
+    #for section in config["wiki_page"]["sections"]:
+    for section in sections:
         print(f"Section: {section['name']}")
         rows = ""
         for report in section["reports"]:
@@ -155,12 +155,12 @@ def page_html(config, page_id):
     return html_content
 
 
-def page_payload(page_id, page_data, current_version, new_content):
+def page_payload(page_id, page_title, page_data, current_version, new_content):
     # Update the page with new content
     update_payload = {
         "id": page_id,
         "type": "page",
-        "title": page_data["title"],
+        "title": page_title,
         "space": {"key": page_data["space"]["key"]},
         "body": {
             "storage": {
@@ -213,6 +213,7 @@ def pages():
 
             page_title = config["wiki_page"].get("page_title")
             page_id = config["wiki_page"].get("page_id")
+            page_sections = config["wiki_page"]["sections"]
 
             url = url_page(page_id)
 
@@ -225,8 +226,8 @@ def pages():
             print(f"UPDATE PAGE - page_id: {page_id}")
             page_data = page_object(url)
             current_version = page_data["version"]["number"]
-            new_content = page_html(config, page_id)
-            payload = page_payload(page_id, page_data, current_version, new_content)
+            new_content = page_html(page_id, page_sections)
+            payload = page_payload(page_id, page_title, page_data, current_version, new_content)
             page_payload_write(page_id, payload)
 
 
