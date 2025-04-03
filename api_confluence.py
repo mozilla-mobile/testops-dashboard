@@ -119,7 +119,7 @@ def table_row_write(report_title, report_description,
 
 # def page_html(image_name, page_id):
 def page_html(page_id, sections):
-    
+
     html_content = ""
 
     section = ""
@@ -198,7 +198,7 @@ def pages():
             page_data = page_object(url)
             current_version = page_data["version"]["number"]
             new_content = page_html(page_id, page_sections)
-            payload = page_payload(page_id, page_title, page_data, 
+            payload = page_payload(page_id, page_title, page_data,
                                    current_version, new_content)
             page_payload_write(page_id, payload)
 
