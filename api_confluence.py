@@ -1,6 +1,5 @@
 import os
 import glob
-import sys
 import json
 import yaml
 from atlassian import Confluence
@@ -8,7 +7,6 @@ import requests
 
 
 # Confluence ENV vars
-# URL_WIKI_REST_API = "https://your-confluence-instance.atlassian.net/wiki/rest/api"
 ATLASSIAN_API_TOKEN = os.environ['ATLASSIAN_API_TOKEN']
 ATLASSIAN_USERNAME = os.environ['ATLASSIAN_USERNAME']
 ATLASSIAN_HOST = f"https://{os.environ['ATLASSIAN_HOST']}"
@@ -29,8 +27,10 @@ PATH_YAML_FILES = "config/confluence"
 def url_page(page_id):
     return f"{URL_WIKI_REST_API}/content/{page_id}"
 
+
 def url_attachments(page_id):
     return f"{URL_WIKI_REST_API}/content/{page_id}/child/attachment"
+
 
 def image_attachments_delete(page_id):
     # get list of attachments for page
@@ -95,7 +95,7 @@ def image_attachments_upload(page_id):
 
 def page_object(page_url):
     """
-    give page url, returns page object as JSON 
+    give page url, returns page object as JSON
     """
     response = requests.get(page_url, auth=auth, headers=headers)
     if response.status_code != 200:
@@ -119,8 +119,6 @@ def table_row_write(report_title, report_description,
 
 # def page_html(image_name, page_id):
 def page_html(page_id, sections):
-    yaml_page_name = f"page-id-{page_id}.yaml"
-    yaml_page_path = f"{PATH_YAML_FILES}/{yaml_page_name}"
     
     html_content = ""
 
@@ -177,7 +175,7 @@ def page_payload_write(page_id, update_payload):
 
 def pages():
     """
-    iterates over confluence YAML files and generates pages 
+    iterates over confluence YAML files and generates pages
     """
     for filepath in glob.glob(f"{PATH_YAML_FILES}/*.yaml"):  # Only YAML files
         with open(filepath, 'r', encoding='utf-8') as file:
@@ -200,7 +198,8 @@ def pages():
             page_data = page_object(url)
             current_version = page_data["version"]["number"]
             new_content = page_html(page_id, page_sections)
-            payload = page_payload(page_id, page_title, page_data, current_version, new_content)
+            payload = page_payload(page_id, page_title, page_data, 
+                                   current_version, new_content)
             page_payload_write(page_id, payload)
 
 
