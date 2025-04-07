@@ -42,18 +42,15 @@ class Sentry:
     # API: Issues
     # Question: Should we just get all issues, whether they are for_review or not?
     # Question: What should we use as a limit? 100? 50? 10? 5?
-    # https://sentry.io/api/0/projects/mozilla/issues/?limit=10&query=is:for_review&sort=freq&statsPeriod=7d
-    def issues(self, num_issues=10):
+    # TODO: Query everyday. Only the unassigned issues past day.
+    # TODO: num_issues does not make sense. What would be the max issues in the past 24 hours?
+    # TODO: Does Sentry cap us? Not doing pagination if we don't need.
+    # TODO: 
+    # https://sentry.io/api/0/projects/mozilla/issues/?limit=10&query=is:for_review&sort=freq&statsPeriod=1d
+    def issues(self):
         return self.client.get(
-            '{0}/issues/?limit={1}&project={2}&query=is:for_review&sort=freq&statsPeriod=7d'
-            .format(self.project_slug, num_issues, self.project_id)
-        )
-        
-    # API: Releases
-    # todo: need pagination
-    def releases(self, per_page=10):
-        return self.client.get(
-            '{0}/releases/?per_page={1}&project={2}&statsPeriod=7d'.format(self.project_slug, per_page, self.project_id)
+            '{0}/issues/?project={1}&query=is:for_review&sort=freq&statsPeriod=1d'
+            .format(self.project_slug, self.project_id)
         )
     
 class SentryClient(Sentry):
@@ -69,42 +66,25 @@ class SentryClient(Sentry):
         # TODO: Insert new issues
         # TODO: How to test data_pump()?
         print("SentryClient.data_pump()")
-        pass
-    
-    # TODO: Should just be "issues" instead of "top_unassigned_issues"
-    def sentry_top_unassigned_issues(self, release):
-        print("SentryClient.sentry_top_unassigned_issues()")
-        # Get JSON from Sentry
-        # TODO: Query all releases
-        top_unassigned_issues = self.top_unassigned_issues(release)
-        # Get the following fields: title, permalink
-        print(json.dumps(top_unassigned_issues, indent=2)) 
-        # TODO: Format data
-        # TODO: Insert data into DB
-        
-    def sentry_releases(self):
-        print("SentryClient.sentry_release()")
-        releases = self.releases()
-        versions = []
-        for release in releases:
-            versions.append(release.get("versionInfo").get("version").get("raw"))
-        print(versions)
-        
+        pass 
         
     def sentry_issues(self):
         print("SentryClient.sentry_issues()")
-        issues = self.issues(20)
+        issues = self.issues()
 
         # Insert selected fields from the json blob to pandas 
-        # using the "id" as the index
         issues_all = pd.DataFrame()
-        selected_columns = ["id", "title", "permalink", "assignedTo", "lastSeen"]
+        # TODO: Determin the list of columns to select
+        # selected_columns = ["id", "title", "permalink", "lastSeen"]
         issues_all = pd.json_normalize(issues)
-        selected_issues = issues_all[selected_columns]
-        issues_all.set_index('id', inplace=True)
+        print(issues_all.columns)
+        issues_all.rename(columns={
+            "id": "sentry_id",
+        }, inplace=True)
+        # selected_issues = issues_all[selected_columns]
+        # issues_all.set_index('sentry_id', inplace=True)
 
-        # TODO: no transformation needed?
-        print(issues_all[["title", "permalink"]])
+        issues_all.to_csv("sentry_issues.csv", index=False)
         
 class DatabaseSentry():
     
