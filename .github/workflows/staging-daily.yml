@@ -59,11 +59,11 @@ jobs:
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
 
-      #- name: Jira query
-      #  run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
+      - name: Jira query
+        run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
 
-      #- name: Jira query
-      #  run: python ./__main__.py --report-type jira-softvision-worklogs
+      - name: Jira query
+        run: python ./__main__.py --report-type jira-softvision-worklogs
 
       - name: Sentry query
         run: python __main__.py --report-type sentry-top-issues 
