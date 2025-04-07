@@ -63,7 +63,7 @@ jobs:
       - name: Sentry query
         run: python __main__.py --report-type sentry-top-issues 
       - name: Upload Sentry result
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sentry_issues.csv
           path: ./sentry_issues.csv
