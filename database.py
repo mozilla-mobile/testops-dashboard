@@ -62,6 +62,7 @@ class ReportJiraSoftvisionWorklogs(Base):
 class ReportSentryTopUnassignedIssues(Base):
     __table__ = Table('report_sentry_issues', Base.metadata, autoload=True) # noqa
 
+
 class Database:
 
     def __init__(self):

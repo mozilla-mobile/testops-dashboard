@@ -1,11 +1,11 @@
 import argparse
 import sys
 
-# from api_bugzilla import BugzillaClient
-# from api_github import GithubClient
-# from api_jira import JiraClient
-# from api_testrail import TestRailClient
-# import api_confluence
+from api_bugzilla import BugzillaClient
+from api_github import GithubClient
+from api_jira import JiraClient
+from api_testrail import TestRailClient
+import api_confluence
 from api_sentry import SentryClient
 from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
 
@@ -124,11 +124,9 @@ def main():
     if args.report_type == 'jira-softvision-worklogs':
         h = JiraClient()
         h.jira_softvision_worklogs()
-    # python __main__.py --report-type sentry-top-issue
     if args.report_type == 'sentry-top-issues':
         h = SentryClient()
         h.sentry_issues()
-        #h.sentry_releases()
 
 
 if __name__ == '__main__':
