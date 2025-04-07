@@ -8,14 +8,10 @@ import pandas as pd
 
 from lib.sentry_conn import APIClient
 
-# TODO: Find out the env vars before importing database
-#   CLOUD_SQL_DATABASE_USERNAME
-#   CLOUD_SQL_DATABASE_PASSWORD
-#   CLOUD_SQL_DATABASE_NAME
-# I have tried 1Password vault. Also searched 1Password.
+# TODO: Database
 # from database import (
 #    Database,
-#    ReportSentryTopUnassignedIssues
+#    ReportSentryIssues
 # )
 
 
@@ -36,7 +32,6 @@ class Sentry:
     # API: Issues
     # Question: Should we just the for_review issues?
     # TODO: Query everyday. Only the unassigned issues past day.
-    # TODO:
     # /issues/?limit=10&query=is:for_review&sort=freq&statsPeriod=1d
     def issues(self):
         return self.client.get(
@@ -69,13 +64,11 @@ class SentryClient(Sentry):
         # Insert selected fields from the json blob to pandas
         issues_all = pd.DataFrame()
         # TODO: Determin the list of columns to select
-        # selected_columns = ["id", "title", "permalink", "lastSeen"]
         issues_all = pd.json_normalize(issues)
         print(issues_all.columns)
         issues_all.rename(columns={
             "id": "sentry_id",
         }, inplace=True)
-        # selected_issues = issues_all[selected_columns]
         # issues_all.set_index('sentry_id', inplace=True)
 
         issues_all.to_csv("sentry_issues.csv", index=False)
@@ -92,8 +85,6 @@ class DatabaseSentry():
     # TODO: Wipe database
     # NOTE:
     # * self.session is from class Database
-    # Questions:
-    # *
     def issues_delete(self):
         print("DatabaseSentry.issue_delete()")
         pass
