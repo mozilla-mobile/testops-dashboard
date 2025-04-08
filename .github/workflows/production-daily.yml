@@ -72,6 +72,10 @@ jobs:
         run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones
   
         continue-on-error: true
+      - name: Jira Softvision Worklogs
+        run: python ./__main__.py --report-type jira-softvision-worklogs
+
+        continue-on-error: true
       - name: Update DB - bitrise builds
         run: python3 ./__main__.py --report-type bitrise-builds
 
