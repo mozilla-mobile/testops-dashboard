@@ -1,6 +1,6 @@
 import pandas as pd
 
-from utils.constants import PRODUCTS, FIELDS
+from constants import PRODUCTS, FIELDS
 from lib.bugzilla_conn import BugzillaAPIClient
 
 from database import (

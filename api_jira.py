@@ -13,10 +13,10 @@ from database import (
     ReportJiraSoftvisionWorklogs
 )
 from utils.datetime_utils import DatetimeUtils as dt
-from utils.constants import FILTER_ID_ALL_REQUESTS_2022, MAX_RESULT
-from utils.constants import FILTER_ID_QA_NEEDED_iOS
-from utils.constants import QATT_FIELDS, QATT_BOARD, QATT_PARENT_TICKETS_IN_BOARD # noqa
-from utils.constants import SEARCH, WORKLOG_URL_TEMPLATE
+from constants import FILTER_ID_ALL_REQUESTS_2022, MAX_RESULT
+from constants import FILTER_ID_QA_NEEDED_iOS
+from constants import QATT_FIELDS, QATT_BOARD, QATT_PARENT_TICKETS_IN_BOARD # noqa
+from constants import SEARCH, WORKLOG_URL_TEMPLATE
 # JQL query All QA Requests since 2022 filter_id: 13856
 # Extra fields needed
 STORY_POINTS = "customfield_10037"

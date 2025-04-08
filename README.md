@@ -86,3 +86,40 @@ Database
 
 Data is aggregated / cached in a Cloud SQL database.  Data queries are constructed using BigQuery views.
 
+Interactive sessions with Cloud SQL can be conducted using the following helper scripts in the db/ directory.
+* db
+* run-proxy
+
+This will require setting the following 4 environment variables.
+- `GCLOUD_AUTH`
+- `CLOUD_SQL_CONNECTION_NAME`
+- `CLOUD_SQL_DATABASE_PORT`
+- `CLOUD_SQL_DATABASE_USERNAME`
+- `CLOUD_SQL_DATABASE_PASSWORD`
+- `CLOUD_SQL_DATABASE_NAME`
+
+You will then need to download the Cloud SQL Auth Proxy appropriate for your OS into the db/ directory:
+https://cloud.google.com/sql/docs/mysql/connect-auth-proxy#install
+
+Open a terminal tab and run `run-proxy`
+Open another terminal tab and run `./db -h`to view the options menu of the helper script:
+
+<pre>
+```bash
+==============================
+Cloud SQL DB
+==============================
+
+
+Syntax: db [--help|--sql|--copy-db|--import|--dump|--dump-data|*]
+
+options:
+--sql           Run SQL command, then quit.   Ex: db -s 'SHOW DATABASES'
+--copy-db       Copy database to new          Ex. db -c <source-db> <target-db>
+--import        Import SQL data file          Ex. db -i <input.sql>
+--dump          Dump SQL schema + data file   Ex. db -d <source-db>
+--dump-data     Dump SQL data file            Ex. db -d <source-db>
+--migrate-data  Migrate SQL data file         Ex. db -d <source-db> <target-db>
+*               Open mysql CLI client         Ex. db
+
+</pre>

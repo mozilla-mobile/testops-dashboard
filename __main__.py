@@ -10,7 +10,7 @@ import api_confluence
 
 from api_bitrise import BitriseClient
 
-from utils.constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
+from constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
 
 
 def parse_args(cmdln_args):
@@ -26,7 +26,7 @@ def parse_args(cmdln_args):
 
     parser.add_argument(
         "--platform",
-        help="Select the platform Mobile, Ecosystem or Desktop",
+        help="Select the platform: Mobile, Ecosystem or Desktop",
         required=False,
         choices=PLATFORMS,
         )

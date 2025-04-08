@@ -1,41 +1,42 @@
 PLATFORMS = [
-    'mobile',
+    'desktop',
     'ecosystem',
-    'desktop'
+    'mobile',
 ]
 
 PROJECTS_ECOSYSTEM = [
     'experimenter',
     'nimbus',
-    'ALL'
+    'ALL',
 ]
 
 PROJECTS_DESKTOP = [
     'firefox-desktop',
-    'ALL'
+    'ALL',
 ]
 
 PROJECTS_MOBILE = [
     'fenix',
-    'focus-android',
-    'reference-browser',
     'firefox-ios',
+    'focus-android',
     'focus-ios',
+    'reference-browser',
     'ALL',
 ]
 
 REPORT_TYPES = [
-    'testrail-test-case-coverage',
-    'testrail-test-run-counts',
-    'testrail-milestones',
-    'jira-qa-requests',
-    'jira-qa-needed',
-    'jira-softvision-worklogs',
+    'bitrise-builds',
     'bugzilla-qe-verify',
     'confluence-updates',
+    'confluence-new-page',
     'github-issue-regression',
+    'jira-qa-needed',
+    'jira-qa-requests',
+    'jira-softvision-worklogs',
     'testrail-milestones',
-    'bitrise-builds'
+    'testrail-milestones',
+    'testrail-test-case-coverage',
+    'testrail-test-run-counts',
 ]
 
 # JQL query options
