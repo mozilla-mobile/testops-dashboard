@@ -51,6 +51,9 @@ jobs:
             echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
             echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
             echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+            echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
+            echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
+            echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
 
       - name: Jira query
         run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
@@ -68,6 +71,10 @@ jobs:
       - name: Update DB - testrail milestones
         run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones
   
+        continue-on-error: true
+      - name: Jira Softvision Worklogs
+        run: python ./__main__.py --report-type jira-softvision-worklogs
+
         continue-on-error: true
       - name: Update DB - bitrise builds
         run: python3 ./__main__.py --report-type bitrise-builds
