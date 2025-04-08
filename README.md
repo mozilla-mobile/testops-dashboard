@@ -101,8 +101,9 @@ This will require setting the following 4 environment variables.
 You will then need to download the Cloud SQL Auth Proxy appropriate for your OS into the db/ directory:
 https://cloud.google.com/sql/docs/mysql/connect-auth-proxy#install
 
-Open a terminal tab and run `run-proxy`
-Open another terminal tab and run `./db -h`to view the options menu of the helper script:
+Open a terminal tab and run `run-proxy`.
+
+Open another terminal tab and run `./db -h` to view the options menu of the helper script:
 
 <pre>
 
