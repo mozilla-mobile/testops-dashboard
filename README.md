@@ -105,7 +105,9 @@ Open a terminal tab and run `run-proxy`
 Open another terminal tab and run `./db -h`to view the options menu of the helper script:
 
 <pre>
-```bash
+
+$ ./db -h
+
 ==============================
 Cloud SQL DB
 ==============================
