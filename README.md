@@ -1,88 +1,46 @@
-testops-dashboard
-==================
-The Mozilla Mobile TestOps Dashboard is data pump that collects data from diverse APIs (datasources) and aggregates it in a Cloud SQL database for display in Looker graphs. 
+# testops-dashboard
 
+The Mozilla Mobile TestOps Dashboard is a data pump that collects data from diverse APIs and aggregates it in a Cloud SQL database for display in Looker graphs.
 
-Overview
----------------
-The following is an overview of the test-dashboard. 
+## Overview
 
-The code is in this repository provides the backend which enables us to publish graphs in Looker.  
+This repository contains the backend which enables data collection and processing for visualization in Looker.
 
-It is constructed to function as follows
-1. ```__main__.py``` script invoked via github workflow cron to initiate a data extraction
-2. Data 'pumped' from source API indicated
-3. Data temporarily packaged into a payload
-4. Payload used to update Cloud SQL database
+### High-Level Workflow
 
-Once the updated data is available in the database, it is made available to our Looker graphs via BigQuery views.
+1. `__main__.py` script is invoked via GitHub workflow cron job to initiate data extraction.
+2. Data is pulled from the source API.
+3. The data is transformed into a payload (usually a pandas dataframe).
+4. The payload is used to update a Cloud SQL database.
 
+Once the data is in the database, it's accessed via BigQuery views for use in Looker dashboards.
 
-Description
----------------
+## Usage
 
+Run the following to retrieve and update mobile project test data:
 
-1. Main menu
+```
+Usage: __main__.py [-h] --project {fenix,focus-android,reference-browser,firefox-ios,focus-ios,ALL}
+                   --report-type {test-case-coverage,test-run-counts,issue-regression} [--num-days NUM_DAYS]
+```
 
-    ```
-    Usage: __main__.py [-h] --project {fenix,focus-android,reference-browser,firefox-ios,focus-ios,ALL}
-                       --report-type {test-case-coverage,test-run-counts,issue-regression} [--num-days NUM_DAYS]
+**Arguments:**
+- `--project`: Choose which project to pull data for.
+- `--report-type`: Select type of report.
+- `--num-days`: Optional number of historical days to include.
 
-    Retrieve and update mobile project test data
+## Connected APIs
 
-    optional arguments:
-      -h, --help            show this help message and exit
-      --project {fenix,focus-android,reference-browser,firefox-ios,focus-ios,ALL}
-                        Indicate project
-      --report-type {test-case-coverage,test-run-counts,issue-regression}
-                        Indicate report type
-      --num-days NUM_DAYS   Indicate number of historic days of records to include
-    ```
+- Testrail
+- Bugzilla
+- Confluence
+- Looker
+- Bitrise.io
+- GitHub (TBD)
+- Taskcluster (TBD)
 
+## Database
 
-2. API Requests
+Data is stored in a Cloud SQL database and made available through BigQuery views.
 
-    Queries data from a given data source (see: Source APIs below).
-
-3. Data Payload
-
-    Repackage desired data points (usually JSON) from source API into a pandas dataframe.
-    This allows for easy updates to database.
-
-4. Database Update
-
-    Uses SQLAlchemy to update database with pandas dataframe data payload. 
-    Data reports are generated using github workflows set to specified cron
-    periods:
-
-    * Daily
-    * Weekly
-    * Fortnightly
-    * Monthly
-
-
-5. Data Retrieval
-
-     Database is connected to a BigQuery instance.
-     Corresponding views are created in BigQuery that can be directly accessed for
-     generating report in Looker.
-
-    
-
-Connected APIs
----------------
-
-* Testrail
-* Bugzilla
-* Confluence
-* Looker
-* Bitrise.io
-* Github - TBD
-* Taskcluster - TBD
-
-
-Database
----------------
-
-Data is aggregated / cached in a Cloud SQL database.  Data queries are constructed using BigQuery views.
-
+> See [`DB/README.md`](db/README.md) for more details on working with the database, environment variables, and helper scripts.

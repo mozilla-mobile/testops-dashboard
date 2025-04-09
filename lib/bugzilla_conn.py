@@ -8,7 +8,7 @@ import os
 
 import bugzilla
 
-from utils.constants import BUGZILLA_URL
+from constants import BUGZILLA_URL
 
 
 class BugzillaAPIClient:
