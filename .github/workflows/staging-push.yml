@@ -3,7 +3,7 @@ name: Testops Report PUSH
 on:
   push:
     branches:
-      - rpapa-housekeeping 
+      - master 
   workflow_dispatch:
     inputs:
       branchName:
