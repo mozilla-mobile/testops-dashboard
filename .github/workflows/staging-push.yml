@@ -53,6 +53,7 @@ jobs:
             echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
             echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
             echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
+            echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
 
 
       - name: Update DB - test runs
