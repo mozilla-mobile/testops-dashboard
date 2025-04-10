@@ -70,8 +70,8 @@ jobs:
       - name: Upload Sentry result
         uses: actions/upload-artifact@v4
         with:
-          name: sentry_issues.csv
-          path: ./sentry_issues.csv
+          name: sentry_issues
+          path: ./sentry_issues_*.csv
 
       #- name: Update DB - test runs 
       #  run: python ./__main__.py --report-type testrail-test-run-counts --project fenix --start-date 2021-08-15 --end-date 2021-10-01 
