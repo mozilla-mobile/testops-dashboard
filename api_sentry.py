@@ -68,7 +68,11 @@ class SentryClient(Sentry):
             df_issues_release.to_csv(
                 "sentry_issues_{0}.csv".format(release_version),
                 index=False)
+            
+            # Insert issues from this release into the same dataframe
             df_issues = pd.concat([df_issues, df_issues_release], axis=0)
+    
+        # Ensure we have all the columns after merging all dataframes        
         print(df_issues_release.columns)
 
         # TODO: Insert into database
