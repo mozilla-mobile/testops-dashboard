@@ -27,12 +27,12 @@ class Sentry:
     #           Any other types of issues?
     # Only the unassigned issues past day sorted by frequency:
     # /issues/?limit=10&query=is:for_review&sort=freq&statsPeriod=1d
-    def issues(self):
+    def issues(self, release_version='137.0'):
         return self.client.get(
             (
                 '{0}/issues/?project={1}'
-                '&query=is:for_review&sort=freq&statsPeriod=1d'
-            ).format(self.project_slug, self.project_id)
+                '&query=is:for_review release.version{2}&sort=freq&statsPeriod=1d'
+            ).format(self.project_slug, self.project_id, release_version)
         )
 
 
@@ -53,18 +53,20 @@ class SentryClient(Sentry):
 
     def sentry_issues(self):
         print("SentryClient.sentry_issues()")
-        issues = self.issues()
+        
+        for release_version in ['138.0', '137.1', '137.0', '136.3']:
+            issues = self.issues(release_version)
 
-        # Insert selected fields from the json blob to pandas
-        issues_all = pd.DataFrame()
-        # TODO: Determine the list of columns to select
-        issues_all = pd.json_normalize(issues)
-        print(issues_all.columns)
-        issues_all.rename(columns={
-            "id": "sentry_id",
-        }, inplace=True)
+            # Insert selected fields from the json blob to pandas
+            issues_all = pd.DataFrame()
+            # TODO: Determine the list of columns to select
+            issues_all = pd.json_normalize(issues)
+            print(issues_all.columns)
+            issues_all.rename(columns={
+                "id": "sentry_id",
+            }, inplace=True)
 
-        issues_all.to_csv("sentry_issues.csv", index=False)
+            issues_all.to_csv("sentry_issues_{0}.csv".format(release_version), index=False)
 
 
 class DatabaseSentry():
