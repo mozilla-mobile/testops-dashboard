@@ -54,20 +54,18 @@ class SentryClient(Sentry):
     def sentry_issues(self):
         print("SentryClient.sentry_issues()")
         
+        # TODO: Get release versions 
+        # IDEA: From whattrainisitnow.com
+        df_issues = pd.DataFrame()
         for release_version in ['138.0', '137.1', '137.0', '136.3']:
             issues = self.issues(release_version)
-
-            # Insert selected fields from the json blob to pandas
-            issues_all = pd.DataFrame()
-            # TODO: Determine the list of columns to select
-            issues_all = pd.json_normalize(issues)
-            print(issues_all.columns)
-            issues_all.rename(columns={
-                "id": "sentry_id",
-            }, inplace=True)
-
-            issues_all.to_csv("sentry_issues_{0}.csv".format(release_version), index=False)
-
+            df_issues_release = self.db.report_issue_payload(issues, release_version)
+            # output CSV for debugging
+            df_issues_release.to_csv("sentry_issues_{0}.csv".format(release_version), index=False)
+            df_issues = pd.concat([df_issues, df_issues_release], axis = 0)
+            
+        # TODO: Insert into database
+        # self.db.....
 
 class DatabaseSentry():
 
@@ -76,6 +74,23 @@ class DatabaseSentry():
         super().__init__()
         # self.db = Database()
         # TODO: import Database
+        
+    def report_issue_payload(self, issues, release_version):
+        payload = []
+        for issue in issues:
+            sentry_id = issue['id']
+            culprit = issue['culprit']
+            title = issue['title']
+            permalink = issue['permalink']
+            lifetime = issue['lifetime']
+            count = lifetime.get('count', 0)
+            userCount = lifetime.get('userCount', 0)
+            row = [sentry_id, culprit, title, count, userCount, release_version, permalink]
+            payload.append(row)
+            
+        df = pd.DataFrame(data=payload,
+                          columns=["sentry_id", "culprit", "title", "count", "userCount", "release_version", "permalink"])
+        return df
 
     # TBD: Wipe database
     def issues_delete(self):
