@@ -124,7 +124,7 @@ def main():
     if args.report_type == 'jira-softvision-worklogs':
         h = JiraClient()
         h.jira_softvision_worklogs()
-    if args.report_type == 'sentry-top-issues':
+    if args.report_type == 'sentry-issues':
         h = SentryClient()
         h.sentry_issues()
 

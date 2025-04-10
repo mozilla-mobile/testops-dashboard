@@ -2,18 +2,11 @@ import os
 import sys
 
 import pandas as pd
-# import numpy as np
-# import json
 
 
 from lib.sentry_conn import APIClient
 
 # TODO: Database
-# from database import (
-#    Database,
-#    ReportSentryIssues
-# )
-
 
 class Sentry:
 
@@ -30,8 +23,9 @@ class Sentry:
             sys.exit(1)
 
     # API: Issues
-    # Question: Should we just the for_review issues?
-    # TODO: Query everyday. Only the unassigned issues past day.
+    # Question: Should we just list the for_review issues?
+    #           Any other types of issues?
+    # Only the unassigned issues past day sorted by frequency:
     # /issues/?limit=10&query=is:for_review&sort=freq&statsPeriod=1d
     def issues(self):
         return self.client.get(
@@ -63,13 +57,12 @@ class SentryClient(Sentry):
 
         # Insert selected fields from the json blob to pandas
         issues_all = pd.DataFrame()
-        # TODO: Determin the list of columns to select
+        # TODO: Determine the list of columns to select
         issues_all = pd.json_normalize(issues)
         print(issues_all.columns)
         issues_all.rename(columns={
             "id": "sentry_id",
         }, inplace=True)
-        # issues_all.set_index('sentry_id', inplace=True)
 
         issues_all.to_csv("sentry_issues.csv", index=False)
 
@@ -82,9 +75,7 @@ class DatabaseSentry():
         # self.db = Database()
         # TODO: import Database
 
-    # TODO: Wipe database
-    # NOTE:
-    # * self.session is from class Database
+    # TBD: Wipe database
     def issues_delete(self):
         print("DatabaseSentry.issue_delete()")
         pass

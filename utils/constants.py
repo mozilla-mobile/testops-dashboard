@@ -34,7 +34,7 @@ REPORT_TYPES = [
     'bugzilla-qe-verify',
     'confluence-updates',
     'github-issue-regression',
-    'sentry-top-issues'
+    'sentry-issues'
 ]
 
 # JQL query options

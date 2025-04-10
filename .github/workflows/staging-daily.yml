@@ -66,7 +66,7 @@ jobs:
         run: python ./__main__.py --report-type jira-softvision-worklogs
 
       - name: Sentry query
-        run: python __main__.py --report-type sentry-top-issues 
+        run: python __main__.py --report-type sentry-issues 
       - name: Upload Sentry result
         uses: actions/upload-artifact@v4
         with:
