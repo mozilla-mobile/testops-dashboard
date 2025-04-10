@@ -31,7 +31,7 @@ class Sentry:
         return self.client.get(
             (
                 '{0}/issues/?project={1}'
-                '&query=is:for_review release.version{2}&sort=freq&statsPeriod=1d'
+                '&query=is:for_review release.version:{2}&sort=freq&statsPeriod=1d'
             ).format(self.project_slug, self.project_id, release_version)
         )
 
