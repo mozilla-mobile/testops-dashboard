@@ -60,7 +60,7 @@ class SentryClient(Sentry):
         # TODO: Get release versions
         # IDEA: From whattrainisitnow.com
         df_issues = pd.DataFrame()
-        for release_version in ['138.0', '137.1', '137.0', '136.3']:
+        for release_version in ['138.0', '137.2', '137.1', '137.0', '136.3']:
             issues = self.issues(release_version)
             df_issues_release = self.db.report_issue_payload(issues,
                                                              release_version)
@@ -69,6 +69,7 @@ class SentryClient(Sentry):
                 "sentry_issues_{0}.csv".format(release_version),
                 index=False)
             df_issues = pd.concat([df_issues, df_issues_release], axis=0)
+        print(df_issues_release.columns)
 
         # TODO: Insert into database
         # self.db.....
