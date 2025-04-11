@@ -7,7 +7,7 @@ LOOKER_HOST = os.environ['LOOKER_HOST']
 LOOKER_CLIENT_ID = os.environ['LOOKER_CLIENT_ID']
 LOOKER_SECRET = os.environ['LOOKER_SECRET']
 
-FOLDER_ID = 177
+FOLDER_ID = 1820
 IMAGES_DIR = "config/confluence/images"
 
 
