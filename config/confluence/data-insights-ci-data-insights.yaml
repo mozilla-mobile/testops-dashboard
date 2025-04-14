@@ -1,0 +1,10 @@
+wiki_page:
+  page_id: 1471774758
+  page_title: "CI Data Insights"
+  sections:
+    - name: "Android CI Data Insights"
+      reports:
+        - report-title: "Fenix Task Durations - UI Tests (Weekly)"
+          report-description: "Fenix Task Durations - UI Tests (Weekly)"
+          attachment-filename: "fenix-task-durations-ui-tests-weekly.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2843"
