@@ -68,11 +68,11 @@ class SentryClient(Sentry):
             df_issues_release.to_csv(
                 "sentry_issues_{0}.csv".format(release_version),
                 index=False)
-            
+
             # Insert issues from this release into the same dataframe
             df_issues = pd.concat([df_issues, df_issues_release], axis=0)
-    
-        # Ensure we have all the columns after merging all dataframes        
+
+        # Ensure we have all the columns after merging all dataframes
         print(df_issues_release.columns)
 
         # TODO: Insert into database
@@ -101,6 +101,13 @@ class DatabaseSentry():
                    release_version, permalink]
             payload.append(row)
 
+        # sentry_id: ID given by sentry. Maybe in the permalink as well
+        # culprit: Module where the error is happening (NEED)
+        # title: Title of the issue (NEED)
+        # count: Lifetime count of the occurrences (NEED)
+        # userCount: Lifetime count of the users affected (NEED)
+        # release_version: We separate queries by release version for now
+        # permalink: Click to open Sentry page of the issue (Maybe for Slack)
         df = pd.DataFrame(data=payload,
                           columns=["sentry_id", "culprit", "title",
                                    "count", "userCount", "release_version",
