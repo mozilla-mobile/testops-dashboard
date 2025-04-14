@@ -8,3 +8,12 @@ wiki_page:
           report-description: "Fenix Task Durations - UI Tests (Weekly)"
           attachment-filename: "fenix-task-durations-ui-tests-weekly.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2843"
+        - report-title: "Fenix UI KPI Weekly Avg Runtime Change"
+          report-description: "Fenix UI KPI Weekly Report"
+          attachment-filename: "fenix-ui-kpi-weekly-avg-run-time-change.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2816"
+        - report-title: "Fenix UI Test Avg Runtime KPI (90 Day)"
+          report-description: "The average runtime of all tests in the last 90 days."
+          attachment-filename: "fenix-weekly-ui-test-avg-run-times-kpi-90-day.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2863"
+
