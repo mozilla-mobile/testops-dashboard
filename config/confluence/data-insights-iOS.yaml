@@ -1,0 +1,60 @@
+wiki_page:
+  page_id: "1484521473"
+  page_title: "iOS Data Insights page"
+  sections:
+    - name: "Fennec iOS Tests General Insights"
+      reports:
+        - report-title: "Fennec UI Flaky Tests Trend 2025"
+          report-description: "Fennec UI Flaky Tests Trend for iOS in 2025"
+          attachment-filename: "fennec-ui-test-flaky-tests-ios.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2849"
+
+        - report-title: "Fennec UI Failure Tests Trend 2025"
+          report-description: "Fennec UI Failure Tests Trend for iOS in 2025"
+          attachment-filename: "fennec-ui-tests-failures-trend-ios.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2850"
+          
+    - name: "Fennec Firefox iOS - iPhone Insights"
+      reports:
+        - report-title: "Fennec Firefox iOS - Flaky Rate By Day"
+          report-description: "Fennec Firefox iOS - Flaky Rate By Day 2025"
+          attachment-filename: "fennec-ui-tests-flaky-rate-by-day-iphone.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2851"
+          
+        - report-title: "Fennec Firefox iOS - Failure Rate By Day"
+          report-description: "Fennec Firefox iOS - Failure Rate By Day 2025"
+          attachment-filename: "fennec-firefox-ios-failure-rate-by-day-iphone.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2852"
+
+        - report-title: "Fennec Firefox iOS Daily Run Volume of UI Tests All Jobs - iPhone"
+          report-description: "Fennec Firefox iOS Daily Run Volume of UI Tests All Jobs - iPhone"
+          attachment-filename: "fennec-firefox-ios-daily-run-volume-of-ui-tests-all-jobs-iphone.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2855"
+
+        - report-title: "Fennec Firefox iOS Monthly Run Volume of UI Tests All Jobs - iPhone"
+          report-description: "Fennec Firefox iOS Monthly Run Volume of UI Tests All Jobs - iPhone"
+          attachment-filename: "fennec-firefox-ios-monthly-run-volume-of-ui-tests-all-jobs-iphone.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2857"
+          
+
+    - name: "Fennec Firefox iOS - iPad Insights"
+      reports:
+        - report-title: "Fennec Firefox iOS - Flaky Rate By Day"
+          report-description: "Fennec Firefox iOS - Flaky Rate By Day 2025"
+          attachment-filename: "fennec-ui-tests-flaky-rate-by-day-ipad.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2853"
+          
+        - report-title: "Fennec Firefox iOS - Failure Rate By Day"
+          report-description: "Fennec Firefox iOS - Failure Rate By Day 2025"
+          attachment-filename: "fennec-ui-tests-failure-rate-by-day-ipad.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2854"
+
+        - report-title: "Fennec Firefox iOS Daily Run Volume of UI Tests All Jobs - iPad"
+          report-description: "Fennec Firefox iOS Daily Run Volume of UI Tests All Jobs - iPad"
+          attachment-filename: "fennec-firefox-ios-daily-run-volume-of-ui-tests-all-jobs-ipad.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2856"
+
+        - report-title: "Fennec Firefox iOS Monthly Run Volume of UI Tests All Jobs - iPad"
+          report-description: "Fennec Firefox iOS Monthly Run Volume of UI Tests All Jobs - iPad"
+          attachment-filename: "fennec-firefox-ios-monthly-run-volume-of-ui-tests-all-jobs-ipad.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2858"
