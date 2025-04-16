@@ -97,7 +97,6 @@ class DatabaseSentry():
         print("DatabaseSentry.__init__()")
         super().__init__()
         self.db = Database()
-        # TODO: import Database
 
     def report_issue_payload(self, issues, release_version):
         payload = []
@@ -128,5 +127,5 @@ class DatabaseSentry():
 
     def issues_delete_all(self):
         print("DatabaseSentry.issue_delete_all()")
-        self.session.query(ReportSentryIssues).delete()
-        self.session.commit()
+        self.db.session.query(ReportSentryIssues).delete()
+        self.db.session.commit()
