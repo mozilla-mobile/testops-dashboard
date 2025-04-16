@@ -64,5 +64,5 @@ wiki_page:
       
         - report-title: "Fennec Firefox iOS Failure Rate By Month of UI Tests"
           report-description: "Firefox iOS Failure Rate By Month of UI Tests"
-          attachment-filename: "fennec-irefox-ios-failure-rate-by-month-of-ui-tests.png"
+          attachment-filename: "fennec-firefox-ios-failure-rate-by-month-of-ui-tests.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2873"
