@@ -123,7 +123,8 @@ class DatabaseSentry():
                           columns=["sentry_id", "culprit", "title",
                                    "count", "userCount", "release_version",
                                    "permalink"])
-        return df
+        self.db.session.add(df)
+        self.db.session.commit()
 
     def issues_delete_all(self):
         print("DatabaseSentry.issue_delete_all()")
