@@ -9,6 +9,7 @@ from lib.sentry_conn import APIClient
 # TODO: Database
 from database import (
     Database,
+    ReportSentryIssues
 )
 
 
@@ -59,6 +60,9 @@ class SentryClient(Sentry):
 
     def sentry_issues(self):
         print("SentryClient.sentry_issues()")
+        
+        # Experiment: Delete all issues before inserting new ones
+        self.db.issues_delete_all()
 
         # TODO: Get release versions
         # IDEA: From whattrainisitnow.com
@@ -122,7 +126,7 @@ class DatabaseSentry():
                                    "permalink"])
         return df
 
-    # TBD: Wipe database
-    def issues_delete(self):
-        print("DatabaseSentry.issue_delete()")
-        pass
+    def issues_delete_all(self):
+        print("DatabaseSentry.issue_delete_all()")
+        self.session.query(ReportSentryIssues).delete()
+        self.session.commit()
