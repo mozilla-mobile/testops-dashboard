@@ -44,6 +44,14 @@ wiki_page:
           report-description: "The percentage of failed tests in the last 30 days compared to the previous 30 days."
           attachment-filename: "focus-ui-test-failure-rate-month-over-month-kpi.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2841"
+        - report-title: "Fenix UI Test Flaky Rate by Month"
+          report-description: "The percentage of flaky tests by month."
+          attachment-filename: "fenix-ui-test-flaky-rate-by-month.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2869"
+        - report-title: "Fenix UI Test Failure Rate by Month"
+          report-description: "The percentage of failed tests by month."
+          attachment-filename: "fenix-ui-test-failure-rate-by-month.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2871"
 
     - name: "UI Test Data Insights - iOS"
       reports:

@@ -16,4 +16,11 @@ wiki_page:
           report-description: "The average runtime of all tests in the last 90 days."
           attachment-filename: "fenix-weekly-ui-test-avg-run-times-kpi-90-day.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2863"
-
+        - report-title: "Fenix Build Avg Runtime KPI (90 Day)"
+          report-description: "The average runtime of all builds in the last 90 days."
+          attachment-filename: "fenix-weekly-build-avg-run-times-kpi-90-day.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2865"
+        - report-title: "Fenix Unit Test Avg Runtime KPI (90 Day)"
+          report-description: "The average runtime of all unit tests in the last 90 days."
+          attachment-filename: "fenix-weekly-unit-test-avg-run-times-kpi-90-day.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2867"
