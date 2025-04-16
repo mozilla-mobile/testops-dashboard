@@ -7,6 +7,9 @@ import pandas as pd
 from lib.sentry_conn import APIClient
 
 # TODO: Database
+from database import (
+    Database,
+)
 
 
 class Sentry:
@@ -77,6 +80,11 @@ class SentryClient(Sentry):
 
         # TODO: Insert into database
         # self.db.....
+        # see api_testrail.py
+        # Copy report_test_coverage_payload here 
+        # (report_sentry_issues_insert)
+        # self.session is from database.py (line 70)
+        # self.session is an ORM (sqlalchemy)
 
 
 class DatabaseSentry():
@@ -84,7 +92,7 @@ class DatabaseSentry():
     def __init__(self):
         print("DatabaseSentry.__init__()")
         super().__init__()
-        # self.db = Database()
+        self.db = Database()
         # TODO: import Database
 
     def report_issue_payload(self, issues, release_version):
