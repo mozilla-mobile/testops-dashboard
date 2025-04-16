@@ -102,7 +102,7 @@ class DatabaseSentry():
     def report_issue_payload(self, issues, release_version):
         payload = []
         for issue in issues:
-            sentry_id = issue['id']
+            sentry_id = issue['sentry_id']
             culprit = issue['culprit']
             title = issue['title']
             permalink = issue['permalink']
