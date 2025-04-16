@@ -54,7 +54,10 @@ jobs:
             echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
             echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
             echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
-
+            echo "SENTRY_HOST=${{ secrets.SENTRY_HOST }}" >> $GITHUB_ENV
+            echo "SENTRY_API_TOKEN=${{ secrets.SENTRY_API_TOKEN }}" >> $GITHUB_ENV
+            echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
+            echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
 
       - name: Update DB - test runs
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
@@ -77,6 +80,14 @@ jobs:
       - name: Set job log URL
         if: always()
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+      
+      - name: Sentry query
+        run: python __main__.py --report-type sentry-issues 
+      - name: Upload Sentry result
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentry_issues
+          path: ./sentry_issues_*.csv
 
       - name: Send custom JSON data to Slack workflow
         if: always()
