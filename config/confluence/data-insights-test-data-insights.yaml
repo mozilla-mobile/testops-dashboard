@@ -44,3 +44,25 @@ wiki_page:
           report-description: "The percentage of failed tests in the last 30 days compared to the previous 30 days."
           attachment-filename: "focus-ui-test-failure-rate-month-over-month-kpi.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2841"
+
+    - name: "UI Test Data Insights - iOS"
+      reports:
+        - report-title: "Fennec UI Flaky Tests Trend"
+          report-description: "Firefox iOS UI Flaky Tests Trend in 2025"
+          attachment-filename: "fennec-ui-test-flaky-tests-ios.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2849"
+
+        - report-title: "Fennec UI Failure Tests Trend"
+          report-description: "Firefox iOS UI Failure Tests Trend in 2025"
+          attachment-filename: "fennec-ui-tests-failures-trend-ios.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2850"
+
+        - report-title: "Fennec Monthly Run Volume of UI Tests"
+          report-description: "Firefox iOS Monthly Run Volume of UI Tests"
+          attachment-filename: "fennec-firefox-ios-monthly-run-volume-of-ui-tests.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2872"
+      
+        - report-title: "Fennec Firefox iOS Failure Rate By Month of UI Tests"
+          report-description: "Firefox iOS Failure Rate By Month of UI Tests"
+          attachment-filename: "fennec-irefox-ios-failure-rate-by-month-of-ui-tests.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2873"
