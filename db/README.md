@@ -10,6 +10,8 @@ Once data is processed and stored in the Cloud SQL database, corresponding views
 
 You can use the scripts in this directory (`db`, `run-proxy`) to connect and interact with the Cloud SQL instance locally.
 
+`db` depends on `mysql` v8.
+
 ### Required Environment Variables
 
 Before starting, ensure you have set the following environment variables:
