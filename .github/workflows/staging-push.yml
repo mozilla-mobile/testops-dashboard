@@ -59,27 +59,27 @@ jobs:
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
 
-      - name: Update DB - test runs
-        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
+      # - name: Update DB - test runs
+      #   run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
 
-      - name: Jira query qa-requests
-        run: python ./__main__.py --report-type jira-qa-requests
+      # - name: Jira query qa-requests
+      #   run: python ./__main__.py --report-type jira-qa-requests
 
-      - name: Jira query qa-needed
-        if: always()
-        run: python ./__main__.py --report-type jira-qa-needed
+      # - name: Jira query qa-needed
+      #   if: always()
+      #   run: python ./__main__.py --report-type jira-qa-needed
 
-      - name: Bugzilla query qe-verify
-        if: always()
-        run: python ./__main__.py --report-type bugzilla-qe-verify
+      # - name: Bugzilla query qe-verify
+      #   if: always()
+      #   run: python ./__main__.py --report-type bugzilla-qe-verify
 
-      - name: Bitrise Build Count
-        if: always()
-        run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
+      # - name: Bitrise Build Count
+      #   if: always()
+      #   run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
 
-      - name: Set job log URL
-        if: always()
-        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+      # - name: Set job log URL
+      #   if: always()
+      #   run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
       
       - name: Sentry query
         run: python __main__.py --report-type sentry-issues 
