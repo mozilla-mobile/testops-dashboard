@@ -89,6 +89,7 @@ class SentryClient(Sentry):
         # (report_sentry_issues_insert)
         # self.session is from database.py (line 70)
         # self.session is an ORM (sqlalchemy)
+        self.db.issue_insert(df_issues)
 
 
 class DatabaseSentry():
@@ -123,8 +124,22 @@ class DatabaseSentry():
                           columns=["sentry_id", "culprit", "title",
                                    "count", "userCount", "release_version",
                                    "permalink"])
-        self.db.session.add(df)
-        self.db.session.commit()
+        return df
+        
+    def issue_insert(self, payload):
+        for index, row in payload.iterrows():
+            print(row)
+            issue = ReportSentryIssues(
+                sentry_id=row['sentry_id'],
+                culprit=row['culprit'],
+                title=row['title'],
+                count=row['count'],
+                userCount=row['userCount'],
+                release_version=row['release_version'],
+                permalink=row['permalink']
+            )
+            self.db.session.add(issue)
+            self.db.session.commit()
 
     def issues_delete_all(self):
         print("DatabaseSentry.issue_delete_all()")
