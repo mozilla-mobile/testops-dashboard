@@ -101,10 +101,11 @@ class DatabaseSentry():
 
     def report_issue_payload(self, issues, release_version):
         payload = []
+        MAX_STRING_LEN = 250
         for issue in issues:
             sentry_id = issue['id']
             culprit = issue['culprit']
-            title = issue['title']
+            title = issue['title'][:MAX_STRING_LEN]
             permalink = issue['permalink']
             lifetime = issue['lifetime']
             count = lifetime.get('count', 0)
