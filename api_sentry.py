@@ -50,7 +50,7 @@ class Sentry:
         return self.client.get(
             (
             'projects/{0}/firefox-ios/releases/'
-            '?per_page=50&project={2}&statsPeriod=7d'
+            '?per_page=20&project={2}&statsPeriod=7d'
             '&environment=Production'         
             ).format(self.organization_slug,
                    self.project_slug, self.project_id)
@@ -74,9 +74,10 @@ class SentryClient(Sentry):
     
     def sentry_releases(self):
         releases = self.releases()
-        # TODO: just get versionInfo -> description
-        # return all versions strings in a list
-        return releases
+        release_versions = self.db.report_version_strings(releases)
+        # TODO: Insert all release version into DB
+        # TODO: Filter out the most recent 2 major versions
+        return release_versions
 
     def sentry_issues(self):
         print("SentryClient.sentry_issues()")
@@ -84,9 +85,7 @@ class SentryClient(Sentry):
         # TEMPORARY: Delete all issues before inserting new ones
         self.db.issues_delete_all()
 
-        # TODO: Get release versions
-        sentry_releases = self.sentry_releases()
-        release_versions = self.db.report_version_strings(sentry_releases)
+        release_versions = self.sentry_releases()  
 
         df_issues = pd.DataFrame()
         # TODO: Replace release_version with self.sentry_releases()
@@ -127,6 +126,21 @@ class DatabaseSentry():
         parts = version.split('.')
         return all(p.isdigit() for p in parts) and len(parts) > 0
     
+    def _get_major_versions(self, versions):
+        NUM_MAJOR_VERSIONS = 2
+        versions.sort(reverse=True)
+        major_versions = []
+        for version in versions:
+            major, minor = version.split('.')
+            major_versions.append(major)
+        major_versions = list(set(major_versions)).sort(reverse=True)[:NUM_MAJOR_VERSIONS]
+        payload = []
+        for major_version in major_versions:
+            for version in versions:
+                if version.startswith(major_version+"."):
+                    payload.append(version)
+        return payload
+    
     def report_version_strings(self, release_versions):
         payload = []
 
@@ -135,9 +149,11 @@ class DatabaseSentry():
             description = release_version['versionInfo']['description']
             if self._is_version_numeric(description):
                 payload.append(description)
+                
+        payload = self._get_major_versions(payload)
 
         # Just a list of released versions, not a dataframe
-        return payload 
+        return payload
 
     def report_issue_payload(self, issues, release_version):
         payload = []
