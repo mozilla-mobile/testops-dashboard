@@ -47,6 +47,9 @@ class Sentry:
         # projects/{{organization_slug}}/{{project}}/releases/
         # ?per_page=100&project={{project_id}}
         # &statsPeriod=1d&environment=Production
+        print(self.organization_slug)
+        print(self.project_slug)
+        print(self.project_id)
         return self.client.get(
             (
             'projects/{0}/{1}/releases/'
