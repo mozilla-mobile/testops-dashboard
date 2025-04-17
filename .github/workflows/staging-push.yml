@@ -3,13 +3,13 @@ name: Testops Report PUSH
 on:
   push:
     branches:
-      - master 
+      - cs/MTE-4454-Sentry-Apr-10 
   workflow_dispatch:
     inputs:
       branchName:
         description: 'Default branch'
         required: true
-        default: 'master'
+        default: 'cs/MTE-4454-Sentry-Apr-10'
 
 jobs:
   deploy:
@@ -38,7 +38,7 @@ jobs:
         run: |
             echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_NAME=staging" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=cso-production-2025-04-17-11-07-17" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
             echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
             echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
@@ -54,29 +54,40 @@ jobs:
             echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
             echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
             echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
+            echo "SENTRY_HOST=${{ secrets.SENTRY_HOST }}" >> $GITHUB_ENV
+            echo "SENTRY_API_TOKEN=${{ secrets.SENTRY_API_TOKEN_CSO }}" >> $GITHUB_ENV
+            echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
+            echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
 
+      # - name: Update DB - test runs
+      #   run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
 
-      - name: Update DB - test runs
-        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
+      # - name: Jira query qa-requests
+      #   run: python ./__main__.py --report-type jira-qa-requests
 
-      - name: Jira query qa-requests
-        run: python ./__main__.py --report-type jira-qa-requests
+      # - name: Jira query qa-needed
+      #   if: always()
+      #   run: python ./__main__.py --report-type jira-qa-needed
 
-      - name: Jira query qa-needed
-        if: always()
-        run: python ./__main__.py --report-type jira-qa-needed
+      # - name: Bugzilla query qe-verify
+      #   if: always()
+      #   run: python ./__main__.py --report-type bugzilla-qe-verify
 
-      - name: Bugzilla query qe-verify
-        if: always()
-        run: python ./__main__.py --report-type bugzilla-qe-verify
+      # - name: Bitrise Build Count
+      #   if: always()
+      #   run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
 
-      - name: Bitrise Build Count
-        if: always()
-        run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
-
-      - name: Set job log URL
-        if: always()
-        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+      # - name: Set job log URL
+      #   if: always()
+      #   run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+      
+      - name: Sentry query
+        run: python __main__.py --report-type sentry-issues 
+      - name: Upload Sentry result
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentry_issues
+          path: ./sentry_issues_*.csv
 
       - name: Send custom JSON data to Slack workflow
         if: always()

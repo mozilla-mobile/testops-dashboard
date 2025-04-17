@@ -6,6 +6,7 @@ from api_bugzilla import BugzillaClient
 from api_github import GithubClient
 from api_jira import JiraClient
 from api_testrail import TestRailClient
+from api_sentry import SentryClient
 import api_confluence
 
 from api_bitrise import BitriseClient
@@ -130,6 +131,9 @@ def main():
     if args.report_type == 'bitrise-builds':
         h = BitriseClient()
         h.bitrise_builds_detailed_info()
+    if args.report_type == 'sentry-issues':
+        h = SentryClient()
+        h.sentry_issues()
 
 
 if __name__ == '__main__':

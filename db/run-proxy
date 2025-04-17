@@ -5,4 +5,6 @@ echo
 echo "STARTING CLOUD SQL PROXY..."
 echo
 echo
-./cloud_sql_proxy -instances=${CLOUD_SQL_CONNECTION_NAME}=tcp:${CLOUD_SQL_DATABASE_PORT} -credential_file=${CLOUD_SQL_CREDENTIALS}
+#./cloud_sql_proxy --instances=${CLOUD_SQL_CONNECTION_NAME}=tcp:${CLOUD_SQL_DATABASE_PORT} -credential_file=${CLOUD_SQL_CREDENTIALS}
+
+./cloud-sql-proxy ${CLOUD_SQL_CONNECTION_NAME} --port ${CLOUD_SQL_DATABASE_PORT} --credentials-file=${CLOUD_SQL_CREDENTIALS}

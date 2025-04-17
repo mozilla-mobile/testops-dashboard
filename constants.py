@@ -37,6 +37,7 @@ REPORT_TYPES = [
     'testrail-milestones',
     'testrail-test-case-coverage',
     'testrail-test-run-counts',
+    'sentry-issues'
 ]
 
 # JQL query options
