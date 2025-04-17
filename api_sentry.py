@@ -117,7 +117,8 @@ class DatabaseSentry():
         super().__init__()
         self.db = Database()
         
-    def _is_version_numeric(version):
+    def _is_version_numeric(self, version):
+        version = version.strip()
         if version is None or version == '':
             return False
         if "(" in version or ")" in version:
@@ -133,7 +134,6 @@ class DatabaseSentry():
         for release_version in release_versions:
             # Production only. Fiter out beta and interim versions
             description = release_version['versionInfo']['description']
-            print(description)
             if self._is_version_numeric(description):
                 payload.append(description)
 
