@@ -81,7 +81,7 @@ class SentryClient(Sentry):
         self.db.issues_delete_all()
 
         # TODO: Get release versions
-        sentry_releases = self.sentry_releases()
+        # sentry_releases = self.sentry_releases()
         # release_versions = self.db.report_version_strings(sentry_releases)
         release_versions = ['138.0', '137.2', '137.1', '137.0', '136.3']
 
