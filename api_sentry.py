@@ -85,7 +85,8 @@ class SentryClient(Sentry):
         # TEMPORARY: Delete all issues before inserting new ones
         self.db.issues_delete_all()
 
-        release_versions = self.sentry_releases()  
+        release_versions = self.sentry_releases()
+        print(release_versions)
 
         df_issues = pd.DataFrame()
         # TODO: Replace release_version with self.sentry_releases()
@@ -140,6 +141,7 @@ class DatabaseSentry():
             for version in versions:
                 if version.startswith(major_version+"."):
                     payload.append(version)
+        payload = sorted(list(set(major_versions)), reverse=True)
         print(payload)
         return payload
     
