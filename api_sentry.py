@@ -132,7 +132,7 @@ class DatabaseSentry():
 
         for release_version in release_versions:
             # Production only. Fiter out beta and interim versions
-            description = release_version['versionInfo'].get('description', '')
+            description = release_version['versionInfo']['description']
             print(description)
             if self._is_version_numeric(description):
                 payload.append(description)
