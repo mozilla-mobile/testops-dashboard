@@ -47,9 +47,6 @@ class Sentry:
         # projects/mozilla/firefox-ios/releases/
         # ?per_page=100&project=1111111111
         # &statsPeriod=1d&environment=Production
-        print(self.organization_slug)
-        print(self.project_slug)
-        print(self.project_id)
         return self.client.get(
             (
             'projects/{0}/firefox-ios/releases/'
@@ -121,6 +118,8 @@ class DatabaseSentry():
         self.db = Database()
         
     def _is_version_numeric(version):
+        if version is None or version == '':
+            return False
         if "(" in version or ")" in version:
             return False
         if "org.mozilla.ios.Firefox" in version:
@@ -134,6 +133,7 @@ class DatabaseSentry():
         for release_version in release_versions:
             # Production only. Fiter out beta and interim versions
             description = release_version['versionInfo'].get('description', '')
+            print(description)
             if self._is_version_numeric(description):
                 payload.append(description)
 
