@@ -82,8 +82,8 @@ class SentryClient(Sentry):
 
         # TODO: Get release versions
         sentry_releases = self.sentry_releases()
-        release_versions = self.db.report_version_strings(sentry_releases)
-        # release_versions = ['138.0', '137.2', '137.1', '137.0', '136.3']
+        # release_versions = self.db.report_version_strings(sentry_releases)
+        release_versions = ['138.0', '137.2', '137.1', '137.0', '136.3']
 
         df_issues = pd.DataFrame()
         # TODO: Replace release_version with self.sentry_releases()
