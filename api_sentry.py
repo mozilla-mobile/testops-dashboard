@@ -133,9 +133,9 @@ class DatabaseSentry():
         for version in versions:
             major, minor = version.split('.')
             major_versions.append(major)
-        major_versions = list(set(major_versions)).sort(reverse=True)[:NUM_MAJOR_VERSIONS]
+        major_versions = list(set(major_versions)).sort(reverse=True)
         payload = []
-        for major_version in major_versions:
+        for major_version in major_versions[:NUM_MAJOR_VERSIONS]:
             for version in versions:
                 if version.startswith(major_version+"."):
                     payload.append(version)
