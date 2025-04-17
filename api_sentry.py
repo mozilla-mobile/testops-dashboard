@@ -50,7 +50,7 @@ class Sentry:
         return self.client.get(
             (
             'projects/{0}/firefox-ios/releases/'
-            '?per_page=10&project={2}&statsPeriod=7d'
+            '?per_page=50&project={2}&statsPeriod=7d'
             '&environment=Production'         
             ).format(self.organization_slug,
                    self.project_slug, self.project_id)
@@ -87,7 +87,6 @@ class SentryClient(Sentry):
         # TODO: Get release versions
         sentry_releases = self.sentry_releases()
         release_versions = self.db.report_version_strings(sentry_releases)
-        # release_versions = ['138.0', '137.2', '137.1', '137.0', '136.3']
 
         df_issues = pd.DataFrame()
         # TODO: Replace release_version with self.sentry_releases()
