@@ -403,7 +403,7 @@ CREATE TABLE `report_sentry_issues` (
   `culprit` varchar(250) NOT NULL,
   `title` varchar(250) NOT NULL,
   `count` int NOT NULL,
-  `userCount` int NOT NULL, 
+  `user_count` int NOT NULL,
   `release_version` varchar(250) NOT NULL,
   `permalink` varchar(250) NOT NULL,
   PRIMARY KEY (`id`)

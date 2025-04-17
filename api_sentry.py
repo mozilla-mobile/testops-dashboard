@@ -41,6 +41,16 @@ class Sentry:
                 '&sort=freq&statsPeriod=1d'
             ).format(self.project_slug, self.project_id, release_version)
         )
+        
+    def releases(self):
+        return self.client.get(
+            (
+            '/projects/{0}/{1}/releases/'
+            '?per_page=10&project={2}&statsPeriod=7d'
+            '&environment=Production'         
+            ).format(self.client.organization_slug,
+                   self.project_slug, self.project_id)
+        )
 
 
 class SentryClient(Sentry):
@@ -57,17 +67,27 @@ class SentryClient(Sentry):
         # TODO: How to test data_pump()?
         print("SentryClient.data_pump()")
         pass
+    
+    def sentry_releases(self):
+        releases = self.releases()
+        # TODO: just get versionInfo -> description
+        # return all versions strings in a list
+        return releases
 
     def sentry_issues(self):
         print("SentryClient.sentry_issues()")
         
-        # Experiment: Delete all issues before inserting new ones
+        # TEMPORARY: Delete all issues before inserting new ones
         self.db.issues_delete_all()
 
         # TODO: Get release versions
-        # IDEA: From whattrainisitnow.com
+        sentry_releases = self.sentry_releases()
+        release_versions = self.db.report_version_strings(sentry_releases)
+        # release_versions = ['138.0', '137.2', '137.1', '137.0', '136.3']
+
         df_issues = pd.DataFrame()
-        for release_version in ['138.0', '137.2', '137.1', '137.0', '136.3']:
+        # TODO: Replace release_version with self.sentry_releases()
+        for release_version in release_versions:
             issues = self.issues(release_version)
             df_issues_release = self.db.report_issue_payload(issues,
                                                              release_version)
@@ -82,13 +102,7 @@ class SentryClient(Sentry):
         # Ensure we have all the columns after merging all dataframes
         print(df_issues_release.columns)
 
-        # TODO: Insert into database
-        # self.db.....
-        # see api_testrail.py
-        # Copy report_test_coverage_payload here 
-        # (report_sentry_issues_insert)
-        # self.session is from database.py (line 70)
-        # self.session is an ORM (sqlalchemy)
+        # Insert into database
         self.db.issue_insert(df_issues)
 
 
@@ -98,6 +112,26 @@ class DatabaseSentry():
         print("DatabaseSentry.__init__()")
         super().__init__()
         self.db = Database()
+        
+    def _is_version_numeric(version):
+        if "(" in version or ")" in version:
+            return False
+        if "org.mozilla.ios.Firefox" in version:
+            return False
+        parts = version.split('.')
+        return all(p.isdigit() for p in parts) and len(parts) > 0
+    
+    def report_version_strings(self, release_versions):
+        payload = []
+
+        for release_version in release_versions:
+            # Production only. Fiter out beta and interim versions
+            description = release_version['versionInfo'].get('description', '')
+            if self._is_version_numeric(description):
+                payload.append(description)
+
+        # Just a list of released versions, not a dataframe
+        return payload 
 
     def report_issue_payload(self, issues, release_version):
         payload = []
@@ -109,8 +143,8 @@ class DatabaseSentry():
             permalink = issue['permalink']
             lifetime = issue['lifetime']
             count = lifetime.get('count', 0)
-            userCount = lifetime.get('userCount', 0)
-            row = [sentry_id, culprit, title, count, userCount,
+            user_count = lifetime.get('userCount', 0)
+            row = [sentry_id, culprit, title, count, user_count,
                    release_version, permalink]
             payload.append(row)
 
@@ -118,12 +152,12 @@ class DatabaseSentry():
         # culprit: Module where the error is happening (NEED)
         # title: Title of the issue (NEED)
         # count: Lifetime count of the occurrences (NEED)
-        # userCount: Lifetime count of the users affected (NEED)
+        # user_count: Lifetime count of the users affected (NEED)
         # release_version: We separate queries by release version for now
         # permalink: Click to open Sentry page of the issue (Maybe for Slack)
         df = pd.DataFrame(data=payload,
                           columns=["sentry_id", "culprit", "title",
-                                   "count", "userCount", "release_version",
+                                   "count", "user_count", "release_version",
                                    "permalink"])
         return df
         
@@ -135,7 +169,7 @@ class DatabaseSentry():
                 culprit=row['culprit'],
                 title=row['title'],
                 count=row['count'],
-                userCount=row['userCount'],
+                user_count=row['user_count'],
                 release_version=row['release_version'],
                 permalink=row['permalink']
             )
