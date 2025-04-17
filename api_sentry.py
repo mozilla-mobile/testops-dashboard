@@ -19,7 +19,7 @@ class Sentry:
         try:
             self.client = APIClient(os.environ['SENTRY_HOST'])
             self.client.api_token = os.environ['SENTRY_API_TOKEN']
-            self.client.organization_slug = \
+            self.organization_slug = \
                 os.environ['SENTRY_ORGANIZATION_SLUG']
             self.project_id = os.environ['SENTRY_PROJECT_ID']
             self.project_slug = 'mozilla'
@@ -31,24 +31,28 @@ class Sentry:
     # Question: Should we just list the for_review issues?
     #           Any other types of issues?
     # Only the unassigned issues past day sorted by frequency:
-    # /issues/?limit=10&query=is:for_review&sort=freq&statsPeriod=1d
+    # organization/mozilla/issues/
+    # ?limit=10&query=is:for_review&sort=freq&statsPeriod=1d
     def issues(self, release_version='137.0'):
         return self.client.get(
             (
-                '{0}/issues/'
+                'organizations/{0}/issues/'
                 '?project={1}'
                 '&query=is:for_review release.version:{2}'
                 '&sort=freq&statsPeriod=1d'
-            ).format(self.project_slug, self.project_id, release_version)
+            ).format(self.organization_slug, self.project_id, release_version)
         )
         
     def releases(self):
+        # projects/{{organization_slug}}/{{project}}/releases/
+        # ?per_page=100&project={{project_id}}
+        # &statsPeriod=1d&environment=Production
         return self.client.get(
             (
-            '{0}/{1}/releases/'
+            'projects/{0}/{1}/releases/'
             '?per_page=10&project={2}&statsPeriod=7d'
             '&environment=Production'         
-            ).format(self.client.organization_slug,
+            ).format(self.organization_slug,
                    self.project_slug, self.project_id)
         )
 

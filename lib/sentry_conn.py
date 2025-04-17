@@ -4,13 +4,12 @@ import requests
 class APIClient:
     def __init__(self, base_url):
         self.api_token = ''
-        self.organization_slug = ''
         self.project_slug = ''
         if not base_url.endswith('/'):
             base_url += '/'
         self.__url = (
-                '{0}api/0/organizations/{1}/'
-            ).format(base_url, self.organization_slug)
+                '{0}api/0/'
+            ).format(base_url)
 
     def get(self, uri):
         headers = {
