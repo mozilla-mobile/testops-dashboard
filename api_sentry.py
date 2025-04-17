@@ -44,15 +44,15 @@ class Sentry:
         )
         
     def releases(self):
-        # projects/{{organization_slug}}/{{project}}/releases/
-        # ?per_page=100&project={{project_id}}
+        # projects/mozilla/firefox-ios/releases/
+        # ?per_page=100&project=1111111111
         # &statsPeriod=1d&environment=Production
         print(self.organization_slug)
         print(self.project_slug)
         print(self.project_id)
         return self.client.get(
             (
-            'projects/{0}/{1}/releases/'
+            'projects/{0}/firefox-ios/releases/'
             '?per_page=10&project={2}&statsPeriod=7d'
             '&environment=Production'         
             ).format(self.organization_slug,
@@ -88,9 +88,9 @@ class SentryClient(Sentry):
         self.db.issues_delete_all()
 
         # TODO: Get release versions
-        #sentry_releases = self.sentry_releases()
-        #release_versions = self.db.report_version_strings(sentry_releases)
-        release_versions = ['138.0', '137.2', '137.1', '137.0', '136.3']
+        sentry_releases = self.sentry_releases()
+        release_versions = self.db.report_version_strings(sentry_releases)
+        # release_versions = ['138.0', '137.2', '137.1', '137.0', '136.3']
 
         df_issues = pd.DataFrame()
         # TODO: Replace release_version with self.sentry_releases()
