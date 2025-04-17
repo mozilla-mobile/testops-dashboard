@@ -130,12 +130,10 @@ class DatabaseSentry():
         NUM_MAJOR_VERSIONS = 2
         versions.sort(reverse=True)
         major_versions = []
-        print(versions)
         for version in versions:
             major, minor = version.split('.')
             major_versions.append(major)
-            print(major_versions)
-        major_versions = list(set(major_versions)).sort(reverse=True)
+        list(set(major_versions)).sort(reverse=True)
         payload = []
         for major_version in major_versions[:NUM_MAJOR_VERSIONS]:
             for version in versions:
