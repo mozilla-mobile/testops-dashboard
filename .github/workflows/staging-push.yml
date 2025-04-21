@@ -3,13 +3,13 @@ name: Testops Report PUSH
 on:
   push:
     branches:
-      - master
+      - master 
   workflow_dispatch:
     inputs:
       branchName:
         description: 'Default branch'
         required: true
-        default: master
+        default: 'master'
 
 jobs:
   deploy:
