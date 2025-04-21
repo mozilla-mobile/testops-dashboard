@@ -28,12 +28,10 @@ class Sentry:
             sys.exit(1)
 
     # API: Issues
-    # Question: Should we just list the for_review issues?
-    #           Any other types of issues?
     # Only the unassigned issues past day sorted by frequency:
     # organization/mozilla/issues/
     # ?limit=10&query=is:for_review&sort=freq&statsPeriod=1d
-    def issues(self, release_version='137.0'):
+    def issues(self, release_version):
         return self.client.get(
             (
                 'organizations/{0}/issues/'
@@ -42,11 +40,14 @@ class Sentry:
                 '&sort=freq&statsPeriod=1d'
             ).format(self.organization_slug, self.project_id, release_version)
         )
-        
+
+
+    # API: Releases
+    # The most recent releases of the project:
+    # projects/mozilla/firefox-ios/releases/
+    # ?per_page=100&project=1111111111
+    # &statsPeriod=1d&environment=Production
     def releases(self):
-        # projects/mozilla/firefox-ios/releases/
-        # ?per_page=100&project=1111111111
-        # &statsPeriod=1d&environment=Production
         return self.client.get(
             (
             'projects/{0}/firefox-ios/releases/'
@@ -62,36 +63,27 @@ class SentryClient(Sentry):
     def __init__(self):
         print("SentryClient.__init__()")
         super().__init__()
-        self.db = DatabaseSentry()  # from api_testrail
+        self.db = DatabaseSentry()
 
     def data_pump():
-        # TODO: Query all IDs of issues in DB
-        # TODO: Wipe all old issues
-        # TODO: Insert new issues
-        # TODO: How to test data_pump()?
-        print("SentryClient.data_pump()")
+        # We may not 
         pass
     
     def sentry_releases(self):
         releases = self.releases()
         release_versions = self.db.report_version_strings(releases)
-        # TODO: Insert all release version into DB
-        # TODO: Filter out the most recent 2 major versions
         return release_versions
 
     def sentry_issues(self):
         print("SentryClient.sentry_issues()")
-        
-        # TEMPORARY: Delete all issues before inserting new ones
-        self.db.issues_delete_all()
 
         release_versions = self.sentry_releases()
         print(release_versions)
 
         df_issues = pd.DataFrame()
-        # TODO: Replace release_version with self.sentry_releases()
         for release_version in release_versions:
             issues = self.issues(release_version)
+            # NOTE: Use just the last two major releases for now
             df_issues_release = self.db.report_issue_payload(issues,
                                                              release_version)
             # output CSV for debugging
@@ -101,9 +93,6 @@ class SentryClient(Sentry):
 
             # Insert issues from this release into the same dataframe
             df_issues = pd.concat([df_issues, df_issues_release], axis=0)
-
-        # Ensure we have all the columns after merging all dataframes
-        print(df_issues_release.columns)
 
         # Insert into database
         self.db.issue_insert(df_issues)
@@ -142,9 +131,9 @@ class DatabaseSentry():
                 if version.startswith(major_version+"."):
                     payload.append(version)
         payload = sorted(list(set(payload)), reverse=True)
-        print(payload)
         return payload
     
+    # Get the last two major versions
     def report_version_strings(self, release_versions):
         payload = []
 
@@ -202,6 +191,8 @@ class DatabaseSentry():
             self.db.session.add(issue)
             self.db.session.commit()
 
+
+    # A quick way to cleanup the database for testing
     def issues_delete_all(self):
         print("DatabaseSentry.issue_delete_all()")
         self.db.session.query(ReportSentryIssues).delete()
