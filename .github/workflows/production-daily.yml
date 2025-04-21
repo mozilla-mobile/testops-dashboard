@@ -80,6 +80,12 @@ jobs:
         run: python3 ./__main__.py --report-type bitrise-builds
 
         continue-on-error: true
+
+      - name: Sentry query
+        run: python __main__.py --report-type sentry-issues
+
+        continue-on-error: true
+
       - name: Set job log URL
         if: always()
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV

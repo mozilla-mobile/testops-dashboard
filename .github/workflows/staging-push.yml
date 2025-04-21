@@ -3,13 +3,13 @@ name: Testops Report PUSH
 on:
   push:
     branches:
-      - cs/MTE-4454-Sentry-Apr-10 
+      - master
   workflow_dispatch:
     inputs:
       branchName:
         description: 'Default branch'
         required: true
-        default: 'cs/MTE-4454-Sentry-Apr-10'
+        default: master
 
 jobs:
   deploy:
@@ -38,7 +38,7 @@ jobs:
         run: |
             echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_NAME=cso-production-2025-04-17-11-07-17" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=staging >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
             echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
             echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
