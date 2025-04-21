@@ -41,7 +41,6 @@ class Sentry:
             ).format(self.organization_slug, self.project_id, release_version)
         )
 
-
     # API: Releases
     # The most recent releases of the project:
     # projects/mozilla/firefox-ios/releases/
@@ -50,11 +49,10 @@ class Sentry:
     def releases(self):
         return self.client.get(
             (
-            'projects/{0}/firefox-ios/releases/'
-            '?per_page=20&project={2}&statsPeriod=7d'
-            '&environment=Production'         
-            ).format(self.organization_slug,
-                   self.project_slug, self.project_id)
+                'projects/{0}/firefox-ios/releases/'
+                '?per_page=20&project={1}&statsPeriod=7d'
+                '&environment=Production'
+            ).format(self.organization_slug, self.project_id)
         )
 
 
@@ -66,9 +64,10 @@ class SentryClient(Sentry):
         self.db = DatabaseSentry()
 
     def data_pump():
-        # We may not 
+        # Let's leave this to stay consistent with other
+        # api_*.py files.
         pass
-    
+
     def sentry_releases(self):
         releases = self.releases()
         release_versions = self.db.report_version_strings(releases)
@@ -104,7 +103,7 @@ class DatabaseSentry():
         print("DatabaseSentry.__init__()")
         super().__init__()
         self.db = Database()
-        
+
     def _is_version_numeric(self, version):
         version = version.strip()
         if version is None or version == '':
@@ -115,7 +114,7 @@ class DatabaseSentry():
             return False
         parts = version.split('.')
         return all(p.isdigit() for p in parts) and len(parts) > 0
-    
+
     def _get_major_versions(self, versions):
         NUM_MAJOR_VERSIONS = 2
         versions.sort(reverse=True)
@@ -132,7 +131,7 @@ class DatabaseSentry():
                     payload.append(version)
         payload = sorted(list(set(payload)), reverse=True)
         return payload
-    
+
     # Get the last two major versions
     def report_version_strings(self, release_versions):
         payload = []
@@ -142,7 +141,7 @@ class DatabaseSentry():
             description = release_version['versionInfo']['description']
             if self._is_version_numeric(description):
                 payload.append(description)
-                
+
         payload = self._get_major_versions(payload)
 
         # Just a list of released versions, not a dataframe
@@ -175,7 +174,7 @@ class DatabaseSentry():
                                    "count", "user_count", "release_version",
                                    "permalink"])
         return df
-        
+
     def issue_insert(self, payload):
         for index, row in payload.iterrows():
             print(row)
@@ -190,7 +189,6 @@ class DatabaseSentry():
             )
             self.db.session.add(issue)
             self.db.session.commit()
-
 
     # A quick way to cleanup the database for testing
     def issues_delete_all(self):
