@@ -28,6 +28,7 @@ class APIClient:
             data = response.json()
             if isinstance(data, list):
                 all_results.extend(data)
+                print(f"Received {len(all_results)} items")
             else:
                 return data  # For non-list endpoints
 
@@ -36,9 +37,8 @@ class APIClient:
 
             next_url = None
             for link in links:
-                if link.get("rel") == "next" and link.get("url"):
+                if link.get("rel") == "next" and link.get("url") and link.get("results") == "True":
                     next_url = link["url"]
-                    break
 
             url = next_url
 
