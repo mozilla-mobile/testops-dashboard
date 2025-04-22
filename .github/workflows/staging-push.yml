@@ -3,13 +3,13 @@ name: Testops Report PUSH
 on:
   push:
     branches:
-      - master 
+      - cs/MTE-4454-Sentry-Apr-10 
   workflow_dispatch:
     inputs:
       branchName:
         description: 'Default branch'
         required: true
-        default: 'master'
+        default: 'cs/MTE-4454-Sentry-Apr-10'
 
 jobs:
   deploy:
