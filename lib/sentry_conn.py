@@ -1,5 +1,4 @@
 import requests
-from requests_toolbelt.utils.links import parse_link_header
 
 
 class APIClient:
@@ -32,11 +31,15 @@ class APIClient:
             else:
                 return data  # For non-list endpoints
 
-            link_header = response.headers.get("Link")
-            links = parse_link_header(link_header) if link_header else {}
-            next_link = links.get("next")
+            link_header = response.headers.get("Link", "")
+            links = requests.utils.parse_header_links(link_header.rstrip('>').replace('>,<', ',<'))
 
-            url = next_link["url"] if next_link and next_link.get("results", "false").lower() == "true" else None
+            next_url = None
+            for link in links:
+                if link.get("rel") == "next" and link.get("url"):
+                    next_url = link["url"]
+                    break
+
+            url = next_url
 
         return all_results
-
