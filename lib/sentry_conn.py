@@ -33,11 +33,17 @@ class APIClient:
                 return data  # For non-list endpoints
 
             link_header = response.headers.get("Link", "")
-            links = requests.utils.parse_header_links(link_header.rstrip('>').replace('>,<', ',<'))
+            links = requests.utils.parse_header_links(
+                link_header.rstrip('>').replace('>,<', ',<')
+            )
 
             next_url = None
             for link in links:
-                if link.get("rel") == "next" and link.get("url") and link.get("results") == "true":
+                if (
+                    link.get("rel") == "next"
+                    and link.get("url")
+                    and link.get("results") == "true"
+                ):
                     next_url = link["url"]
 
             url = next_url

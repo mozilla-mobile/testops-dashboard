@@ -72,7 +72,7 @@ class SentryClient(Sentry):
         print("SentryClient.sentry_releases()")
         releases = self.releases()
         release_versions = self.db.report_version_strings(releases)
-        print(release_versions)
+        print("All versions: "+release_versions)
         return release_versions
 
     def sentry_issues(self):
