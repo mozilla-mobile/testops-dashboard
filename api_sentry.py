@@ -72,7 +72,6 @@ class SentryClient(Sentry):
         print("SentryClient.sentry_releases()")
         releases = self.releases()
         release_versions = self.db.report_version_strings(releases)
-        print("All versions: "+release_versions)
         return release_versions
 
     def sentry_issues(self):
@@ -131,6 +130,8 @@ class DatabaseSentry():
                 if version.startswith(major_version+"."):
                     payload.append(version)
         payload = sorted(list(set(payload)), reverse=True)
+        print("Last {0} major versions:".format(NUM_MAJOR_VERSIONS))
+        print(payload)
         return payload
 
     # Get the last two major versions
