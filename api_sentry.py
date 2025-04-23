@@ -36,8 +36,7 @@ class Sentry:
             (
                 'organizations/{0}/issues/'
                 '?project={1}'
-                '&query=release.version:{2}'
-                # '&query=is:for_review release.version:{2}'
+                '&query=is:for_review release.version:{2}'
                 '&sort=freq&statsPeriod=1d'
             ).format(self.organization_slug, self.project_id, release_version)
         )
@@ -122,6 +121,7 @@ class DatabaseSentry():
         versions.sort(reverse=True)
         major_versions = []
         for version in versions:
+            print(version)
             major, minor = version.split('.')
             major_versions.append(major)
         major_versions = sorted(list(set(major_versions)), reverse=True)
