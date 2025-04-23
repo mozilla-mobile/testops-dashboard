@@ -107,7 +107,7 @@ class DatabaseSentry():
 
     def _is_version_numeric(self, version):
         version = version.strip()
-        if version is None or version == '' or version = '9000':
+        if version is None or version == '' or version == '9000':
             return False
         if "(" in version or ")" in version:
             return False
