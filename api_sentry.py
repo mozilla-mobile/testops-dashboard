@@ -36,7 +36,8 @@ class Sentry:
             (
                 'organizations/{0}/issues/'
                 '?project={1}'
-                '&query=is:for_review release.version:{2}'
+                '&query=is:release.version:{2}'
+                # '&query=is:for_review release.version:{2}'
                 '&sort=freq&statsPeriod=1d'
             ).format(self.organization_slug, self.project_id, release_version)
         )
