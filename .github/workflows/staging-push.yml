@@ -3,13 +3,13 @@ name: Testops Report PUSH
 on:
   push:
     branches:
-      - cs/MTE-4454-Sentry-Apr-10 
+      - master 
   workflow_dispatch:
     inputs:
       branchName:
         description: 'Default branch'
         required: true
-        default: 'cs/MTE-4454-Sentry-Apr-10'
+        default: 'master'
 
 jobs:
   deploy:
@@ -59,28 +59,24 @@ jobs:
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
 
-      # - name: Update DB - test runs
-      #   run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
+      - name: Update DB - test runs
+        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
 
-      # - name: Jira query qa-requests
-      #   run: python ./__main__.py --report-type jira-qa-requests
+      - name: Jira query qa-requests
+        run: python ./__main__.py --report-type jira-qa-requests
 
-      # - name: Jira query qa-needed
-      #   if: always()
-      #   run: python ./__main__.py --report-type jira-qa-needed
-
-      # - name: Bugzilla query qe-verify
-      #   if: always()
-      #   run: python ./__main__.py --report-type bugzilla-qe-verify
-
-      # - name: Bitrise Build Count
-      #   if: always()
-      #   run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
-
-      - name: Set job log URL
+      - name: Jira query qa-needed
         if: always()
-        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
-      
+        run: python ./__main__.py --report-type jira-qa-needed
+
+      - name: Bugzilla query qe-verify
+        if: always()
+        run: python ./__main__.py --report-type bugzilla-qe-verify
+
+      - name: Bitrise Build Count
+        if: always()
+        run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
+
       - name: Sentry query
         run: python __main__.py --report-type sentry-issues 
       - name: Upload Sentry result
@@ -89,6 +85,10 @@ jobs:
           name: sentry_issues
           path: ./sentry_issues_*.csv
 
+      - name: Set job log URL
+        if: always()
+        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+      
       - name: Send custom JSON data to Slack workflow
         if: always()
         id: slack
