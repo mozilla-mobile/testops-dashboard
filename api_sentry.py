@@ -107,7 +107,7 @@ class DatabaseSentry():
 
     def _is_version_numeric(self, version):
         version = version.strip()
-        if version is None or version == '':
+        if version is None or version == '' or version = '9000':
             return False
         if "(" in version or ")" in version:
             return False
@@ -121,7 +121,6 @@ class DatabaseSentry():
         versions.sort(reverse=True)
         major_versions = []
         for version in versions:
-            print(version)
             major, minor = version.split('.')
             major_versions.append(major)
         major_versions = sorted(list(set(major_versions)), reverse=True)
