@@ -36,9 +36,8 @@ class APIClient:
             links = requests.utils.parse_header_links(link_header.rstrip('>').replace('>,<', ',<'))
 
             next_url = None
-            print(links)
             for link in links:
-                if link.get("rel") == "next" and link.get("url") and link.get("results") == "True":
+                if link.get("rel") == "next" and link.get("url") and link.get("results") == "true":
                     next_url = link["url"]
 
             url = next_url
