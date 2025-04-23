@@ -10,4 +10,3 @@ urllib3
 python-bugzilla==3.2.0
 atlassian-python-api==3.41.19
 PyYAML
-requests_toolbelt
