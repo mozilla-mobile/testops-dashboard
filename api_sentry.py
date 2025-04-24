@@ -3,6 +3,8 @@ import sys
 
 import pandas as pd
 
+# The 2 major versions are beta and release.
+NUM_MAJOR_VERSIONS = 2
 
 from lib.sentry_conn import APIClient
 
@@ -104,7 +106,8 @@ class DatabaseSentry():
         super().__init__()
         self.db = Database()
 
-    def _is_version_numeric(self, version):
+    # Filter out the non-production versions such as 9000
+    def _production_versions(self, version):
         version = version.strip()
         if version is None or version == '' or version == '9000':
             return False
@@ -115,9 +118,9 @@ class DatabaseSentry():
         parts = version.split('.')
         return all(p.isdigit() for p in parts) and len(parts) > 0
 
-    def _get_major_versions(self, versions):
-        NUM_MAJOR_VERSIONS = 10
-        versions.sort(reverse=True)
+    # Get the beta and the release versions and all their
+    # dot releases.
+    def _new_production_versions(self, versions):
         major_versions = []
         for version in versions:
             major, minor = version.split('.')
@@ -130,7 +133,7 @@ class DatabaseSentry():
                 if version.startswith(major_version+"."):
                     payload.append(version)
         payload = sorted(list(set(payload)), reverse=True)
-        print("Last {0} major versions:".format(NUM_MAJOR_VERSIONS))
+        print("Most recent {0} released versions:".format(NUM_MAJOR_VERSIONS))
         print(payload)
         return payload
 
@@ -141,10 +144,10 @@ class DatabaseSentry():
         for release_version in release_versions:
             # Production only. Fiter out beta and interim versions
             description = release_version['versionInfo']['description']
-            if self._is_version_numeric(description):
+            if self._production_versions(description):
                 payload.append(description)
 
-        payload = self._get_major_versions(payload)
+        payload = self._new_production_versions(payload)
 
         # Just a list of released versions, not a dataframe
         return payload
