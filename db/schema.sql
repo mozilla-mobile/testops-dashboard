@@ -215,12 +215,15 @@ DROP TABLE IF EXISTS `report_jira_softvision_worklogs`;
 CREATE TABLE `report_jira_softvision_worklogs` (
   `id` int NOT NULL AUTO_INCREMENT,
   `parent_key` varchar(75) NOT NULL,
-  `child_key` varchar(75) NOT NULL,
+  `child_key` varchar(75) DEFAULT NULL,
   `author` varchar(175) NOT NULL,
   `time_spent` varchar(175) NOT NULL,
   `started_date` timestamp NOT NULL,
   `comment` varchar(3000) DEFAULT NULL,
   `time_spent_seconds` int NOT NULL DEFAULT '0',
+  `parent_name` varchar(2000) DEFAULT NULL,
+  `child_name` varchar(2000) DEFAULT NULL,
+
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=9707 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;

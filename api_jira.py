@@ -82,10 +82,12 @@ class JiraClient(Jira):
 
         for issue in issues:
             parent_key = issue["key"]
+            parent_name = issue["fields"]["summary"]
             children = self.filter_child_issues(parent_key)
 
             # ---- Get worklogs for the parent itself ----
             parent_worklogs = self.filter_worklogs(parent_key)
+
             for log in parent_worklogs:
                 author = log["author"]["displayName"]
                 time_spent = log["timeSpent"]
@@ -110,12 +112,14 @@ class JiraClient(Jira):
                     time_spent,
                     time_spent_seconds,
                     started_str,
-                    comment
+                    comment,
+                    parent_name
                 ])
 
             # ---- Get worklogs for each child ----
             for child in children:
                 child_key = child.get("key", "Unknown")
+                child_name = child.get("fields", {}).get("summary", "Unknown")
                 child_worklogs = self.filter_worklogs(child_key)
 
                 for log in child_worklogs:
@@ -142,11 +146,13 @@ class JiraClient(Jira):
                         time_spent,
                         time_spent_seconds,
                         started_str,
-                        comment
+                        comment,
+                        parent_name,
+                        child_name
                     ])
 
         df = pd.DataFrame(worklog_data, columns=[
-            "parent_key", "child_key", "author", "time_spent", "time_seconds", "started_date", "comment" # noqa
+            "parent_key", "child_key", "author", "time_spent", "time_seconds", "started_date", "comment", "parent_name", "child_name" # noqa
         ])
 
         self.db.jira_worklogs_delete()
@@ -276,7 +282,9 @@ class DatabaseJira(Database):
                                                   time_spent=row['time_spent'],
                                                   time_spent_seconds=row['time_seconds'], # noqa
                                                   started_date=row['started_date'], # noqa
-                                                  comment=row['comment'])
+                                                  comment=row['comment'],
+                                                  parent_name=row['parent_name'], # noqa
+                                                  child_name=row['child_name'],) # noqa
             self.session.add(report)
         self.session.commit()
 
