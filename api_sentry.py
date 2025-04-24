@@ -3,15 +3,15 @@ import sys
 
 import pandas as pd
 
-# The 2 major versions are beta and release.
-NUM_MAJOR_VERSIONS = 2
-
 from lib.sentry_conn import APIClient
 
 from database import (
     Database,
     ReportSentryIssues
 )
+
+# The 2 major versions are beta and release.
+NUM_MAJOR_VERSIONS = 2
 
 
 class Sentry:
