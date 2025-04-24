@@ -11,7 +11,7 @@ class APIClient:
                 '{0}api/0/'
             ).format(base_url)
 
-    def get(self, uri):
+    def http_get(self, uri):
         headers = {
             'Authorization': f'Bearer {self.api_token}',
             'Content-Type': 'application/json'

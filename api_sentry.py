@@ -8,7 +8,6 @@ NUM_MAJOR_VERSIONS = 2
 
 from lib.sentry_conn import APIClient
 
-# TODO: Database
 from database import (
     Database,
     ReportSentryIssues
@@ -34,7 +33,7 @@ class Sentry:
     # organization/mozilla/issues/
     # ?limit=10&query=is:for_review&sort=freq&statsPeriod=1d
     def issues(self, release_version):
-        return self.client.get(
+        return self.client.http_get(
             (
                 'organizations/{0}/issues/'
                 '?project={1}'
@@ -49,7 +48,7 @@ class Sentry:
     # ?per_page=100&project=1111111111
     # &statsPeriod=1d&environment=Production
     def releases(self):
-        return self.client.get(
+        return self.client.http_get(
             (
                 'projects/{0}/firefox-ios/releases/'
                 '?&project={1}&statsPeriod=1d'
@@ -120,7 +119,7 @@ class DatabaseSentry():
 
     # Get the beta and the release versions and all their
     # dot releases.
-    def _new_production_versions(self, versions):
+    def _all_new_production_dot_versions(self, versions):
         major_versions = []
         for version in versions:
             major, minor = version.split('.')
@@ -133,7 +132,7 @@ class DatabaseSentry():
                 if version.startswith(major_version+"."):
                     payload.append(version)
         payload = sorted(list(set(payload)), reverse=True)
-        print("Most recent {0} released versions:".format(NUM_MAJOR_VERSIONS))
+        print("Most recent {0} major versions:".format(NUM_MAJOR_VERSIONS))
         print(payload)
         return payload
 
@@ -147,7 +146,7 @@ class DatabaseSentry():
             if self._production_versions(description):
                 payload.append(description)
 
-        payload = self._new_production_versions(payload)
+        payload = self._all_new_production_dot_versions(payload)
 
         # Just a list of released versions, not a dataframe
         return payload
