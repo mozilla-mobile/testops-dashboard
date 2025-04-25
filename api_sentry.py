@@ -23,7 +23,6 @@ class Sentry:
             self.organization_slug = \
                 os.environ['SENTRY_ORGANIZATION_SLUG']
             self.project_id = os.environ['SENTRY_PROJECT_ID']
-            self.project_slug = 'mozilla'
         except KeyError:
             print("ERROR: Missing testrail env var")
             sys.exit(1)
