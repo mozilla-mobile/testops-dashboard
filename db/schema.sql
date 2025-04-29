@@ -393,3 +393,23 @@ CREATE TABLE `report_bitrise_builds_count` (
 ) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Table structure for table `report_sentry_issue`
+--
+
+DROP TABLE IF EXISTS `report_sentry_issues`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_sentry_issues` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `sentry_id` int NOT NULL,
+  `culprit` varchar(250) NOT NULL,
+  `title` varchar(250) NOT NULL,
+  `count` int NOT NULL,
+  `user_count` int NOT NULL,
+  `release_version` varchar(250) NOT NULL,
+  `permalink` varchar(250) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
