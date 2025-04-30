@@ -52,6 +52,14 @@ wiki_page:
           report-description: "The percentage of failed tests by month."
           attachment-filename: "fenix-ui-test-failure-rate-by-month.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2871"
+        - report-title: "Fenix UI Test Monthly Run Volume of UI Tests"
+          report-description: "The number of tests run by month across all jobs."
+          attachment-filename: "fenix-ui-test-monthyl-run-volume.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2891"
+        - report-title: "Focus UI Test Monthly Run Volume of UI Tests"
+          report-description: "The number of tests run by month across all jobs."
+          attachment-filename: "focus-ui-test-monthly-run-volume.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2893"
 
     - name: "UI Test Data Insights - iOS"
       reports:
