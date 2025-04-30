@@ -10,6 +10,9 @@ LOOKER_SECRET = os.environ['LOOKER_SECRET']
 FOLDER_ID = 1820
 IMAGES_DIR = "config/confluence/images"
 
+MAX_RETRIES = 3
+RETRY_DELAY = 10  # seconds between retries
+
 
 # Authenticate and Get Access Token
 def get_looker_token():
@@ -47,28 +50,39 @@ def create_render_dashboard_task(access_token, dashboard_id, image_format="png",
 
 # Poll until the render task is complete
 def wait_for_render_task(access_token, task_id, timeout=120):
-    # Waits for the Looker render task to complete, with a timeout.
     url = f"{LOOKER_HOST}/api/4.0/render_tasks/{task_id}"
     headers = {"Authorization": f"Bearer {access_token}"}
-    start_time = time.time()
 
-    while True:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        task_status = response.json()
+    for attempt in range(1, MAX_RETRIES + 1):
+        start_time = time.time()
 
-        if task_status["status"] == "success":
-            return task_id  # Return the task_id to fetch the image
+        while True:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()
+            task_status = response.json()
 
-        elif task_status["status"] in ["failure", "expired"]:
-            raise Exception(f"Render task failed or expired: {task_status}")
+            status = task_status.get("status")
+            if status == "success":
+                return task_id  # Task completed successfully
 
-        elif task_status["status"] == "enqueued_for_render":
-            elapsed_time = time.time() - start_time
-            if elapsed_time > timeout:
-                raise Exception(f"Render task stuck in 'enqueued_for_render' for {timeout} seconds. Aborting.") # noqa
+            elif status in ["failure", "expired"]:
+                # Only retry for transient errors
+                status_detail = task_status.get("status_detail", "")
+                if "Visibility check was unavailable" in status_detail and attempt < MAX_RETRIES:
+                    print(f"Attempt {attempt} failed due to visibility check issue. Retrying in {RETRY_DELAY}s...")
+                    time.sleep(RETRY_DELAY)
+                    break  # Exit inner loop to retry task
+                else:
+                    raise Exception(f"Render task failed or expired: {task_status}")
 
-        time.sleep(5)
+            elif status == "enqueued_for_render":
+                elapsed_time = time.time() - start_time
+                if elapsed_time > timeout:
+                    raise Exception(f"Render task stuck in 'enqueued_for_render' for {timeout} seconds. Aborting.")
+
+            time.sleep(5)
+
+    raise Exception("Render task failed after maximum retry attempts.")
 
 
 # Download the rendered image and save it as a PNG file
