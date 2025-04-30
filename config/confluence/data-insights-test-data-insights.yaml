@@ -57,13 +57,13 @@ wiki_page:
       reports:
         - report-title: "Fennec UI Flaky Tests Trend"
           report-description: "Firefox iOS UI Flaky Tests Trend in 2025"
-          attachment-filename: "fennec-ui-test-flaky-tests-ios.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2849"
+          attachment-filename: "fennec-number-of-flaky-tests-trend.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2888"
 
         - report-title: "Fennec UI Failure Tests Trend"
           report-description: "Firefox iOS UI Failure Tests Trend in 2025"
-          attachment-filename: "fennec-ui-tests-failures-trend-ios.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2850"
+          attachment-filename: "fennec-number-of-failure-tests-trend.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2889"
 
         - report-title: "Fennec Firefox iOS - Flaky Rate By Day"
           report-description: "Fennec Firefox iOS - Flaky Rate By Day 2025"
