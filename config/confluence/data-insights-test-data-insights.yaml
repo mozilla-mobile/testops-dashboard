@@ -54,7 +54,7 @@ wiki_page:
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2871"
         - report-title: "Fenix UI Test Monthly Run Volume of UI Tests"
           report-description: "The number of tests run by month across all jobs."
-          attachment-filename: "fenix-ui-test-monthyl-run-volume.png"
+          attachment-filename: "fenix-ui-test-monthly-run-volume.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2891"
         - report-title: "Focus UI Test Monthly Run Volume of UI Tests"
           report-description: "The number of tests run by month across all jobs."
