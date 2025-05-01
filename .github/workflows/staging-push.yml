@@ -77,13 +77,13 @@ jobs:
       #   if: always()
       #   run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
 
-      - name: Sentry query
-        run: python __main__.py --report-type sentry-issues 
-      - name: Upload Sentry result
-        uses: actions/upload-artifact@v4
-        with:
-          name: sentry_issues
-          path: ./sentry_issues_*.csv
+      # - name: Sentry query
+      #   run: python __main__.py --report-type sentry-issues 
+      # - name: Upload Sentry result
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: sentry_issues
+      #     path: ./sentry_issues_*.csv
       - name: Send latest Sentry issues to Slack
         id: slack-sentry
         uses: slackapi/slack-github-action@v2.0.0
@@ -92,10 +92,6 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             text: "Finished Sentry query"
-        env:
-          server_url: ${{ github.server_url }}
-          repository: ${{ github.repository }}
-          run_id: ${{ github.run_id }}
 
       - name: Set job log URL
         if: always()
