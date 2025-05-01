@@ -121,7 +121,8 @@ class DatabaseSentry():
     def _all_new_production_dot_versions(self, versions):
         major_versions = []
         for version in versions:
-            major, minor = version.split('.')
+            parts = version.split('.')
+            major = parts[0]
             major_versions.append(major)
         major_versions = sorted(list(set(major_versions)), reverse=True)
         major_versions = major_versions[:NUM_MAJOR_VERSIONS]
