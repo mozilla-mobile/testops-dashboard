@@ -92,7 +92,7 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              text: "Finished Sentry query"
+              "text": "Finished Sentry query"
             }
 
       - name: Set job log URL
