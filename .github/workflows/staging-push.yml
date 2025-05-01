@@ -84,6 +84,19 @@ jobs:
         with:
           name: sentry_issues
           path: ./sentry_issues_*.csv
+      - name: Send latest Sentry issues to Slack
+        id: slack-sentry
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+          payload: |
+            text: "Finished Sentry query"
+
+        env:
+          server_url: ${{ github.server_url }}
+          repository: ${{ github.repository }}
+          run_id: ${{ github.run_id }}
 
       - name: Set job log URL
         if: always()
