@@ -88,12 +88,10 @@ jobs:
         id: slack-sentry
         uses: slackapi/slack-github-action@v2.0.0
         with:
+          payload-file-path: "./hello-world.json"
+          payload-templated: true 
           webhook:  ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": "Finished Sentry query"
-            }
 
       - name: Set job log URL
         if: always()
