@@ -1,0 +1,12 @@
+{
+    "blocks": [
+      {
+        "type": "header",
+        "text": {
+          "type": "plain_text",
+          "text": ":tada: I can send a message to Slack!",
+          "emoji": true
+        }
+      }
+	]
+}
