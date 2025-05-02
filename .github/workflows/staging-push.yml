@@ -20,19 +20,19 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v2
 
-      - name: Setup python 
-        uses: actions/setup-python@v1
+      # - name: Setup python 
+      #   uses: actions/setup-python@v1
 
-      - name: Establish Cloud SQL Proxy
-        uses: mattes/gce-cloudsql-proxy-action@v1
-        with:
-          creds: ${{ secrets.GCLOUD_AUTH }}
-          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
-          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+      # - name: Establish Cloud SQL Proxy
+      #   uses: mattes/gce-cloudsql-proxy-action@v1
+      #   with:
+      #     creds: ${{ secrets.GCLOUD_AUTH }}
+      #     instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+      #     port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
 
-      - name: Install requirements 
-        run: |
-            pip install -r requirements.txt
+      # - name: Install requirements 
+      #   run: |
+      #       pip install -r requirements.txt
 
       - name: Set env vars 
         run: |
@@ -85,6 +85,7 @@ jobs:
       #     name: sentry_issues
       #     path: ./sentry_issues_*.csv
       - name: Send latest Sentry issues to Slack
+        if: always()
         id: slack-sentry
         uses: slackapi/slack-github-action@v2.0.0
         with:
