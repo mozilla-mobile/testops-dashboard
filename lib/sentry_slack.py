@@ -21,7 +21,7 @@ def init_json():
                 "text": {
                     "type": "plain_text",
                     "text": ":health: :sentry: Sentry Health Report (${{ env.TODAY_DATE }})",
-                    "emoji": "true"
+                    "emoji": True
                 }
             }
         ]
