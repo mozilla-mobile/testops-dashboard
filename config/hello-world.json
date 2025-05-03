@@ -4,9 +4,30 @@
         "type": "header",
         "text": {
           "type": "plain_text",
-          "text": ":tada: I can send a message to Slack!",
+          "text": ":health: :sentry: Sentry Daily Health Report",
           "emoji": true
         }
-      }
+      },
+	  {
+		  "type": "section",
+		  "text": {
+			  "type": "mrkdwn",
+			  "text": "Release: v138.0 \n * Top unassigned issue"
+		  }
+	  },
+	  {
+		  "type": "section",
+		  "text": {
+			  "type": "mrkdwn",
+			  "text": "Release: v137.2 \n * Top unassigned issue"
+		  }
+	  },
+	  {
+		  "type": "section",
+		  "text": {
+			  "type": "mrkdwn",
+			  "text": "Release: v137.1 \n * Top unassigned issue"
+		  }
+	  }
 	]
 }
