@@ -85,6 +85,7 @@ jobs:
       #     name: sentry_issues
       #     path: ./sentry_issues_*.csv
       - name: Set up variables for Slack reporting
+        if: always()
         run: |
           today_date=$(date +"%A %B %d %Y")
           echo "TODAY_DATE=${today_date}" >> $GITHUB_ENV
