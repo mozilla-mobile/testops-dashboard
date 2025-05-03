@@ -4,7 +4,7 @@
         "type": "header",
         "text": {
           "type": "mrkdwn",
-          "text": ":health: :sentry: Sentry Daily Health Report (${{ env.TODAY_DATE }})",
+          "text": ":health: :sentry: Sentry Daily Health Report",
           "emoji": true
         }
       },
