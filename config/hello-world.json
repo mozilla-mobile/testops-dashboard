@@ -3,8 +3,8 @@
       {
         "type": "header",
         "text": {
-          "type": "plain_text",
-          "text": ":health: :sentry: Sentry Daily Health Report {date}",
+          "type": "mrkdwn",
+          "text": ":health: :sentry: Sentry Daily Health Report (<!date^${{ env.TODAY_DATE }}^{date_long}|sorry no date>)",
           "emoji": true
         }
       },
