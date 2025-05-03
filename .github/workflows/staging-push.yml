@@ -84,11 +84,11 @@ jobs:
       #   with:
       #     name: sentry_issues
       #     path: ./sentry_issues_*.csv
-      - name: Set up variables for Slack reporting
-        if: always()
-        run: |
-          today_date=$(date +"%A %B %d %Y")
-          echo "TODAY_DATE=${today_date}" >> $GITHUB_ENV
+      # - name: Set up variables for Slack reporting
+      #   if: always()
+      #   run: |
+      #     today_date=$(date +"%A %B %d %Y")
+      #     echo "TODAY_DATE=${today_date}" >> $GITHUB_ENV
       - name: Send latest Sentry issues to Slack
         if: always()
         id: slack-sentry
