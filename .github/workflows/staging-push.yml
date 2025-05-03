@@ -96,10 +96,8 @@ jobs:
         with:
           payload-file-path: "./config/hello-world.json"
           payload-templated: true 
-          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
-        env:
-          TODAY_DATE: ${{ env.TODAY_DATE }}
 
       - name: Set job log URL
         if: always()
