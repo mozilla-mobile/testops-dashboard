@@ -4,7 +4,7 @@
         "type": "header",
         "text": {
           "type": "plain_text",
-          "text": ":health: :sentry: Sentry Daily Health Report",
+          "text": ":health: :sentry: Sentry Daily Health Report {date}",
           "emoji": true
         }
       },

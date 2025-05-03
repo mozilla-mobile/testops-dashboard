@@ -84,6 +84,10 @@ jobs:
       #   with:
       #     name: sentry_issues
       #     path: ./sentry_issues_*.csv
+      - name: Set up variables for Slack reporting
+        run: |
+          today_date=$(date +%s)
+          echo "TODAY_DATE=${today_date}" >> $GITHUB_ENV
       - name: Send latest Sentry issues to Slack
         if: always()
         id: slack-sentry
@@ -93,6 +97,8 @@ jobs:
           payload-templated: true 
           webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
+        env:
+          TODAY_DATE: ${{ env.TODAY_DATE }}
 
       - name: Set job log URL
         if: always()
