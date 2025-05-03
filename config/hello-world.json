@@ -4,7 +4,7 @@
         "type": "header",
         "text": {
           "type": "plain_text",
-          "text": ":health: :sentry: Sentry Daily Health Report (${{ env.TODAY_DATE }}",
+          "text": ":health: :sentry: Sentry Health Report (${{ env.TODAY_DATE }})",
           "emoji": true
         }
       },
@@ -20,6 +20,13 @@
 		  "text": {
 			  "type": "mrkdwn",
 			  "text": "Release: v137.2 \n * Top unassigned issue"
+		  }
+	  },
+	  {
+		  "type": "section",
+		  "text": {
+			  "type": "mrkdwn",
+			  "text": "Release: v137.1 \n * Top unassigned issue"
 		  }
 	  }
 	]

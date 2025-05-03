@@ -59,7 +59,7 @@ jobs:
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
 
-            today_date=$(date +"%A %B %d %Y")
+            today_date=$(date +"%B %d %Y")
             echo "TODAY_DATE=${today_date}" >> $GITHUB_ENV
 
       # - name: Update DB - test runs
