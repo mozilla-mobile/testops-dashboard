@@ -44,3 +44,6 @@ Usage: __main__.py [-h] --project {fenix,focus-android,reference-browser,firefox
 Data is stored in a Cloud SQL database and made available through BigQuery views.
 
 > See [`DB/README.md`](db/README.md) for more details on working with the database, environment variables, and helper scripts.
+
+## Diagram
+Diagram
