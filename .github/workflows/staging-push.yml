@@ -85,7 +85,7 @@ jobs:
         with:
           name: sentry_issues
           path: ./sentry_issues_*.csv
-      - name: Construct JSON for Slack
+      - name: Construct JSON for Slack (Sentry)
         run: |
           python lib/sentry_slack.py
       - name: Send latest Sentry issues to Slack
