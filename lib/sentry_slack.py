@@ -13,12 +13,12 @@ def all_available_versions():
 def insert_json_content(json_data, versions):
     for version in versions:
         this_version = {
-		      "type": "section",
-		        "text": {
-			        "type": "mrkdwn",
-			        "text": f"Release: v{version}"
-		        }
-	        }
+		    "type": "section",
+		    "text": {
+			    "type": "mrkdwn",
+			    "text": f"Release: v{version}"
+		    }
+        }
         json_data["blocks"].append(this_version)
     return json_data
 
@@ -34,7 +34,7 @@ def init_json():
                 }
             }
         ]
-      }
+    }
     return json_data
 
 def main():
