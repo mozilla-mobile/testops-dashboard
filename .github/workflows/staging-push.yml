@@ -58,6 +58,7 @@ jobs:
             echo "SENTRY_API_TOKEN=${{ secrets.SENTRY_API_TOKEN_CSO }}" >> $GITHUB_ENV
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
+            echo "TODAY_DATE=$(date +"%B %d %Y")" >> $GITHUB_ENV
 
       - name: Update DB - test runs
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
@@ -84,6 +85,19 @@ jobs:
         with:
           name: sentry_issues
           path: ./sentry_issues_*.csv
+      - name: Construct JSON for Slack (Sentry)
+        run: |
+          python lib/sentry_slack.py
+      - name: Send latest Sentry issues to Slack
+        id: slack-sentry
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./sentry_slack.json"
+          payload-templated: true 
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        env:
+          TODAY_DATE: ${{ env.TODAY_DATE }}
 
       - name: Set job log URL
         if: always()
