@@ -5,9 +5,12 @@ def all_available_versions():
     versions = []
     csv_files = Path('.').glob('*.csv')
     for file in csv_files:
-        print(f"File: {file.name}, Suffix: {file.stem}")
-        version = file.name.split('sentry_issues_')[-1].split('.csv')[0]
-        versions.append(version)
+        try:
+            print(f"File: {file.name}, Suffix: {file.stem}")
+            version = file.name.split('sentry_issues_')[-1].split('.csv')[0]
+            versions.append(version)
+        except IndexError:
+            print(f"Skipped file: {file.name} (unexpected naming format, or file doesn't exist)")
     return versions
 
 def insert_json_content(json_data, versions):
@@ -20,7 +23,6 @@ def insert_json_content(json_data, versions):
 		    }
         }
         json_data["blocks"].append(this_version)
-    return json_data
 
 def init_json():
     json_data = {
