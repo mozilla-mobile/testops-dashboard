@@ -2,12 +2,12 @@ import argparse
 import sys
 
 
-from api_bugzilla import BugzillaClient
-from api_github import GithubClient
-from api_jira import JiraClient
-from api_testrail import TestRailClient
+# from api_bugzilla import BugzillaClient
+# from api_github import GithubClient
+# from api_jira import JiraClient
+# from api_testrail import TestRailClient
 from api_sentry import SentryClient
-import api_confluence
+# import api_confluence
 
 from api_bitrise import BitriseClient
 
@@ -100,43 +100,44 @@ def main():
     validate_project(args.platform, args.project, args.report_type)
     arg_list = args_to_list(args.platform, args.project)
 
-    if args.report_type == 'confluence-updates':
-        api_confluence.main()
-    if args.report_type == 'testrail-test-case-coverage':
-        h = TestRailClient()
-        h.data_pump(arg_list)
-    if args.report_type == 'testrail-test-run-counts':
-        h = TestRailClient()
-        if args.num_days:
-            num_days = args.num_days
-        else:
-            num_days = ''
-        h.testrail_run_counts_update(args.project, num_days)
-    if args.report_type == 'testrail-milestones':
-        h = TestRailClient()
-        h.testrail_milestones(arg_list)
-    if args.report_type == 'github-issue-regression':
-        h = GithubClient()
-        h.github_issue_regression(args.project)
-        h = GithubClient()
-    if args.report_type == 'jira-qa-requests':
-        h = JiraClient()
-        h.jira_qa_requests()
-    if args.report_type == 'jira-qa-needed':
-        h = JiraClient()
-        h.jira_qa_needed()
-    if args.report_type == 'bugzilla-qe-verify':
-        h = BugzillaClient()
-        h.bugzilla_qe_verify()
-    if args.report_type == 'jira-softvision-worklogs':
-        h = JiraClient()
-        h.jira_softvision_worklogs()
-    if args.report_type == 'bitrise-builds':
-        h = BitriseClient()
-        h.bitrise_builds_detailed_info()
+    # if args.report_type == 'confluence-updates':
+    #     api_confluence.main()
+    # if args.report_type == 'testrail-test-case-coverage':
+    #     h = TestRailClient()
+    #     h.data_pump(arg_list)
+    # if args.report_type == 'testrail-test-run-counts':
+    #     h = TestRailClient()
+    #     if args.num_days:
+    #         num_days = args.num_days
+    #     else:
+    #         num_days = ''
+    #     h.testrail_run_counts_update(args.project, num_days)
+    # if args.report_type == 'testrail-milestones':
+    #     h = TestRailClient()
+    #     h.testrail_milestones(arg_list)
+    # if args.report_type == 'github-issue-regression':
+    #     h = GithubClient()
+    #     h.github_issue_regression(args.project)
+    #     h = GithubClient()
+    # if args.report_type == 'jira-qa-requests':
+    #     h = JiraClient()
+    #     h.jira_qa_requests()
+    # if args.report_type == 'jira-qa-needed':
+    #     h = JiraClient()
+    #     h.jira_qa_needed()
+    # if args.report_type == 'bugzilla-qe-verify':
+    #     h = BugzillaClient()
+    #     h.bugzilla_qe_verify()
+    # if args.report_type == 'jira-softvision-worklogs':
+    #     h = JiraClient()
+    #     h.jira_softvision_worklogs()
+    # if args.report_type == 'bitrise-builds':
+    #     h = BitriseClient()
+    #     h.bitrise_builds_detailed_info()
     if args.report_type == 'sentry-issues':
         h = SentryClient()
         h.sentry_issues()
+        # h.sentry_event_category_from_issue("6605008102")
 
 
 if __name__ == '__main__':

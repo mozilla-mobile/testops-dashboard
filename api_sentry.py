@@ -40,6 +40,16 @@ class Sentry:
                 '&sort=freq&statsPeriod=1d'
             ).format(self.organization_slug, self.project_id, release_version)
         )
+        
+    # API: Events from an issue
+    # All events related to an issue.
+    # /organizations/mozilla/issues/<id>/events/
+    def events_from_issue(self, issue_id):
+        return self.client.http_get(
+            (
+                'organizations/{0}/issues/{1}/events/'
+            ).format(self.organization_slug, issue_id)
+        )
 
     # API: Releases
     # The most recent releases of the project:
@@ -53,6 +63,16 @@ class Sentry:
                 '?&project={1}&statsPeriod=1d'
                 '&environment=Production'
             ).format(self.organization_slug, self.project_id)
+        )
+        
+    # API: Events
+    # The details of a particular event
+    # /projects/mozilla/firefox-ios/events/<id>/
+    def event(self, event_id):
+        return self.client.http_get(
+            (
+                'projects/{0}/firefox-ios/events/{1}/'
+            ).format(self.organization_slug, event_id)
         )
 
 
@@ -80,8 +100,19 @@ class SentryClient(Sentry):
         release_versions = self.sentry_releases()
 
         df_issues = pd.DataFrame()
+        release_versions = ['138.2']
         for release_version in release_versions:
             issues = self.issues(release_version)
+            
+            # Get categories for each issue
+            categories = []
+            issue_ids = [issue['id'] for issue in issues]
+            for issue_id in issue_ids:
+                category = self.sentry_event_category_from_issue(issue_id)
+                categories.append({'id': issue_id, 'categories': category})
+                
+            print(categories)
+            
             # NOTE: Use just the last two major releases for now
             df_issues_release = self.db.report_issue_payload(issues,
                                                              release_version)
@@ -96,6 +127,28 @@ class SentryClient(Sentry):
         # Insert into database
         self.db.issue_insert(df_issues)
 
+    def sentry_event_category_from_issue(self, issue_id):
+        print("SentryClient.sentry_events_from_issue()")
+        
+        # Get all events associated withe the issue
+        issue_events = self.events_from_issue(issue_id)
+        event_ids = []
+        for event in issue_events:
+            event_ids.append(event['id'])
+            
+        # print(event_ids)
+            
+        # Get all categories from the breadcrumbs of each event
+        categories = []
+        for event_id in event_ids:
+            event = self.event(event_id)
+            category = self.db.report_category_from_event_breadcrumbs(event)
+            categories.extend(category)
+        categories = sorted(list(set(categories)))
+            
+        # print(categories)
+        
+        return categories    
 
 class DatabaseSentry():
 
@@ -178,6 +231,16 @@ class DatabaseSentry():
                                    "count", "user_count", "release_version",
                                    "permalink"])
         return df
+    
+    def report_category_from_event_breadcrumbs(self, event):
+        categories = []
+        entries = event['entries']
+        for entry in entries:
+            if entry['type'] == 'breadcrumbs':
+               values = entry['data']['values']
+               for value in values:
+                   categories.append(value['category'])
+        return categories
 
     def issue_insert(self, payload):
         for index, row in payload.iterrows():
