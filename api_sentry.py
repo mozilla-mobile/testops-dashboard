@@ -1,14 +1,8 @@
 import os
 import sys
-
 import pandas as pd
-
 from lib.sentry_conn import APIClient
-
-from database import (
-    Database,
-    ReportSentryIssues
-)
+from database import Database, ReportSentryIssues
 
 # The 2 major versions are beta and release.
 NUM_MAJOR_VERSIONS = 2
@@ -20,17 +14,12 @@ class Sentry:
         try:
             self.client = APIClient(os.environ['SENTRY_HOST'])
             self.client.api_token = os.environ['SENTRY_API_TOKEN']
-            self.organization_slug = \
-                os.environ['SENTRY_ORGANIZATION_SLUG']
+            self.organization_slug = os.environ['SENTRY_ORGANIZATION_SLUG']
             self.project_id = os.environ['SENTRY_PROJECT_ID']
         except KeyError:
-            print("ERROR: Missing testrail env var")
+            print("ERROR: Missing Sentry environment variable")
             sys.exit(1)
 
-    # API: Issues
-    # Only the unassigned issues past day sorted by frequency:
-    # organization/mozilla/issues/
-    # ?limit=10&query=is:for_review&sort=freq&statsPeriod=1d
     def issues(self, release_version):
         return self.client.http_get(
             (
@@ -40,10 +29,7 @@ class Sentry:
                 '&sort=freq&statsPeriod=1d'
             ).format(self.organization_slug, self.project_id, release_version)
         )
-        
-    # API: Events from an issue
-    # All events related to an issue.
-    # /organizations/mozilla/issues/<id>/events/
+
     def events_from_issue(self, issue_id):
         return self.client.http_get(
             (
@@ -51,11 +37,6 @@ class Sentry:
             ).format(self.organization_slug, issue_id)
         )
 
-    # API: Releases
-    # The most recent releases of the project:
-    # projects/mozilla/firefox-ios/releases/
-    # ?per_page=100&project=1111111111
-    # &statsPeriod=1d&environment=Production
     def releases(self):
         return self.client.http_get(
             (
@@ -64,10 +45,7 @@ class Sentry:
                 '&environment=Production'
             ).format(self.organization_slug, self.project_id)
         )
-        
-    # API: Events
-    # The details of a particular event
-    # /projects/mozilla/firefox-ios/events/<id>/
+
     def event(self, event_id):
         return self.client.http_get(
             (
@@ -83,9 +61,8 @@ class SentryClient(Sentry):
         super().__init__()
         self.db = DatabaseSentry()
 
-    def data_pump():
-        # Let's leave this to stay consistent with other
-        # api_*.py files.
+    def data_pump(self):
+        """Placeholder for data pump functionality."""
         pass
 
     def sentry_releases(self):
@@ -103,23 +80,24 @@ class SentryClient(Sentry):
         release_versions = ['138.2']
         for release_version in release_versions:
             issues = self.issues(release_version)
-            
+
             # Get categories for each issue
             categories = []
             issue_ids = [issue['id'] for issue in issues]
             for issue_id in issue_ids:
                 category = self.sentry_event_category_from_issue(issue_id)
                 categories.append({'id': issue_id, 'categories': category})
-                
             print(categories)
-            
+
             # NOTE: Use just the last two major releases for now
-            df_issues_release = self.db.report_issue_payload(issues,
-                                                             release_version)
-            # output CSV for debugging
+            df_issues_release = self.db.report_issue_payload(
+                issues, release_version
+            )
+            # Output CSV for debugging
             df_issues_release.to_csv(
                 "sentry_issues_{0}.csv".format(release_version),
-                index=False)
+                index=False
+            )
 
             # Insert issues from this release into the same dataframe
             df_issues = pd.concat([df_issues, df_issues_release], axis=0)
@@ -129,122 +107,103 @@ class SentryClient(Sentry):
 
     def sentry_event_category_from_issue(self, issue_id):
         print("SentryClient.sentry_events_from_issue()")
-        
-        # Get all events associated withe the issue
+
+        # Get all events associated with the issue
         issue_events = self.events_from_issue(issue_id)
-        event_ids = []
-        for event in issue_events:
-            event_ids.append(event['id'])
-            
-        # print(event_ids)
-            
+        event_ids = [event['id'] for event in issue_events]
+
         # Get all categories from the breadcrumbs of each event
         categories = []
+        print("Fetching {0} events".format(len(event_ids)))
         for event_id in event_ids:
             event = self.event(event_id)
             category = self.db.report_category_from_event_breadcrumbs(event)
             categories.extend(category)
-        categories = sorted(list(set(categories)))
-            
-        # print(categories)
-        
-        return categories    
+        categories = sorted(set(categories))
 
-class DatabaseSentry():
+        return categories
+
+
+class DatabaseSentry:
 
     def __init__(self):
         print("DatabaseSentry.__init__()")
-        super().__init__()
         self.db = Database()
 
-    # Filter out the non-production versions such as 9000
     def _production_versions(self, version):
+        """Filter out non-production versions."""
         version = version.strip()
-        if version is None or version == '' or version == '9000':
+        if not version or version == '9000':
             return False
         if "(" in version or ")" in version:
             return False
         if "org.mozilla.ios.Firefox" in version:
             return False
         parts = version.split('.')
-        return all(p.isdigit() for p in parts) and len(parts) > 0
+        return all(p.isdigit() for p in parts)
 
-    # Get the beta and the release versions and all their
-    # dot releases.
     def _all_new_production_dot_versions(self, versions):
-        major_versions = []
-        for version in versions:
-            parts = version.split('.')
-            major = parts[0]
-            major_versions.append(major)
-        major_versions = sorted(list(set(major_versions)), reverse=True)
-        major_versions = major_versions[:NUM_MAJOR_VERSIONS]
-        payload = []
-        for major_version in major_versions:
-            for version in versions:
-                if version.startswith(major_version+"."):
-                    payload.append(version)
-        payload = sorted(list(set(payload)), reverse=True)
+        """Get the beta and release versions and all their dot releases."""
+        major_versions = sorted(
+            set(version.split('.')[0] for version in versions),
+            reverse=True
+        )[:NUM_MAJOR_VERSIONS]
+        payload = [
+            version for major_version in major_versions
+            for version in versions if version.startswith(major_version + ".")
+        ]
+        payload = sorted(set(payload), reverse=True)
         print("Most recent {0} major versions:".format(NUM_MAJOR_VERSIONS))
         print(payload)
         return payload
 
-    # Get the last two major versions
     def report_version_strings(self, release_versions):
-        payload = []
-
-        for release_version in release_versions:
-            # Production only. Fiter out beta and interim versions
-            description = release_version['versionInfo']['description']
-            if self._production_versions(description):
-                payload.append(description)
-
-        payload = self._all_new_production_dot_versions(payload)
-
-        # Just a list of released versions, not a dataframe
-        return payload
+        """Get the last two major versions."""
+        payload = [
+            release_version['versionInfo']['description']
+            for release_version in release_versions
+            if self._production_versions(
+                release_version['versionInfo']['description']
+            )
+        ]
+        return self._all_new_production_dot_versions(payload)
 
     def report_issue_payload(self, issues, release_version):
-        payload = []
+        """Prepare issue data for insertion into the database."""
         MAX_STRING_LEN = 250
-        for issue in issues:
-            sentry_id = issue['id']
-            culprit = issue['culprit']
-            title = issue['title'][:MAX_STRING_LEN]
-            permalink = issue['permalink']
-            lifetime = issue['lifetime']
-            count = lifetime.get('count', 0)
-            user_count = lifetime.get('userCount', 0)
-            row = [sentry_id, culprit, title, count, user_count,
-                   release_version, permalink]
-            payload.append(row)
+        payload = [
+            [
+                issue['id'],
+                issue['culprit'],
+                issue['title'][:MAX_STRING_LEN],
+                issue['lifetime'].get('count', 0),
+                issue['lifetime'].get('userCount', 0),
+                release_version,
+                issue['permalink']
+            ]
+            for issue in issues
+        ]
+        return pd.DataFrame(
+            data=payload,
+            columns=[
+                "sentry_id", "culprit", "title", "count", "user_count",
+                "release_version", "permalink"
+            ]
+        )
 
-        # sentry_id: ID given by sentry. Maybe in the permalink as well
-        # culprit: Module where the error is happening (NEED)
-        # title: Title of the issue (NEED)
-        # count: Lifetime count of the occurrences (NEED)
-        # user_count: Lifetime count of the users affected (NEED)
-        # release_version: We separate queries by release version for now
-        # permalink: Click to open Sentry page of the issue (Maybe for Slack)
-        df = pd.DataFrame(data=payload,
-                          columns=["sentry_id", "culprit", "title",
-                                   "count", "user_count", "release_version",
-                                   "permalink"])
-        return df
-    
     def report_category_from_event_breadcrumbs(self, event):
+        """Extract categories from event breadcrumbs."""
         categories = []
-        entries = event['entries']
-        for entry in entries:
+        for entry in event['entries']:
             if entry['type'] == 'breadcrumbs':
-               values = entry['data']['values']
-               for value in values:
-                   categories.append(value['category'])
+                categories.extend(
+                    value['category'] for value in entry['data']['values']
+                )
         return categories
 
     def issue_insert(self, payload):
-        for index, row in payload.iterrows():
-            print(row)
+        """Insert issues into the database."""
+        for _, row in payload.iterrows():
             issue = ReportSentryIssues(
                 sentry_id=row['sentry_id'],
                 culprit=row['culprit'],
@@ -257,8 +216,8 @@ class DatabaseSentry():
             self.db.session.add(issue)
             self.db.session.commit()
 
-    # A quick way to cleanup the database for testing
     def issues_delete_all(self):
+        """Delete all issues from the database."""
         print("DatabaseSentry.issue_delete_all()")
         self.db.session.query(ReportSentryIssues).delete()
         self.db.session.commit()
