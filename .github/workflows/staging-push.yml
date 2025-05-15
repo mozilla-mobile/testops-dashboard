@@ -90,7 +90,7 @@ jobs:
           python lib/sentry_slack.py
       - name: Send latest Sentry issues to Slack
         id: slack-sentry
-        uses: slackapi/slack-github-action@v2.0.0
+        uses: slackapi/slack-github-action@v2.1.0
         with:
           payload-file-path: "./sentry_slack.json"
           payload-templated: true 
