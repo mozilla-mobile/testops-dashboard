@@ -41,11 +41,20 @@ def init_json():
 
 def main():
     versions = all_available_versions()
-    print(versions)
+    
+    if not versions:
+        print("No versions found in CSV filenames. Exiting.")
+        return
+
+    print(f"Discovered versions: {', '.join(versions)}")
+
     json_data = init_json()
     insert_json_content(json_data, versions)
-    with open('sentry_slack.json', 'w') as json_file:
-        json.dump(json_data, json_file, indent=4)
+
+    output_path = Path('sentry_slack.json')
+    output_path.write_text(json.dumps(json_data, indent=4))
+    
+    print(f"Slack message written to {output_path.resolve()}")
 
 
 if __name__ == '__main__':
