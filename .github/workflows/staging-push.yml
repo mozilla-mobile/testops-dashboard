@@ -21,9 +21,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Common Steps
-        uses: ./.github/workflows/set-env-variables.yml
-        with:
-          dummy: 'dummy'
+        uses: ./.github/workflows/common-steps
 
       - name: Install requirements 
         run: |
