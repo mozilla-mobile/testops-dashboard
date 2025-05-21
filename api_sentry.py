@@ -131,7 +131,6 @@ class DatabaseSentry:
         self.db = Database()
 
     def _production_versions(self, version):
-        """Filter out non-production versions."""
         version = version.strip()
         if not version or version == '9000':
             return False
@@ -143,7 +142,6 @@ class DatabaseSentry:
         return all(p.isdigit() for p in parts)
 
     def _all_new_production_dot_versions(self, versions):
-        """Get the beta and release versions and all their dot releases."""
         major_versions = sorted(
             set(version.split('.')[0] for version in versions),
             reverse=True
@@ -158,7 +156,6 @@ class DatabaseSentry:
         return payload
 
     def report_version_strings(self, release_versions):
-        """Get the last two major versions."""
         payload = [
             release_version['versionInfo']['description']
             for release_version in release_versions
@@ -169,7 +166,6 @@ class DatabaseSentry:
         return self._all_new_production_dot_versions(payload)
 
     def report_issue_payload(self, issues, release_version):
-        """Prepare issue data for insertion into the database."""
         MAX_STRING_LEN = 250
         payload = [
             [
@@ -192,7 +188,6 @@ class DatabaseSentry:
         )
 
     def report_category_from_event_breadcrumbs(self, event):
-        """Extract categories from event breadcrumbs."""
         categories = []
         for entry in event['entries']:
             if entry['type'] == 'breadcrumbs':
@@ -202,7 +197,6 @@ class DatabaseSentry:
         return categories
 
     def issue_insert(self, payload):
-        """Insert issues into the database."""
         for _, row in payload.iterrows():
             issue = ReportSentryIssues(
                 sentry_id=row['sentry_id'],
@@ -217,7 +211,6 @@ class DatabaseSentry:
             self.db.session.commit()
 
     def issues_delete_all(self):
-        """Delete all issues from the database."""
         print("DatabaseSentry.issue_delete_all()")
         self.db.session.query(ReportSentryIssues).delete()
         self.db.session.commit()
