@@ -23,13 +23,6 @@ jobs:
       - name: Setup python 
         uses: actions/setup-python@v1
 
-      - name: Establish Cloud SQL Proxy
-        uses: mattes/gce-cloudsql-proxy-action@v1
-        with:
-          creds: ${{ secrets.GCLOUD_AUTH }}
-          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
-          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
-
       - name: Install requirements 
         run: pip install -r requirements.txt
 
@@ -57,6 +50,13 @@ jobs:
             echo "SENTRY_API_TOKEN=${{ secrets.SENTRY_API_TOKEN_CSO }}" >> $GITHUB_ENV
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
+
+      - name: Establish Cloud SQL Proxy
+        uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GCLOUD_AUTH }}
+          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
 
       - name: Update DB - test runs
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
