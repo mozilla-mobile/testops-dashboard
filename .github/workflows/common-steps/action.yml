@@ -1,19 +1,16 @@
-name: Setting environment variables for all jobs
-on:
-  workflow_call:
-    inputs:
-      dummy:
-        required: false
-        type: string
-        default: ''
+name: 'All env vars'
+description: 'Extract all common steps in a single file'
 
-jobs:
-  set-env-variables:
-    name: Set environment variables
-    runs-on: ubuntu-latest
-    steps:
-      - name: Setup python 
-        uses: actions/setup-python@v1
-      - name: Install requirements 
-        run: |
-          pip install -r requirements.txt
+runs:
+  using: "composite"
+  steps:
+    - name: Here we come
+      run: |
+        echo "Hello world!"
+
+    - name: Setup python 
+      uses: actions/setup-python@v1
+
+    - name: Install requirements 
+      run: |
+        pip install -r requirements.txt
