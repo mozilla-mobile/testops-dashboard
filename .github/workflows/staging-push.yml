@@ -3,7 +3,7 @@ name: Testops Report PUSH
 on:
   push:
     branches:
-      - master 
+      - cs/MTE-2372-modularize-github-actions 
   workflow_dispatch:
     inputs:
       branchName:
@@ -20,15 +20,10 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v2
 
-      - name: Setup python 
-        uses: actions/setup-python@v1
-
-      - name: Establish Cloud SQL Proxy
-        uses: mattes/gce-cloudsql-proxy-action@v1
+      - name: Common Steps
+        uses: ./.github/workflows/set-env-variables.yml
         with:
-          creds: ${{ secrets.GCLOUD_AUTH }}
-          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
-          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          dummy: 'dummy'
 
       - name: Install requirements 
         run: |

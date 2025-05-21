@@ -1,0 +1,23 @@
+name: Setting environment variables for all jobs
+on:
+  workflow_call:
+    inputs:
+      dummy:
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  set-env-variables:
+    name: Set environment variables
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup python 
+        uses: actions/setup-python@v1
+
+      - name: Establish Cloud SQL Proxy
+        uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GCLOUD_AUTH }}
+          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
