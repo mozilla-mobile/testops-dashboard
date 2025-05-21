@@ -5,6 +5,7 @@ runs:
   using: "composite"
   steps:
     - name: Here we come
+      shell: bash
       run: |
         echo "Hello world!"
 
@@ -12,5 +13,6 @@ runs:
       uses: actions/setup-python@v1
 
     - name: Install requirements 
+      shell: bash
       run: |
         pip install -r requirements.txt
