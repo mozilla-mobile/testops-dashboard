@@ -51,12 +51,18 @@ jobs:
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
 
+      - name: Show open ports
+        run: netstat -plant || lsof -i
+
+      - name: Show running processes
+        run: ps aux
+
       - name: Establish Cloud SQL Proxy
         uses: mattes/gce-cloudsql-proxy-action@v1
         with:
           creds: ${{ secrets.GCLOUD_AUTH }}
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
-          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          port: 3306
 
       - name: Update DB - test runs
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
