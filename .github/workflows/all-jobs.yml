@@ -60,24 +60,30 @@ jobs:
 
       - name: Update DB - test runs
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
+        continue-on-error: true
 
       - name: Jira query qa-requests
         run: python ./__main__.py --report-type jira-qa-requests
+        continue-on-error: true
 
       - name: Jira query qa-needed
         if: always()
         run: python ./__main__.py --report-type jira-qa-needed
+        continue-on-error: true
 
       - name: Bugzilla query qe-verify
         if: always()
         run: python ./__main__.py --report-type bugzilla-qe-verify
+        continue-on-error: true
 
       - name: Bitrise Build Count
         if: always()
         run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
+        continue-on-error: true
 
       - name: Sentry query
-        run: python __main__.py --report-type sentry-issues 
+        run: python __main__.py --report-type sentry-issues
+        continue-on-error: true
       - name: Upload Sentry result
         uses: actions/upload-artifact@v4
         with:
@@ -87,6 +93,7 @@ jobs:
       - name: Set job log URL
         if: always()
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+        continue-on-error: true
 
       - name: Send custom JSON data to Slack workflow
         if: always()
