@@ -17,5 +17,4 @@ jobs:
     uses: ./.github/workflows/all-jobs.yml
     with:
       database: 'staging'
-      workflow_name: 'TestOps Report (PUSH)'
     secrets: inherit
