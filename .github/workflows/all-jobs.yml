@@ -61,47 +61,52 @@ jobs:
 
       # staging-push
       - name: Update DB - test runs
-        if: ${{ github.workflow == 'TestOps Report (PUSH)' }}
+        if: github.workflow == 'TestOps Report (PUSH)'
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
         continue-on-error: true
 
       # staging-push
       - name: Jira query qa-requests
-        if: ${{ github.workflow == 'TestOps Report (PUSH)' }}
+        if: github.workflow == 'TestOps Report (PUSH)'
         run: python ./__main__.py --report-type jira-qa-requests
         continue-on-error: true
 
       # staging-push
       - name: Jira query qa-needed
-        if: ${{ github.workflow == 'TestOps Report (PUSH)' }}
+        if: github.workflow == 'TestOps Report (PUSH)'
         run: python ./__main__.py --report-type jira-qa-needed
         continue-on-error: true
 
       # staging-push
       - name: Bugzilla query qe-verify
-        if: ${{ github.workflow == 'TestOps Report (PUSH)' }}
+        if: github.workflow == 'TestOps Report (PUSH)'
         run: python ./__main__.py --report-type bugzilla-qe-verify
         continue-on-error: true
 
       # staging-push
       - name: Bitrise Build Count
-        if: ${{ github.workflow == 'TestOps Report (PUSH)' }}
+        if: github.workflow == 'TestOps Report (PUSH)'
         run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
         continue-on-error: true
 
       # staging-push
       - name: Sentry query
+        id: sentry
+        if: github.workflow == 'TestOps Report (PUSH)'
         run: python __main__.py --report-type sentry-issues
         continue-on-error: true
       - name: Upload Sentry result
+        if: steps.sentry.conclusion == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: sentry_issues
           path: ./sentry_issues_*.csv
       - name: Construct JSON for Slack (Sentry)
+        if: steps.sentry.conclusion == 'success'
         run: |
           python lib/sentry_slack.py
       - name: Send latest Sentry issues to Slack
+        if: steps.sentry.conclusion == 'success'
         id: slack-sentry
         uses: slackapi/slack-github-action@v2.1.0
         with:
