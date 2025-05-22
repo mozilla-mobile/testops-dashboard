@@ -1,0 +1,130 @@
+name: Jira, Sentry, Bugzilla, Bitrise and TestRail queries
+on:
+  workflow_call:
+    inputs:
+      database:
+        required: true
+        type: string
+        default: 'staging'
+
+jobs:
+  deploy:
+    name: TestOps Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v2
+
+      - name: Setup python 
+        uses: actions/setup-python@v1
+
+      - name: Install requirements 
+        run: pip install -r requirements.txt
+
+      - name: What are some variables?
+        run: |
+            echo "github.workflow: ${{ github.workflow }}"
+
+      - name: Set env vars 
+        run: |
+            echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=${{ inputs.database }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
+            echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
+            echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
+            echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
+            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
+            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
+            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+            echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
+            echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
+            echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
+            echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
+            echo "SENTRY_HOST=${{ secrets.SENTRY_HOST }}" >> $GITHUB_ENV
+            echo "SENTRY_API_TOKEN=${{ secrets.SENTRY_API_TOKEN_CSO }}" >> $GITHUB_ENV
+            echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
+            echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
+            echo "TODAY_DATE=$(date +"%B %d %Y")" >> $GITHUB_ENV
+
+      - name: Establish Cloud SQL Proxy
+        uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GCLOUD_AUTH }}
+          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+
+      # staging-push
+      - name: Update DB - test runs
+        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
+        continue-on-error: true
+
+      # staging-push
+      - name: Jira query qa-requests
+        run: python ./__main__.py --report-type jira-qa-requests
+        continue-on-error: true
+
+      # staging-push
+      - name: Jira query qa-needed
+        if: always()
+        run: python ./__main__.py --report-type jira-qa-needed
+        continue-on-error: true
+
+      # staging-push
+      - name: Bugzilla query qe-verify
+        if: always()
+        run: python ./__main__.py --report-type bugzilla-qe-verify
+        continue-on-error: true
+
+      # staging-push
+      - name: Bitrise Build Count
+        if: always()
+        run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
+        continue-on-error: true
+
+      # staging-push
+      - name: Sentry query
+        run: python __main__.py --report-type sentry-issues
+        continue-on-error: true
+      - name: Upload Sentry result
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentry_issues
+          path: ./sentry_issues_*.csv
+      - name: Construct JSON for Slack (Sentry)
+        run: |
+          python lib/sentry_slack.py
+      - name: Send latest Sentry issues to Slack
+        id: slack-sentry
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./sentry_slack.json"
+          payload-templated: true 
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        env:
+          TODAY_DATE: ${{ env.TODAY_DATE }}
+
+      - name: Set job log URL
+        if: always()
+        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+        continue-on-error: true
+
+      - name: Send custom JSON data to Slack workflow
+        if: always()
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        env:
+          WORKFLOW_NAME: ${{ github.workflow }}
+          JOB_STATUS: ${{ job.status == 'success' && ':white_check_mark:' || job.status == 'failure' && ':x:' }}
+          JOB_STATUS_COLOR: ${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#FF0000' }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+        with:
+          payload-file-path: "./config/payload-slack-content.json"
