@@ -59,40 +59,90 @@ jobs:
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
 
-      # staging-push
-      - name: Update DB - test runs
-        if: github.workflow == 'Testops Report PUSH'
+      ## Update DB ##
+
+      # staging-push / production-weekly
+      - name: Update DB - testrail-test-case-coverage
+        if: github.workflow == 'Testops Report PUSH' || github.workflow == 'Testops Report WEEKLY'
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
         continue-on-error: true
+    
+      # production-daily
+      - name: Update DB - testrail-milestones
+        if: github.workflow == 'Testops Report DAILY - Production'
+        run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones
+        continue-on-error: true
+
+      ## Jira ##
 
       # staging-push
-      - name: Jira query qa-requests
+      - name: Jira qa-requests
         if: github.workflow == 'Testops Report PUSH'
         run: python ./__main__.py --report-type jira-qa-requests
         continue-on-error: true
 
       # staging-push
-      - name: Jira query qa-needed
+      - name: Jira qa-needed
         if: github.workflow == 'Testops Report PUSH'
         run: python ./__main__.py --report-type jira-qa-needed
         continue-on-error: true
 
+      # staging-daily / production-daily
+      - name: Jira jira-qa-requests
+        if: github.workflow == 'Testops Report DAILY - Staging' || github.workflow == 'Testops Report DAILY - Production'
+        run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
+        continue-on-error: true
+
+      # staging-daily
+      - name: Jira jira-softvision-worklogs
+        if: github.workflow == 'Testops Report DAILY - Staging' || github.workflow == 'Testops Report DAILY - Production'
+        run: python ./__main__.py --report-type jira-softvision-worklogs
+        continue-on-error: true
+
+      # staging-daily
+      - name: Jira testrail-test-case-coverage
+        if: github.workflow == 'Testops Report DAILY - Staging'
+        run: python ./__main__.py --platform desktop --project ALL --report-type testrail-test-case-coverage
+        continue-on-error: true
+
+      # production-daily
+      - name: Jira jira-qa-needed (mobile only)
+        if: github.workflow == 'Testops Report DAILY - Production'
+        run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-needed
+        continue-on-error: true
+
+      ## Bugzilla ##
+
       # staging-push
-      - name: Bugzilla query qe-verify
+      - name: Bugzilla bugzilla-qe-verify
         if: github.workflow == 'Testops Report PUSH'
         run: python ./__main__.py --report-type bugzilla-qe-verify
         continue-on-error: true
+    
+      - name: Bugzilla bugzilla-qe-verify (mobile only)
+        if: github.workflow == 'Testops Report DAILY - Production'
+        run: python ./__main__.py --platform mobile --project ALL --report-type bugzilla-qe-verify
+        continue-on-error: true
+
+      ## Bitrise ##
 
       # staging-push
-      - name: Bitrise Build Count
+      - name: Bitrise bitrise-builds (mobile only)
         if: github.workflow == 'Testops Report PUSH'
         run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
         continue-on-error: true
 
+      - name: Bitrise builds
+        if: github.workflow == 'Testops Report DAILY - Production'
+        run: python3 ./__main__.py --report-type bitrise-builds
+        continue-on-error: true
+
+      ## Sentry ##
+
       # staging-push
       - name: Sentry query
         id: sentry
-        if: github.workflow == 'Testops Report PUSH'
+        if: github.workflow == 'Testops Report PUSH' || github.workflow == 'Testops Report DAILY - Production'
         run: python __main__.py --report-type sentry-issues
         continue-on-error: true
       - name: Upload Sentry result
@@ -123,7 +173,7 @@ jobs:
         continue-on-error: true
 
       - name: Send custom JSON data to Slack workflow
-        if: always()
+        if: github.workflow != 'Testops Report DAILY - Staging'
         id: slack
         uses: slackapi/slack-github-action@v1.26.0
         env:
