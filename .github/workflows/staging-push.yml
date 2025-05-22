@@ -18,25 +18,4 @@ jobs:
     with:
       database: 'staging'
       workflow_name: 'TestOps Report (PUSH)'
-    secrets:
-      CLOUD_SQL_DATABASE_USERNAME: ${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}
-      CLOUD_SQL_DATABASE_PASSWORD: ${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}
-      CLOUD_SQL_DATABASE_PORT: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
-      TESTRAIL_HOST: ${{ secrets.TESTRAIL_HOST }}
-      TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USERNAME }}
-      TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_PASSWORD }}
-      ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
-      ATLASSIAN_HOST: ${{ secrets.ATLASSIAN_HOST }}
-      ATLASSIAN_USERNAME: ${{ secrets.ATLASSIAN_USERNAME }}
-      JIRA_HOST: ${{ secrets.JIRA_HOST }}
-      JIRA_USER: ${{ secrets.JIRA_USER }}
-      JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      BUGZILLA_API_KEY: ${{ secrets.BUGZILLA_API_KEY }}
-      BITRISE_HOST: ${{ secrets.BITRISE_HOST }}
-      BITRISE_APP_SLUG: ${{ secrets.BITRISE_APP_SLUG }}
-      BITRISE_TOKEN: ${{ secrets.BITRISE_TOKEN }}
-      SENTRY_HOST: ${{ secrets.SENTRY_HOST }}
-      SENTRY_API_TOKEN: ${{ secrets.SENTRY_API_TOKEN_CSO }}
-      SENTRY_ORGANIZATION_SLUG: ${{ secrets.SENTRY_ORGANIZATION_SLUG }}
-      SENTRY_PROJECT_ID: ${{ secrets.SENTRY_PROJECT_ID }}
+    secrets: inherit
