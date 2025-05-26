@@ -62,7 +62,6 @@ class SentryClient(Sentry):
         self.db = DatabaseSentry()
 
     def data_pump(self):
-        """Placeholder for data pump functionality."""
         pass
 
     def sentry_releases(self):
@@ -77,7 +76,7 @@ class SentryClient(Sentry):
         release_versions = self.sentry_releases()
 
         df_issues = pd.DataFrame()
-        release_versions = ['138.2']
+        release_versions = ['138.2'] # Will add back all release_versions later
         for release_version in release_versions:
             issues = self.issues(release_version)
 
