@@ -38,7 +38,7 @@ jobs:
         run: |
             echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_NAME=staging" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=production-cso-2025-05-24" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
             echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
             echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
@@ -60,39 +60,39 @@ jobs:
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
             echo "TODAY_DATE=$(date +"%B %d %Y")" >> $GITHUB_ENV
 
-      - name: Update DB - test runs
-        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
+      # - name: Update DB - test runs
+      #   run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
 
-      - name: Jira query qa-requests
-        run: python ./__main__.py --report-type jira-qa-requests
+      # - name: Jira query qa-requests
+      #   run: python ./__main__.py --report-type jira-qa-requests
 
-      - name: Jira query qa-needed
-        if: always()
-        run: python ./__main__.py --report-type jira-qa-needed
+      # - name: Jira query qa-needed
+      #   if: always()
+      #   run: python ./__main__.py --report-type jira-qa-needed
 
-      - name: Bugzilla query qe-verify
-        if: always()
-        run: python ./__main__.py --report-type bugzilla-qe-verify
+      # - name: Bugzilla query qe-verify
+      #   if: always()
+      #   run: python ./__main__.py --report-type bugzilla-qe-verify
 
-      - name: Bitrise Build Count
-        if: always()
-        run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
+      # - name: Bitrise Build Count
+      #   if: always()
+      #   run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
 
-      - name: Sentry query
-        run: python __main__.py --report-type sentry-issues 
-      - name: Upload Sentry result
-        uses: actions/upload-artifact@v4
-        with:
-          name: sentry_issues
-          path: ./sentry_issues_*.csv
-      - name: Construct JSON for Slack (Sentry)
-        run: |
-          python lib/sentry_slack.py
+      # - name: Sentry query
+      #   run: python __main__.py --report-type sentry-issues 
+      # - name: Upload Sentry result
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: sentry_issues
+      #     path: ./sentry_issues_*.csv
+      # - name: Construct JSON for Slack (Sentry)
+      #   run: |
+      #     python lib/sentry_slack.py
       - name: Send latest Sentry issues to Slack
         id: slack-sentry
         uses: slackapi/slack-github-action@v2.1.0
         with:
-          payload-file-path: "./sentry_slack.json"
+          payload-file-path: "./config/sentry-slack.json"
           payload-templated: true 
           webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook

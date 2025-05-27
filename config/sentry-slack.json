@@ -1,0 +1,39 @@
+[
+  {
+    "type": "header",
+    "text": {
+      "type": "plain_text",
+      "text": "🩺 iOS Health Monitoring Digest: Release Update",
+      "emoji": true
+    }
+  },
+  {
+    "type": "section",
+    "fields": [
+      {
+        "type": "mrkdwn",
+        "text": "*🧪 Release:*\n`v138.3`"
+      },
+      {
+        "type": "mrkdwn",
+        "text": "*📈 Adoption Rate:*\n74.2%"
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "fields": [
+      {
+        "type": "mrkdwn",
+        "text": "*💡 Crash-Free Sessions:*\n99.87%"
+      },
+      {
+        "type": "mrkdwn",
+        "text": "*🙋 Crash-Free Users:*\n98.82%"
+      }
+    ]
+  },
+  {
+    "type": "divider"
+  }
+]
