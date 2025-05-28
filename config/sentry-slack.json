@@ -4,7 +4,7 @@
 			"type": "header",
 			"text": {
 				"type": "plain_text",
-				"text": "🩺 iOS Health Monitoring Digest: Release v138.3",
+				"text": "🩺 iOS Health Snapshot: v138.3",
 				"emoji": true
 			}
 		},
@@ -32,34 +32,8 @@
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "*🆕 Notable Crashes (Past 24h):*"
+				"text": "*🚨 Top Issue:*\n*EXC_BAD_ACCESS in TabManager*\n→ Events: 209, Users: 157"
 			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*EXC_BAD_ACCESS in TabManager*\n→ `WindowManagerImplementation.tabManager`\n→ Events: 209, Users: 157\n→ <https://sentry.io/link-to-issue|🔗 View in Sentry>"
-			}
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*NSInternalInconsistencyException in ContextMenu*\n→ `WKWebView.contextMenuConfiguration`\n→ Events: 75, Users: 44\n→ <https://sentry.io/another-issue|🔗 View in Sentry>"
-			}
-		},
-		{
-			"type": "divider"
-		},
-		{
-			"type": "context",
-			"elements": [
-				{
-					"type": "mrkdwn",
-					"text": "*📊 Trend Summary:* Total Issues: 23  •  New in 24h: 4  •  First Seen: May 22  •  Last Seen: May 26"
-				}
-			]
 		}
 	]
 }
