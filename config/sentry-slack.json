@@ -4,82 +4,24 @@
 			"type": "header",
 			"text": {
 				"type": "plain_text",
-				"text": ":health: iOS Health Monitoring (2025-05-25)",
+				"text": "🩺 iOS Health Monitoring Digest: Release v138.3",
 				"emoji": true
 			}
 		},
 		{
-			"type": "divider"
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Release:* `v138.3`"
-			}
-		},
-		{
 			"type": "section",
 			"fields": [
 				{
 					"type": "mrkdwn",
-					"text": "*Crash-Free Sessions:*\n99.88%"
+					"text": "*📈 Adoption Rate:*\n74.2%"
 				},
 				{
 					"type": "mrkdwn",
-					"text": "*Crash-Free Users:*\n99.42%"
+					"text": "*💡 Crash-Free Sessions:*\n99.87%"
 				},
 				{
 					"type": "mrkdwn",
-					"text": "*Adoption Rate:*\n74.2%"
-				}
-			]
-		},
-		{
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": "*Top Unassigned Issues*"
-			}
-		},
-		{
-			"type": "section",
-			"fields": [
-				{
-					"type": "mrkdwn",
-					"text": "*Title:* EXC_BREAKPOINT: Exception 6, Code 1, Subcode 6716205912"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Culprit:* `ToolbarBadge.init`"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Count:* 1"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*User count:* 1"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*First seen:* 2025-05-27T18:44:18Z"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Last seen:* 2025-05-27T18:44:18Z"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*File name:* ToolbarBadge.swift"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Function:* ToolbarBadge.init"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Sentry issue:* https://mozilla.sentry.io/issues/6636594860/"
+					"text": "*🙋 Crash-Free Users:*\n98.82%"
 				}
 			]
 		},
@@ -90,71 +32,32 @@
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "*Release:* `v138.2`"
+				"text": "*🆕 Notable Crashes (Past 24h):*"
 			}
-		},
-		{
-			"type": "section",
-			"fields": [
-				{
-					"type": "mrkdwn",
-					"text": "*Crash-Free Sessions:*\n99.87%"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Crash-Free Users:*\n98.82%"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Adoption Rate:*\n74.2%"
-				}
-			]
 		},
 		{
 			"type": "section",
 			"text": {
 				"type": "mrkdwn",
-				"text": "*Top Unassigned Issues*"
+				"text": "*EXC_BAD_ACCESS in TabManager*\n→ `WindowManagerImplementation.tabManager`\n→ Events: 209, Users: 157\n→ <https://sentry.io/link-to-issue|🔗 View in Sentry>"
 			}
 		},
 		{
 			"type": "section",
-			"fields": [
+			"text": {
+				"type": "mrkdwn",
+				"text": "*NSInternalInconsistencyException in ContextMenu*\n→ `WKWebView.contextMenuConfiguration`\n→ Events: 75, Users: 44\n→ <https://sentry.io/another-issue|🔗 View in Sentry>"
+			}
+		},
+		{
+			"type": "divider"
+		},
+		{
+			"type": "context",
+			"elements": [
 				{
 					"type": "mrkdwn",
-					"text": "*Title:* EXC_BREAKPOINT: Exception 6, Code 1, Subcode 6716205912"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Culprit:* `ToolbarBadge.init`"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Count:* 1"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*User count:* 1"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*First seen:* 2025-05-27T18:44:18Z"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Last seen:* 2025-05-27T18:44:18Z"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*File name:* ToolbarBadge.swift"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Function:* ToolbarBadge.init"
-				},
-				{
-					"type": "mrkdwn",
-					"text": "*Sentry issue:* https://mozilla.sentry.io/issues/6636594860/"
+					"text": "*📊 Trend Summary:* Total Issues: 23  •  New in 24h: 4  •  First Seen: May 22  •  Last Seen: May 26"
 				}
 			]
 		}
