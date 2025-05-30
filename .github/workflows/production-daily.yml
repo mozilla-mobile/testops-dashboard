@@ -4,12 +4,6 @@ name: Testops Report DAILY - Production
 on:
   schedule:
     - cron:  "0 8 * * *" 
-  workflow_dispatch:
-    inputs:
-      branchName:
-        description: 'Default branch'
-        required: true
-        default: 'master'
 
 jobs:
   deploy:
