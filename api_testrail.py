@@ -86,6 +86,10 @@ class TestRail:
     def test_results_for_run(self, run_id):
         return self.client.send_get('get_results_for_run/{0}'.format(run_id))
 
+    # API: Suites
+    def user(self, testrail_project_id):
+        return self.client.send_get(
+            'get_users/{0}'.format(testrail_project_id))
 
 class TestRailClient(TestRail):
 
@@ -244,6 +248,8 @@ class TestRailClient(TestRail):
                 else:
                     print(f"No milestones data to insert into database for project {testrail_project_id}.") # noqa
 
+    def testrail_users(self):
+        users = self.testrail_users()
 
 class DatabaseTestRail(Database):
 
