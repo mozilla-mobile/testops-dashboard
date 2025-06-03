@@ -49,13 +49,13 @@ def init_json():
 
 
 def main():
-    versions = all_available_versions()
+    # versions = all_available_versions()
 
-    if not versions:
-        print("No versions found in CSV filenames. Exiting.")
-        return
+    # if not versions:
+    #     print("No versions found in CSV filenames. Exiting.")
+    #     return
 
-    print(f"Discovered versions: {', '.join(versions)}")
+    # print(f"Discovered versions: {', '.join(versions)}")
 
     json_data = init_json()
     # insert_json_content(json_data, versions)
