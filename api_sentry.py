@@ -109,10 +109,21 @@ class SentryClient(Sentry):
     
     def sentry_crash_free_rate(self, releases):
         print("SentryClient.sentry_crash_free_rate()")
+        df_crash_free_rate = pd.DataFrame()
         for release in releases:
             response_session = self.sentry_session_crash_free("session", release)
             response_user = self.sentry_session_crash_free("user", release)
-            self.db.crash_free_rate_insert(response_session, response_user, release)
+            df_rate = self.db.report_crash_free_rate_payload(response_user, response_session, release)
+            df_crash_free_rate = pd.concat(
+                [df_crash_free_rate, df_rate], axis=0
+            )
+        self.db.crash_free_rate_insert(df_crash_free_rate)
+        
+        # Output CSV for slack later?
+        df_crash_free_rate.to_csv(
+            "sentry_crash_free_rate.csv",
+            index=False
+        )
 
     def sentry_issues(self, releases):
         print("SentryClient.sentry_issues()")
@@ -188,6 +199,24 @@ class DatabaseSentry:
 
         # Just a list of released versions, not a dataframe
         return payload
+        
+    def report_crash_free_rate_payload(self, response_user, response_session, release):
+        # Crash free rate is a float. Convert it to percentage.
+        session_rate = response_session['groups'][0]['totals'][
+            'crash_free_rate(session)'
+        ]
+        percentage_session_rate = round(session_rate * 100, 3)
+        user_rate = response_user['groups'][0]['totals'][
+            'crash_free_rate(user)'
+        ]
+        percentage_user_rate = round(user_rate * 100, 3)
+        now = datetime.now()
+        row = [percentage_session_rate, percentage_user_rate, release, now]
+        df = pd.DataFrame(data=[row],
+            columns=['crash_free_rate_user', 'crash_free_rate_session', 'release_version', 'created_at'])
+            
+        return df
+
 
     def report_issue_payload(self, issues, release):
         payload = []
@@ -233,30 +262,17 @@ class DatabaseSentry:
             self.db.session.commit()
             
     # Insert crash free rate (session) of the day
-    def crash_free_rate_insert(self, payload_session, payload_user, release):
-        # crash free rate is a float
-        session_rate = payload_session['groups'][0]['totals'][
-            'crash_free_rate(session)'
-        ]
-        percentage_session_rate = round(session_rate * 100, 3)
-        user_rate = payload_user['groups'][0]['totals'][
-            'crash_free_rate(user)'
-        ]
-        percentage_user_rate = round(user_rate * 100, 3)
-        now = datetime.now()
-        row = ReportSentryCrashFreeRate(
-            crash_free_rate_session=percentage_session_rate,
-            crash_free_rate_user=percentage_user_rate,
-            release_version=release,
-            created_at=now
-        )
-        print(
-            "[{0}] Crash free rate for {1}: {2}% (session) {3}% (user)".format(
-                now, release, percentage_session_rate, percentage_user_rate
+    def crash_free_rate_insert(self, payload):
+        for index, row in payload.iterrows():
+            print(row)
+            crash_free_rate = ReportSentryCrashFreeRate(
+                crash_free_rate_session=row['crash_free_rate_session'],
+                crash_free_rate_user=row['crash_free_rate_user'],
+                release_version=row['release_version'],
+                created_at=row['created_at']
             )
-        )
-        self.db.session.add(row)
-        self.db.session.commit()
+            self.db.session.add(crash_free_rate)
+            self.db.session.commit()
 
     # A quick way to cleanup the database for testing
     def issues_delete_all(self):

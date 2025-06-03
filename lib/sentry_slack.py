@@ -39,7 +39,7 @@ def init_json():
 			    "type": "section",
 			    "text": {
 				    "type": "mrkdwn",
-				    "text": ":health: iOS Health Report ({0})".format(now)
+				    "text": "*:health: iOS Health Report ({0})*".format(now)
 			    }
 		    },
             {
