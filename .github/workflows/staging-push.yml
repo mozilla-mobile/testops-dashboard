@@ -78,16 +78,18 @@ jobs:
       #   if: always()
       #   run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
 
-      - name: Sentry query
-        run: python __main__.py --report-type sentry-reports 
-      - name: Upload Sentry result
-        uses: actions/upload-artifact@v4
-        with:
-          name: sentry_issues
-          path: ./sentry_issues_*.csv
+      # - name: Sentry query
+      #   run: python __main__.py --report-type sentry-reports 
+      # - name: Upload Sentry result
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: sentry_issues
+      #     path: ./sentry_issues_*.csv
       - name: Construct JSON for Slack (Sentry)
         run: |
           python lib/sentry_slack.py
+          pwd
+          ls -la
       - name: Send latest Sentry issues to Slack
         id: slack-sentry
         uses: slackapi/slack-github-action@v2.1.0
