@@ -60,7 +60,7 @@ def main():
     json_data = init_json()
     # insert_json_content(json_data, versions)
 
-    output_path = Path('sentry_slack.json')
+    output_path = Path('sentry-slack.json')
     output_path.write_text(json.dumps(json_data, indent=4))
 
     print(f"Slack message written to {output_path.resolve()}")
