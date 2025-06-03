@@ -36,13 +36,15 @@ def init_json():
     json_data = {
 	    "blocks": [
 		    {
-			    "type": "header",
+			    "type": "section",
 			    "text": {
-				    "type": "plain_text",
-				    "text": ":health: iOS Health Report ({0})".format(now),
-				    "emoji": "true"
+				    "type": "mrkdwn",
+				    "text": ":health: iOS Health Report ({0})".format(now)
 			    }
 		    },
+            {
+			    "type": "divider"
+		    }
         ]
     }
     return json_data
