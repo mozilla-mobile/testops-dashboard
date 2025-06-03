@@ -7,13 +7,16 @@
 import os
 import sys
 
+from datetime import datetime
+
 import pandas as pd
 
 from lib.sentry_conn import APIClient
 
 from database import (
     Database,
-    ReportSentryIssues
+    ReportSentryIssues,
+    ReportSentryCrashFreeRate
 )
 
 # The 2 major versions are beta and release.
@@ -26,8 +29,7 @@ class Sentry:
         try:
             self.client = APIClient(os.environ['SENTRY_HOST'])
             self.client.api_token = os.environ['SENTRY_API_TOKEN']
-            self.organization_slug = \
-                os.environ['SENTRY_ORGANIZATION_SLUG']
+            self.organization_slug = os.environ['SENTRY_ORGANIZATION_SLUG']
             self.project_id = os.environ['SENTRY_PROJECT_ID']
         except KeyError:
             print("ERROR: Missing testrail env var")
@@ -44,7 +46,11 @@ class Sentry:
                 '?project={1}'
                 '&query=is:for_review release.version:{2}'
                 '&sort=freq&statsPeriod=1d'
-            ).format(self.organization_slug, self.project_id, release_version)
+            ).format(
+                self.organization_slug,
+                self.project_id,
+                release_version
+            )
         )
 
     # API: Releases
@@ -60,6 +66,19 @@ class Sentry:
                 '&environment=Production'
             ).format(self.organization_slug, self.project_id)
         )
+    
+    # API: Session (crash free rate (session) and crash free rate (user)) 
+    # The crash free rate for the past 24 hours   
+    def sentry_session_crash_free(self, crash_free_rate_type, release):
+        return self.client.http_get(
+            (
+                'organizations/{0}/sessions/?field=crash_free_rate%28{1}%29'
+                '&interval=15m&project={2}&query=release.version%3A{3}'
+                '&statsPeriod=24h'
+            ).format(
+                self.organization_slug, crash_free_rate_type,
+                self.project_id, release)
+        )
 
 
 class SentryClient(Sentry):
@@ -69,7 +88,7 @@ class SentryClient(Sentry):
         super().__init__()
         self.db = DatabaseSentry()
 
-    def data_pump():
+    def data_pump(self):
         # Let's leave this to stay consistent with other
         # api_*.py files.
         pass
@@ -79,6 +98,17 @@ class SentryClient(Sentry):
         releases = self.releases()
         release_versions = self.db.report_version_strings(releases)
         return release_versions
+    
+    def sentry_crash_free_rate(self):
+        print("SentryClient.sentry_crash_free_rate_session()")
+        # TODO: Have one entry point query the releases, query
+        # the top issues, crash free rates (user/session), adoption
+        # rate. 
+        releases = self.sentry_releases()
+        for release in releases:
+            response_session = self.sentry_session_crash_free("session", release)
+            response_user = self.sentry_session_crash_free("user", release)
+            self.db.crash_free_rate_insert(response_session, response_user, release)
 
     def sentry_issues(self):
         print("SentryClient.sentry_issues()")
@@ -103,7 +133,7 @@ class SentryClient(Sentry):
         self.db.issue_insert(df_issues)
 
 
-class DatabaseSentry():
+class DatabaseSentry:
 
     def __init__(self):
         print("DatabaseSentry.__init__()")
@@ -199,9 +229,36 @@ class DatabaseSentry():
             )
             self.db.session.add(issue)
             self.db.session.commit()
+            
+    # Insert crash free rate (session) of the day
+    def crash_free_rate_insert(self, payload_session, payload_user, release):
+        # crash free rate is a float
+        session_rate = payload_session['groups'][0]['totals'][
+            'crash_free_rate(session)'
+        ]
+        percentage_session_rate = round(session_rate * 100, 3)
+        user_rate = payload_user['groups'][0]['totals'][
+            'crash_free_rate(user)'
+        ]
+        percentage_user_rate = round(user_rate * 100, 3)
+        now = datetime.now()
+        row = ReportSentryCrashFreeRate(
+            crash_free_rate_session=percentage_session_rate,
+            crash_free_rate_user=percentage_user_rate,
+            release_version=release,
+            created_at=now
+        )
+        print(
+            "[{0}] Crash free rate for {1}: {2}% (session) {3}% (user)".format(
+                now, release, percentage_session_rate, percentage_user_rate
+            )
+        )
+        self.db.session.add(row)
+        self.db.session.commit()
 
     # A quick way to cleanup the database for testing
     def issues_delete_all(self):
         print("DatabaseSentry.issue_delete_all()")
         self.db.session.query(ReportSentryIssues).delete()
+        self.db.session.query(ReportSentryCrashFreeRate).delete()
         self.db.session.commit()
