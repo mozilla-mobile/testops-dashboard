@@ -149,6 +149,7 @@ class TestRailClient(TestRail):
 
         # Pull JSON blob from Testrail
         cases = self.test_cases(testrail_project_id, test_suite_id)
+        print(cases)
 
         # Format and store data in a data payload array
         payload = self.db.report_test_coverage_payload(cases)
@@ -296,26 +297,28 @@ class DatabaseTestRail(Database):
         payload = []
 
         for case in cases:
-
-            row = []
             suit = case['suite_id']
             subs = case.get("custom_sub_test_suites", [7])
-
-            # TODO: diagnostic - delete
-            print('suite_id: {0}, case_id: {1}, subs: {2}'.format(suit, case['id'], subs)) # noqa
-            stat = case['custom_automation_status']
-            cov = case['custom_automation_coverage']
+            stat = case.get('custom_automation_status')
+            cov = case.get('custom_automation_coverage')
+            case_id = case['id']
 
             # iterate through multi-select sub_suite data
             # we need to create a separate row for each
             # test case that belongs to multiple sub suites
             for sub in subs:
-                row = [suit, sub, stat, cov, 1]
-                payload.append(row)
+                payload.append([suit, sub, stat, cov, 1, case_id])
 
-        df = pd.DataFrame(data=payload,
-                          columns=['suit', 'sub', 'status', 'cov', 'tally'])
-        return df.groupby(['suit', 'sub', 'status', 'cov'])['tally'].sum().reset_index() # noqa
+        df = pd.DataFrame(data=payload, columns=['suit', 'sub', 'status', 'cov', 'tally', 'case_id']) # noqa
+
+        # DEBUG: Show case IDs contributing to each group
+        grouped_ids = df.groupby(['suit', 'sub', 'status', 'cov'])['case_id'].apply(list).reset_index() # noqa
+        print("\n== Grouped Case IDs (for debug only) ==\n")
+        print(grouped_ids)
+
+        # Return for database insert (grouped by summary only)
+        grouped_summary = df.groupby(['suit', 'sub', 'status', 'cov'])['tally'].sum().reset_index() # noqa
+        return grouped_summary
 
     def report_test_coverage_insert(self, projects_id, payload):
         # TODO:  Error on insert
