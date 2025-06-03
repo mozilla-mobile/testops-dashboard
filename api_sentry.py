@@ -99,31 +99,33 @@ class SentryClient(Sentry):
         release_versions = self.db.report_version_strings(releases)
         return release_versions
     
-    def sentry_crash_free_rate(self):
-        print("SentryClient.sentry_crash_free_rate_session()")
-        # TODO: Have one entry point query the releases, query
-        # the top issues, crash free rates (user/session), adoption
-        # rate. 
+    # Top-level entry for all Sentry reports: 
+    # Top unassigned issue, crash free rate, adoption rate (TODO)
+    def sentry_reports(self):
         releases = self.sentry_releases()
+        self.sentry_crash_free_rate(releases)
+        self.sentry_issues(releases)
+        
+    
+    def sentry_crash_free_rate(self, releases):
+        print("SentryClient.sentry_crash_free_rate()")
         for release in releases:
             response_session = self.sentry_session_crash_free("session", release)
             response_user = self.sentry_session_crash_free("user", release)
             self.db.crash_free_rate_insert(response_session, response_user, release)
 
-    def sentry_issues(self):
+    def sentry_issues(self, releases):
         print("SentryClient.sentry_issues()")
 
-        release_versions = self.sentry_releases()
-
         df_issues = pd.DataFrame()
-        for release_version in release_versions:
-            issues = self.issues(release_version)
+        for release in releases:
+            issues = self.issues(release)
             # NOTE: Use just the last two major releases for now
             df_issues_release = self.db.report_issue_payload(issues,
-                                                             release_version)
+                                                             release)
             # output CSV for debugging
             df_issues_release.to_csv(
-                "sentry_issues_{0}.csv".format(release_version),
+                "sentry_issues_{0}.csv".format(release),
                 index=False)
 
             # Insert issues from this release into the same dataframe
@@ -173,12 +175,12 @@ class DatabaseSentry:
         return payload
 
     # Get the last two major versions
-    def report_version_strings(self, release_versions):
+    def report_version_strings(self, releases):
         payload = []
 
-        for release_version in release_versions:
+        for release in releases:
             # Production only. Fiter out beta and interim versions
-            description = release_version['versionInfo']['description']
+            description = release['versionInfo']['description']
             if self._production_versions(description):
                 payload.append(description)
 
@@ -187,7 +189,7 @@ class DatabaseSentry:
         # Just a list of released versions, not a dataframe
         return payload
 
-    def report_issue_payload(self, issues, release_version):
+    def report_issue_payload(self, issues, release):
         payload = []
         MAX_STRING_LEN = 250
         for issue in issues:
@@ -199,7 +201,7 @@ class DatabaseSentry:
             count = lifetime.get('count', 0)
             user_count = lifetime.get('userCount', 0)
             row = [sentry_id, culprit, title, count, user_count,
-                   release_version, permalink]
+                   release, permalink]
             payload.append(row)
 
         # sentry_id: ID given by sentry. Maybe in the permalink as well
