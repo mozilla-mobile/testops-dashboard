@@ -1,4 +1,5 @@
 import json
+import datetime
 from pathlib import Path
 
 
@@ -31,19 +32,17 @@ def insert_json_content(json_data, versions):
 
 
 def init_json():
+    now = datetime.datetime.now().strftime('%Y-%m-%d')
     json_data = {
-        "blocks": [
-            {
-                "type": "header",
-                "text": {
-                    "type": "plain_text",
-                    "text": (
-                        ":health: :sentry: Sentry Health Report "
-                        "(${{ env.TODAY_DATE }})"
-                    ),
-                    "emoji": True
-                }
-            }
+	    "blocks": [
+		    {
+			    "type": "header",
+			    "text": {
+				    "type": "plain_text",
+				    "text": ":health: iOS Health Report ({0})".format(now),
+				    "emoji": "true"
+			    }
+		    },
         ]
     }
     return json_data
@@ -59,7 +58,7 @@ def main():
     print(f"Discovered versions: {', '.join(versions)}")
 
     json_data = init_json()
-    insert_json_content(json_data, versions)
+    # insert_json_content(json_data, versions)
 
     output_path = Path('sentry_slack.json')
     output_path.write_text(json.dumps(json_data, indent=4))
