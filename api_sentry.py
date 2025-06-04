@@ -64,8 +64,8 @@ class Sentry:
             ).format(self.organization_slug, self.project_id)
         )
 
-    # API: Session (crash free rate (session) and crash free rate (user)) 
-    # The crash free rate for the past 24 hours   
+    # API: Session (crash free rate (session) and crash free rate (user))
+    # The crash free rate for the past 24 hours
     def sentry_session_crash_free(self, crash_free_rate_type, release):
         return self.client.http_get(
             (
@@ -90,8 +90,8 @@ class SentryClient(Sentry):
         # Let's leave this to stay consistent with other
         # api_*.py files.
         pass
-    
-    # A one-stop function to fetch data on issues and crash free rate        
+
+    # A one-stop function to fetch data on issues and crash free rate
     def sentry_reports(self):
         release_versions = self.sentry_releases()
         self.sentry_crash_free_rate(release_versions)
@@ -103,7 +103,7 @@ class SentryClient(Sentry):
         release_versions = self.db.report_version_strings(releases)
         return release_versions
 
-    def sentry_issues(self, release = []):
+    def sentry_issues(self, release=[]):
         print("SentryClient.sentry_issues()")
 
         if release == []:
@@ -128,18 +128,20 @@ class SentryClient(Sentry):
         # Insert into database
         self.db.issue_insert(df_issues)
 
-    def sentry_crash_free_rate(self, releases = []):
+    def sentry_crash_free_rate(self, releases=[]):
         print("SentryClient.sentry_crash_free_rate()")
-        
+
         if releases == []:
             release_versions = self.sentry_releases()
         else:
             release_versions = [releases]
-        
+
         df_crash_free_rate = pd.DataFrame()
         for release_version in release_versions:
-            response_session = self.sentry_session_crash_free("session", release_version)
-            response_user = self.sentry_session_crash_free("user", release_version)
+            response_session = self.sentry_session_crash_free(
+                "session", release_version)
+            response_user = self.sentry_session_crash_free(
+                "user", release_version)
             df_rate = self.db.report_crash_free_rate_payload(
                 response_user, response_session, release_version
             )
@@ -252,10 +254,13 @@ class DatabaseSentry:
             self.db.session.add(issue)
             self.db.session.commit()
 
-    def report_crash_free_rate_payload(self, response_user, response_session, release_version):
+    def report_crash_free_rate_payload(self, response_user,
+                                       response_session, release_version):
         # Crash free rate is a float. Convert it to percentage.
-        session_rate = response_session['groups'][0]['totals'].get('crash_free_rate(session)', None)
-        user_rate = response_user['groups'][0]['totals'].get('crash_free_rate(user)', None)
+        session_rate = response_session['groups'][0]['totals'].get(
+            'crash_free_rate(session)', None)
+        user_rate = response_user['groups'][0]['totals'].get(
+            'crash_free_rate(user)', None)
         # Sometimes the REST API calls return null values in the field
         # Return None if either rate is null
         if session_rate is not None and user_rate is not None:
@@ -264,7 +269,8 @@ class DatabaseSentry:
         else:
             return None
         now = datetime.now()
-        row = [percentage_session_rate, percentage_user_rate, release_version, now]
+        row = [percentage_session_rate, percentage_user_rate,
+               release_version, now]
         df = pd.DataFrame(
             data=[row],
             columns=[
@@ -275,7 +281,7 @@ class DatabaseSentry:
             ]
         )
         return df
-    
+
     # Insert crash free rates of the day
     def crash_free_rate_insert(self, payload):
         for index, row in payload.iterrows():

@@ -1,8 +1,8 @@
 import json
 import datetime
 import csv
+import sys
 from pathlib import Path
-
 
 
 def insert_crash_free_rate(json_data, csv_file):
@@ -15,36 +15,46 @@ def insert_crash_free_rate(json_data, csv_file):
             release_version = row['release_version']
             json_data["blocks"].append(
                 {
-			        "type": "section",
-			        "text": {
-				        "type": "mrkdwn",
-				        "text": "*v{0}*".format(release_version)
-			        }
-		        }
-            json_data["blocks"].append(
-                {
-			        "type": "section",
-			        "fields": [
-				        {
-					        "type": "mrkdwn",
-					        "text": "Crash-Free Sessions:\n{0}%".format(crash_free_rate_session)
-				        },
-				        {
-					        "type": "mrkdwn",
-					        "text": "Crash-Free Users:\n{0}%".format(crash_free_rate_user)
-				        }
-			        ]
-		        }
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": "*v{0}*".format(release_version)
+                    }
+                }
             )
             json_data["blocks"].append(
                 {
-			       "type": "divider"
-		        }
+                    "type": "section",
+                    "fields": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "Crash-Free Sessions:\n{0}%".format(
+                                crash_free_rate_session
+                            )
+                        },
+                        {
+                            "type": "mrkdwn",
+                            "text": "Crash-Free Users:\n{0}%".format(
+                                crash_free_rate_user
+                            )
+                        }
+                    ]
+                }
             )
-            print("crash_free_rate_user: {0}, crash_free_rate_session: {1}, release_version: {2}".format(
-                crash_free_rate_user, crash_free_rate_session, release_version
-            ))
-        return json_data
+            json_data["blocks"].append(
+                {
+                    "type": "divider"
+                }
+            )
+            print(
+                "crash_free_rate_user: {0}, crash_free_rate_session: {1}, "
+                "release_version: {2}".format(
+                    crash_free_rate_user,
+                    crash_free_rate_session,
+                    release_version
+                )
+            )
+    return json_data
 
 
 def insert_json_content(json_data, versions):
@@ -63,16 +73,16 @@ def init_json():
     now = datetime.datetime.now().strftime('%Y-%m-%d')
     json_data = {
         "blocks": [
-		    {
-			    "type": "section",
-			    "text": {
-				    "type": "mrkdwn",
-				    "text": "*:health: iOS Health Report ({0})*".format(now)
-			    }
-		    },
-            {			    
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": "*:health: iOS Health Report ({0})*".format(now)
+                }
+            },
+            {
                 "type": "divider"
-		    }
+            }
         ]
     }
     return json_data
