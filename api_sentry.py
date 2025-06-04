@@ -77,7 +77,8 @@ class Sentry:
                 '&statsPeriod=24h'
             ).format(
                 self.organization_slug, crash_free_rate_type,
-                self.project_id, release)
+                self.project_id, release
+            )
         )
 
 
@@ -98,30 +99,26 @@ class SentryClient(Sentry):
         releases = self.releases()
         release_versions = self.db.report_version_strings(releases)
         return release_versions
-    
-    # Top-level entry for all Sentry reports: 
-    # Top unassigned issue, crash free rate, adoption rate (TODO)
+
     def sentry_reports(self):
         releases = self.sentry_releases()
         self.sentry_crash_free_rate(releases)
         self.sentry_issues(releases)
-        
-    
+
     def sentry_crash_free_rate(self, releases):
         print("SentryClient.sentry_crash_free_rate()")
         df_crash_free_rate = pd.DataFrame()
         for release in releases:
             response_session = self.sentry_session_crash_free("session", release)
             response_user = self.sentry_session_crash_free("user", release)
-            df_rate = self.db.report_crash_free_rate_payload(response_user, response_session, release)
-            # Do not insert None percentages
+            df_rate = self.db.report_crash_free_rate_payload(
+                response_user, response_session, release
+            )
             if df_rate is not None:
                 df_crash_free_rate = pd.concat(
                     [df_crash_free_rate, df_rate], axis=0
                 )
         self.db.crash_free_rate_insert(df_crash_free_rate)
-        
-        # Output CSV for slack later?
         df_crash_free_rate.to_csv(
             "sentry_crash_free_rate.csv",
             index=False
