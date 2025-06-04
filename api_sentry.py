@@ -16,7 +16,7 @@ from lib.sentry_conn import APIClient
 from database import (
     Database,
     ReportSentryIssues,
-    ReportSentryCrashFreeRate
+    ReportSentryCrashFreeRates
 )
 
 # The 2 major versions are beta and release.
@@ -152,7 +152,7 @@ class SentryClient(Sentry):
                 )
         self.db.crash_free_rate_insert(df_crash_free_rate)
         df_crash_free_rate.to_csv(
-            "sentry_crash_free_rate.csv",
+            "sentry_crash_free_rates.csv",
             index=False
         )
 
@@ -286,7 +286,7 @@ class DatabaseSentry:
     def crash_free_rate_insert(self, payload):
         for index, row in payload.iterrows():
             print(row)
-            crash_free_rate = ReportSentryCrashFreeRate(
+            crash_free_rate = ReportSentryCrashFreeRates(
                 crash_free_rate_session=row['crash_free_rate_session'],
                 crash_free_rate_user=row['crash_free_rate_user'],
                 release_version=row['release_version'],
@@ -299,5 +299,5 @@ class DatabaseSentry:
     def issues_delete_all(self):
         print("DatabaseSentry.issue_delete_all()")
         self.db.session.query(ReportSentryIssues).delete()
-        self.db.session.query(ReportSentryCrashFreeRate).delete()
+        self.db.session.query(ReportSentryCrashFreeRates).delete()
         self.db.session.commit()
