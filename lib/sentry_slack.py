@@ -33,10 +33,6 @@ def insert_crash_free_rate(json_data, csv_file):
 				        {
 					        "type": "mrkdwn",
 					        "text": "Crash-Free Users:\n{0}%".format(crash_free_rate_user)
-				        },
-				        {
-					        "type": "mrkdwn",
-					        "text": " Adoption Rate:\n[TBA]%"
 				        }
 			        ]
 		        }
