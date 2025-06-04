@@ -93,13 +93,13 @@ jobs:
 
       - name: Construct JSON for Slack (Sentry)
         run: |
-          python lib/sentry_slack.py
+          python lib/sentry_slack.py sentry_crash_free_rate.csv
         continue-on-error: true
       - name: Send latest Sentry issues to Slack
         id: slack-sentry
         uses: slackapi/slack-github-action@v2.1.0
         with:
-          payload-file-path: "./sentry_slack.json"
+          payload-file-path: "./sentry-slack.json"
           payload-templated: true 
           webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
