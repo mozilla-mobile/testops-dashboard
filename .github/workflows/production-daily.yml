@@ -87,13 +87,14 @@ jobs:
         continue-on-error: true
 
       - name: Sentry query
-        run: python __main__.py --report-type sentry-issues
-
+        run: |
+          python __main__.py --report-type sentry-issues
+          python __main__.py --report-type sentry-crash-free-rates
         continue-on-error: true
 
       - name: Construct JSON for Slack (Sentry)
         run: |
-          python lib/sentry_slack.py sentry_crash_free_rate.csv
+          python lib/sentry_slack.py sentry_crash_free_rates.csv
         continue-on-error: true
       - name: Send latest Sentry issues to Slack
         id: slack-sentry
