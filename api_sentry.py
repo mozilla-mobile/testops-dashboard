@@ -192,7 +192,7 @@ class DatabaseSentry:
         payload = []
 
         for release in releases:
-            # Production only. Fiter out beta and interim versions
+            # Production only. Filter out beta and interim versions
             description = release['versionInfo']['description']
             if self._production_versions(description):
                 payload.append(description)
@@ -201,23 +201,29 @@ class DatabaseSentry:
 
         # Just a list of released versions, not a dataframe
         return payload
-        
+
     def report_crash_free_rate_payload(self, response_user, response_session, release):
         # Crash free rate is a float. Convert it to percentage.
         session_rate = response_session['groups'][0]['totals'].get('crash_free_rate(session)', None)
         user_rate = response_user['groups'][0]['totals'].get('crash_free_rate(user)', None)
         # Sometimes the REST API calls return null values in the field
         # Return None if either rate is null
-        if session_rate and user_rate:
+        if session_rate is not None and user_rate is not None:
             percentage_session_rate = round(session_rate * 100, 3)
             percentage_user_rate = round(user_rate * 100, 3)
         else:
             return None
         now = datetime.now()
         row = [percentage_session_rate, percentage_user_rate, release, now]
-        df = pd.DataFrame(data=[row],
-            columns=['crash_free_rate_user', 'crash_free_rate_session', 'release_version', 'created_at'])
-            
+        df = pd.DataFrame(
+            data=[row],
+            columns=[
+                'crash_free_rate_user',
+                'crash_free_rate_session',
+                'release_version',
+                'created_at'
+            ]
+        )
         return df
 
 
