@@ -114,9 +114,11 @@ class SentryClient(Sentry):
             response_session = self.sentry_session_crash_free("session", release)
             response_user = self.sentry_session_crash_free("user", release)
             df_rate = self.db.report_crash_free_rate_payload(response_user, response_session, release)
-            df_crash_free_rate = pd.concat(
-                [df_crash_free_rate, df_rate], axis=0
-            )
+            # Do not insert None percentages
+            if df_rate is not None:
+                df_crash_free_rate = pd.concat(
+                    [df_crash_free_rate, df_rate], axis=0
+                )
         self.db.crash_free_rate_insert(df_crash_free_rate)
         
         # Output CSV for slack later?
@@ -202,14 +204,15 @@ class DatabaseSentry:
         
     def report_crash_free_rate_payload(self, response_user, response_session, release):
         # Crash free rate is a float. Convert it to percentage.
-        session_rate = response_session['groups'][0]['totals'][
-            'crash_free_rate(session)'
-        ]
-        percentage_session_rate = round(session_rate * 100, 3)
-        user_rate = response_user['groups'][0]['totals'][
-            'crash_free_rate(user)'
-        ]
-        percentage_user_rate = round(user_rate * 100, 3)
+        session_rate = response_session['groups'][0]['totals'].get('crash_free_rate(session)', None)
+        user_rate = response_user['groups'][0]['totals'].get('crash_free_rate(user)', None)
+        # Sometimes the REST API calls return null values in the field
+        # Return None if either rate is null
+        if session_rate and user_rate:
+            percentage_session_rate = round(session_rate * 100, 3)
+            percentage_user_rate = round(user_rate * 100, 3)
+        else:
+            return None
         now = datetime.now()
         row = [percentage_session_rate, percentage_user_rate, release, now]
         df = pd.DataFrame(data=[row],
