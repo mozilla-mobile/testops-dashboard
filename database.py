@@ -73,6 +73,10 @@ class ReportSentryIssues(Base):
     __table__ = Table('report_sentry_issues', Base.metadata, autoload=True) # noqa
 
 
+class ReportSentryCrashFreeRate(Base):
+    __table__ = Table('report_sentry_crash_free_rate', Base.metadata, autoload=True) # noqa
+
+    
 class Database:
     def __init__(self):
         self.session = Session()

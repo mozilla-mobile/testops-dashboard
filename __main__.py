@@ -143,6 +143,9 @@ def main():
     if args.report_type == 'sentry-issues':
         h = SentryClient()
         h.sentry_issues()
+    if args.report_type == 'sentry-crash-free-rates':
+        h = SentryClient()
+        h.sentry_crash_free_rate() 
 
 
 if __name__ == '__main__':
