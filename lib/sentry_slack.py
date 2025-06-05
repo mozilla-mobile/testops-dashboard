@@ -1,8 +1,9 @@
 import json
-import datetime
 import csv
 import sys
 from pathlib import Path
+
+from utils.datetime_utils import DatetimeUtils
 
 
 def insert_crash_free_rate(json_data, csv_file):
@@ -70,7 +71,7 @@ def insert_json_content(json_data, versions):
 
 
 def init_json():
-    now = datetime.datetime.now().strftime('%Y-%m-%d')
+    now = DatetimeUtils.start_date('0')
     json_data = {
         "blocks": [
             {
