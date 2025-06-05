@@ -94,7 +94,7 @@ jobs:
 
       - name: Construct JSON for Slack (Sentry)
         run: |
-          python lib/sentry_slack.py sentry_crash_free_rates.csv
+          python -m lib.sentry_slack ./sentry_crash_free_rates.csv
         continue-on-error: true
       - name: Send latest Sentry issues to Slack
         id: slack-sentry

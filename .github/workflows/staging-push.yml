@@ -89,7 +89,7 @@ jobs:
           path: ./sentry_issues_*.csv
       - name: Construct JSON for Slack (Sentry)
         run: |
-          python lib/sentry_slack.py ./sentry_crash_free_rates.csv
+          python -m lib.sentry_slack ./sentry_crash_free_rates.csv
       - name: Send latest Sentry issues to Slack
         id: slack-sentry
         uses: slackapi/slack-github-action@v2.1.0
