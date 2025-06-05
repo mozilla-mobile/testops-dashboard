@@ -7,11 +7,10 @@
 import os
 import sys
 
-from datetime import datetime
-
 import pandas as pd
 
 from lib.sentry_conn import APIClient
+from utils.datetime_utils import DatetimeUtils
 
 from database import (
     Database,
@@ -268,7 +267,7 @@ class DatabaseSentry:
             percentage_user_rate = round(user_rate * 100, 3)
         else:
             return None
-        now = datetime.now()
+        now = DatetimeUtils.start_date('0')
         row = [percentage_session_rate, percentage_user_rate,
                release_version, now]
         df = pd.DataFrame(
