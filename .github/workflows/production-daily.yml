@@ -3,7 +3,16 @@ name: Testops Report DAILY - Production
 # Daily @8am UTC
 on:
   schedule:
-    - cron:  "0 8 * * *" 
+    - cron:  "0 8 * * *"
+  workflow_dispatch:
+    inputs:
+      branchName:
+        description: 'Default branch'
+        required: true
+        default: 'master'
+      confirm:
+        description: 'Type YES to confirm you understand the risks.'
+        required: true
 
 jobs:
   deploy:
@@ -11,6 +20,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Check confirmation
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "YES" ]; then
+            echo "::error::You must type YES to proceed."
+            exit 1
+          fi
       - name: Check out source repository
         uses: actions/checkout@v2
 
