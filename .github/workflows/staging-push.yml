@@ -94,7 +94,7 @@ jobs:
         id: slack-sentry
         uses: slackapi/slack-github-action@v2.1.0
         with:
-          payload-file-path: "./sentry-slack.json"
+          payload-file-path: "./sentry_slack.json"
           payload-templated: true 
           webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
