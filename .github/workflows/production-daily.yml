@@ -91,21 +91,21 @@ jobs:
 
         continue-on-error: true
 
-      # - name: Construct JSON for Slack (Sentry)
-      #   run: |
-      #     python -m lib.sentry_slack ./sentry_crash_free_rates.csv
-      #   continue-on-error: true
-      # - name: Send latest Sentry issues to Slack
-      #   id: slack-sentry
-      #   uses: slackapi/slack-github-action@v2.1.0
-      #   with:
-      #     payload-file-path: "./sentry-slack.json"
-      #     payload-templated: true 
-      #     webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
-      #     webhook-type: incoming-webhook
-      #   env:
-      #     TODAY_DATE: ${{ env.TODAY_DATE }}
-      #   continue-on-error: true
+      - name: Construct JSON for Slack (Sentry)
+        run: |
+          python lib/sentry_slack.py
+        continue-on-error: true
+      - name: Send latest Sentry issues to Slack
+        id: slack-sentry
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./sentry_slack.json"
+          payload-templated: true 
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        env:
+          TODAY_DATE: ${{ env.TODAY_DATE }}
+        continue-on-error: true
   
       - name: Set job log URL
         if: always()

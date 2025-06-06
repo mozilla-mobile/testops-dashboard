@@ -1,61 +1,21 @@
 import json
-import csv
-import sys
 from pathlib import Path
 
-from utils.datetime_utils import DatetimeUtils
 
-
-def insert_crash_free_rate(json_data, csv_file):
-    with open(csv_file, 'r') as file:
-        rows = csv.DictReader(file)
-        for row in rows:
-            print(row)
-            crash_free_rate_user = row['crash_free_rate_user']
-            crash_free_rate_session = row['crash_free_rate_session']
-            release_version = row['release_version']
-            json_data["blocks"].append(
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": "*v{0}*".format(release_version)
-                    }
-                }
-            )
-            json_data["blocks"].append(
-                {
-                    "type": "section",
-                    "fields": [
-                        {
-                            "type": "mrkdwn",
-                            "text": "Crash-Free Sessions:\n{0}%".format(
-                                crash_free_rate_session
-                            )
-                        },
-                        {
-                            "type": "mrkdwn",
-                            "text": "Crash-Free Users:\n{0}%".format(
-                                crash_free_rate_user
-                            )
-                        }
-                    ]
-                }
-            )
-            json_data["blocks"].append(
-                {
-                    "type": "divider"
-                }
-            )
+def all_available_versions():
+    versions = []
+    csv_files = Path('.').glob('*.csv')
+    for file in csv_files:
+        try:
+            print(f"File: {file.name}, Suffix: {file.stem}")
+            version = file.name.split('sentry_issues_')[-1].split('.csv')[0]
+            versions.append(version)
+        except IndexError:
             print(
-                "crash_free_rate_user: {0}, crash_free_rate_session: {1}, "
-                "release_version: {2}".format(
-                    crash_free_rate_user,
-                    crash_free_rate_session,
-                    release_version
-                )
+                f"Skipped file: {file.name} "
+                "(unexpected naming format, or file doesn't exist)"
             )
-    return json_data
+    return versions
 
 
 def insert_json_content(json_data, versions):
@@ -71,36 +31,41 @@ def insert_json_content(json_data, versions):
 
 
 def init_json():
-    now = DatetimeUtils.start_date('0')
     json_data = {
         "blocks": [
             {
-                "type": "section",
+                "type": "header",
                 "text": {
-                    "type": "mrkdwn",
-                    "text": "*:health: iOS Health Report ({0})*".format(now)
+                    "type": "plain_text",
+                    "text": (
+                        ":health: :sentry: Sentry Health Report "
+                        "(${{ env.TODAY_DATE }})"
+                    ),
+                    "emoji": True
                 }
-            },
-            {
-                "type": "divider"
             }
         ]
     }
     return json_data
 
 
-def main(csv_filename):
-    json_data = init_json()
-    insert_crash_free_rate(json_data, csv_filename)
+def main():
+    versions = all_available_versions()
 
-    output_path = Path('sentry-slack.json')
+    if not versions:
+        print("No versions found in CSV filenames. Exiting.")
+        return
+
+    print(f"Discovered versions: {', '.join(versions)}")
+
+    json_data = init_json()
+    insert_json_content(json_data, versions)
+
+    output_path = Path('sentry_slack.json')
     output_path.write_text(json.dumps(json_data, indent=4))
 
     print(f"Slack message written to {output_path.resolve()}")
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Usage: python sentry_slack.py <csv_filename>")
-        sys.exit(1)
-    main(sys.argv[1])
+    main()
