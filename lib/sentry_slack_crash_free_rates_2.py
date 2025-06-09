@@ -19,8 +19,14 @@ def insert_crash_free_rate(json_data, csv_file):
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": ":white_check_mark: v{0} →  | {1}% :iphone: | {2}%  :bust_in_silhouette: | [N/A]% :rocket:"
-                            .format(release_version, crash_free_rate_session, crash_free_rate_user)
+                        "text": (
+                            ":white_check_mark: v{0} →  | {1}% :iphone: | "
+                            "{2}%  :bust_in_silhouette: | [N/A]% :rocket:"
+                        ).format(
+                            release_version,
+                            crash_free_rate_session,
+                            crash_free_rate_user
+                        )
                     }
                 }
             )
@@ -34,19 +40,23 @@ def insert_crash_free_rate(json_data, csv_file):
             )
         json_data["blocks"].append(
             {
-		        "type": "divider"
-		    }
+                "type": "divider"
+            }
         )
         json_data["blocks"].append(
             {
-		        "type": "context",
-			    "elements": [
-			        {
-				        "type": "mrkdwn",
-				    "text": "Legend: Crash-Free Sessions :iphone: | Crash-Free Users :bust_in_silhouette: | Adoption Rate :rocket:"
-			        }
-			    ]
-		    }
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": (
+                            "Legend: Crash-Free Sessions :iphone: | "
+                            "Crash-Free Users :bust_in_silhouette: | "
+                            "Adoption Rate :rocket:"
+                        )
+                    }
+                ]
+            }
         )
     return json_data
 
@@ -71,7 +81,9 @@ def init_json():
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "*:health: :sentry: iOS Health Report ({0})*".format(now)
+                    "text": (
+                        "*:health: :sentry: iOS Health Report ({0})*"
+                    ).format(now)
                 }
             }
         ]
