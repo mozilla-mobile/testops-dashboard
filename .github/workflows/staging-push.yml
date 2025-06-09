@@ -38,7 +38,7 @@ jobs:
         run: |
             echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_NAME=staging" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=cso-production-2025-05-30" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
             echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
             echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
@@ -87,11 +87,24 @@ jobs:
         with:
           name: sentry_issues
           path: ./sentry_issues_*.csv
-      - name: Construct JSON for Slack (Sentry)
+      - name: Construct JSON for Slack (1st choice)
         run: |
-          python -m lib.sentry_slack_crash_free_rates ./sentry_crash_free_rates.csv
+          python -m lib.sentry_slack_crash_free_rates_1 ./sentry_crash_free_rates.csv
       - name: Send latest Sentry issues to Slack
-        id: slack-sentry
+        id: slack-sentry-1
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./sentry-slack.json"
+          payload-templated: true 
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        env:
+          TODAY_DATE: ${{ env.TODAY_DATE }}
+      - name: Construct JSON for Slack (2nd choice)
+        run: |
+          python -m lib.sentry_slack_crash_free_rates_2 ./sentry_crash_free_rates.csv
+      - name: Send latest Sentry issues to Slack
+        id: slack-sentry-2
         uses: slackapi/slack-github-action@v2.1.0
         with:
           payload-file-path: "./sentry-slack.json"
