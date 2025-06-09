@@ -293,10 +293,3 @@ class DatabaseSentry:
             )
             self.db.session.add(crash_free_rate)
             self.db.session.commit()
-
-    # A quick way to cleanup the database for testing
-    def issues_delete_all(self):
-        print("DatabaseSentry.issue_delete_all()")
-        self.db.session.query(ReportSentryIssues).delete()
-        self.db.session.query(ReportSentryCrashFreeRates).delete()
-        self.db.session.commit()
