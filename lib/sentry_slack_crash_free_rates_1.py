@@ -47,6 +47,24 @@ def insert_crash_free_rate(json_data, csv_file):
                     "type": "divider"
                 }
             )
+            json_data["blocks"].append(
+                {
+			    "type": "section",
+			    "text": {
+				    "type": "mrkdwn",
+				    "text": ":chart_with_upwards_trend: Trends: https://mozilla.cloud.looker.com/dashboards/2381"
+			    }
+		    }
+            )
+            json_data["blocks"].append(
+                {
+			        "type": "section",
+			        "text": {
+			    	    "type": "mrkdwn",
+				        "text": ":scroll: Report: https://mozilla.cloud.looker.com/dashboards/2381"
+			        }
+		        }
+            )
             print(
                 "crash_free_rate_user: {0}, crash_free_rate_session: {1}, "
                 "release_version: {2}".format(
