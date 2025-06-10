@@ -6,6 +6,7 @@
 
 import os
 import sys
+from datetime import datetime
 
 import pandas as pd
 import numpy as np
@@ -146,8 +147,27 @@ class TestRailClient(TestRail):
         # Optional: pretty-print list
         print("\nSample of unique users:")
         for email, user in list(unique_by_email.items()):
-            status = "🟢 active" if user.get("is_active") else "🔴 inactive"
+            status = "active" if user.get("is_active") else "inactive"
             print(f"- {user.get('name')} | {email} | {status} | role: {user.get('role')}") # noqa
+
+        created_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+        user_data = [
+            {
+                "name": user.get("name"),
+                "email": user.get("email"),
+                "status": "active" if user.get("is_active") else "inactive",
+                "role": user.get("role"),
+                "created_at": created_at
+            }
+            for user in unique_by_email.values()
+        ]
+
+        df = pd.DataFrame(user_data)
+        csv_path = "testrail_users.csv"
+        df.to_csv(csv_path, index=False)
+
+        print(f"\n✅ Exported {len(df)} unique users to {csv_path}")
 
     def data_pump(self, project='all', suite='all'):
         # call database for 'all' values
