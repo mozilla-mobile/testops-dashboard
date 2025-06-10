@@ -86,8 +86,13 @@ jobs:
 
         continue-on-error: true
 
-      - name: Sentry query
+      - name: Sentry query Issues
         run: python __main__.py --report-type sentry-issues
+
+        continue-on-error: true
+
+      - name: Sentry query Crash Free Rate
+        run: python __main__.py --report-type sentry-crash-free-rates
 
         continue-on-error: true
 
