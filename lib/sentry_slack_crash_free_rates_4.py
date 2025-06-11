@@ -52,7 +52,8 @@ def insert_crash_free_rate(json_data, csv_file):
                         },
                         "value": "trends_click",
                         "action_id": "trends",
-                        "url": "https://mozilla.cloud.looker.com/dashboards/2381"
+                        "url":
+                            "https://mozilla.cloud.looker.com/dashboards/2381"
                     },
                     {
                         "type": "button",
@@ -63,7 +64,10 @@ def insert_crash_free_rate(json_data, csv_file):
                         },
                         "value": "report_click",
                         "action_id": "report",
-                        "url": "https://mozilla-hub.atlassian.net/wiki/spaces/MTE/pages/1631911951/iOS+Health+Monitor+Report"
+                        "url": (
+                            "https://mozilla-hub.atlassian.net/wiki/spaces/MTE"
+                            "/pages/1631911951/iOS+Health+Monitor+Report"
+                        )
                     }
                 ]
             }

@@ -21,7 +21,7 @@ def insert_crash_free_rate(json_data, csv_file):
                         "type": "mrkdwn",
                         "text": (
                             "*v{0}* → :iphone: {1}% "
-                            ":bust_in_silhouette: {2}%"
+                            ":bust_in_silhouette: {2}% "
                             ":rocket: [N/A]%"
                         ).format(
                             release_version,
@@ -84,8 +84,11 @@ def init_json():
                     "type": "mrkdwn",
                     "text": (
                         "*:health: iOS Health Report ({0}) :sentry:*\n"
-                        " <https://mozilla.cloud.looker.com/dashboards/2381|:chart_with_upwards_trend: Trends>"
-                        " <https://mozilla-hub.atlassian.net/wiki/spaces/MTE/pages/1631911951/iOS+Health+Monitor+Report|:scroll: Report>"
+                        " <https://mozilla.cloud.looker.com/dashboards/2381|"
+                        ":chart_with_upwards_trend: Trends>"
+                        " <https://mozilla-hub.atlassian.net/wiki/spaces/"
+                        "MTE/pages/1631911951/iOS+Health+Monitor+Report|"
+                        ":scroll: Report>"
                     ).format(now)
                 }
             }
