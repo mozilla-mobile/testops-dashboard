@@ -1,0 +1,14 @@
+wiki_page:
+  page_id: 1631911951
+  page_title: "iOS Health Monitor Report"
+  sections:
+    - name: "Sentry"
+      reports:
+        - report-title: "Crash Free Rate Users"
+          report-description: "Crash Free Rate Users"
+          attachment-filename: "crash-free-rate-users.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2955"
+        - report-title: "Crash Free Rate Session"
+          report-description: "Crash Free Rate Session"
+          attachment-filename: "crash-free-rate-session.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2956"
