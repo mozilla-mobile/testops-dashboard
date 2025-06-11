@@ -20,10 +20,9 @@ def insert_crash_free_rate(json_data, csv_file):
                     "text": {
                         "type": "mrkdwn",
                         "text": (
-                            "v{0}\n:iphone: {1}% "
+                            "*v{0}*\n:iphone: {1}% "
                             ":bust_in_silhouette: {2}% "
-                            ":rocket: [N/A]% "
-                            ":heart: [N/A]%"
+                            ":rocket: [N/A]%"
                         ).format(
                             release_version,
                             crash_free_rate_session,
@@ -64,7 +63,7 @@ def insert_crash_free_rate(json_data, csv_file):
                         },
                         "value": "report_click",
                         "action_id": "report",
-                        "url": "https://mozilla.cloud.looker.com/dashboards/2381"
+                        "url": "https://mozilla-hub.atlassian.net/wiki/spaces/MTE/pages/1631911951/iOS+Health+Monitor+Report"
                     }
                 ]
             }
@@ -83,8 +82,7 @@ def insert_crash_free_rate(json_data, csv_file):
                         "text": (
                             ":iphone: Crash-Free Sessions "
                             ":bust_in_silhouette: Crash-Free Users "
-                            ":rocket: Session Adoption "
-                            ":heart: User Adoption"
+                            ":rocket: User Adoption Rate"
                         )
                     }
                 ]
@@ -114,7 +112,7 @@ def init_json():
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        "*:health: iOS Health Report ({0})*"
+                        "*:health: iOS Health Report ({0}) :sentry:*"
                     ).format(now)
                 }
             }

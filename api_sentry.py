@@ -263,8 +263,8 @@ class DatabaseSentry:
         # Sometimes the REST API calls return null values in the field
         # Return None if either rate is null
         if session_rate is not None and user_rate is not None:
-            percentage_session_rate = round(session_rate * 100, 3)
-            percentage_user_rate = round(user_rate * 100, 3)
+            percentage_session_rate = round(session_rate * 100, 2)
+            percentage_user_rate = round(user_rate * 100, 2)
         else:
             return None
         now = DatetimeUtils.start_date('0')

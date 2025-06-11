@@ -41,12 +41,6 @@ def insert_crash_free_rate(json_data, csv_file):
                         },
                         {
                             "type": "mrkdwn",
-                            "text": "Adoption Rate (Sessions):\n{0}%".format(
-                                "[N/A]"
-                            )
-                        },
-                        {
-                            "type": "mrkdwn",
                             "text": "Adoption Rate (Users):\n{0}%".format(
                                 "[N/A]"
                             )
@@ -91,7 +85,7 @@ def insert_crash_free_rate(json_data, csv_file):
                     },
                     "value": "report_click",
                     "action_id": "report",
-                    "url": "https://mozilla.cloud.looker.com/dashboards/2381"
+                    "url": "https://mozilla-hub.atlassian.net/wiki/spaces/MTE/pages/1631911951/iOS+Health+Monitor+Report"
                 }
             ]
         }
@@ -119,7 +113,7 @@ def init_json():
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "*:health: iOS Health Report ({0})*".format(now)
+                    "text": "*:health: iOS Health Report ({0}) :sentry:*".format(now)
                 }
             },
             {
