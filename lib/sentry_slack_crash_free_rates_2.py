@@ -21,7 +21,7 @@ def insert_crash_free_rate(json_data, csv_file):
                         "type": "mrkdwn",
                         "text": (
                             ":white_check_mark: v{0} →  {1}% :iphone: "
-                            "{2}%  :bust_in_silhouette: [N/A]% :rocket:"
+                            "{2}%  :bust_in_silhouette: [N/A]% :rocket: [N/A]% :heart:"
                         ).format(
                             release_version,
                             crash_free_rate_session,
@@ -81,7 +81,8 @@ def insert_crash_free_rate(json_data, csv_file):
                         "text": (
                             "Legend: Crash-Free Sessions :iphone: "
                             "Crash-Free Users :bust_in_silhouette: "
-                            "Adoption Rate :rocket:"
+                            "Adoption Rate (Sessions) :rocket:"
+                            "Adoption Rate (Users) :heart:"
                         )
                     }
                 ]
