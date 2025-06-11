@@ -7,35 +7,6 @@ from utils.datetime_utils import DatetimeUtils
 
 
 def insert_crash_free_rate(json_data, csv_file):
-    json_data["blocks"].append(
-        {
-            "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": ":chart_with_upwards_trend: Trends",
-                        "emoji": True
-                    },
-                    "value": "trends_click",
-                    "action_id": "trends",
-                    "url": "https://mozilla.cloud.looker.com/dashboards/2381"
-                },
-                {
-                    "type": "button",
-                    "text": {
-                        "type": "plain_text",
-                        "text": ":scroll: Report",
-                        "emoji": True
-                    },
-                    "value": "report_click",
-                    "action_id": "report",
-                    "url": "https://mozilla.cloud.looker.com/dashboards/2381"
-                }
-            ]
-        }
-    )
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
         for row in rows:
@@ -79,10 +50,10 @@ def insert_crash_free_rate(json_data, csv_file):
                     {
                         "type": "mrkdwn",
                         "text": (
-                            "Crash-Free Sessions :iphone: "
-                            "Crash-Free Users :bust_in_silhouette: "
-                            "Adoption Rate (Sessions) :rocket: "
-                            "Adoption Rate (Users) :heart:"
+                            ":iphone: Crash-Free Sessions "
+                            ":bust_in_silhouette: Crash-Free Users "
+                            ":rocket: Session Adoption "
+                            ":heart: User Adoption"
                         )
                     }
                 ]
@@ -113,6 +84,8 @@ def init_json():
                     "type": "mrkdwn",
                     "text": (
                         "*:health: iOS Health Report ({0})*"
+                        " <https://mozilla.cloud.looker.com/dashboards/2381|:chart_with_upwards_trend: Trends>"
+                        " <https://mozilla.cloud.looker.com/dashboards/2381|:scroll: Report>"
                     ).format(now)
                 }
             }
