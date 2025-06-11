@@ -79,7 +79,7 @@ def insert_crash_free_rate(json_data, csv_file):
                     {
                         "type": "mrkdwn",
                         "text": (
-                            "Legend: Crash-Free Sessions :iphone: "
+                            "Legend\nCrash-Free Sessions :iphone: "
                             "Crash-Free Users :bust_in_silhouette: "
                             "Adoption Rate (Sessions) :rocket:"
                             "Adoption Rate (Users) :heart:"
