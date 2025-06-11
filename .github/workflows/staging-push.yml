@@ -113,6 +113,19 @@ jobs:
           webhook-type: incoming-webhook
         env:
           TODAY_DATE: ${{ env.TODAY_DATE }}
+      - name: Construct JSON for Slack (3rd choice)
+        run: |
+          python -m lib.sentry_slack_crash_free_rates_3 ./sentry_crash_free_rates.csv
+      - name: Send latest Sentry issues to Slack
+        id: slack-sentry-3
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./sentry-slack.json"
+          payload-templated: true 
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        env:
+          TODAY_DATE: ${{ env.TODAY_DATE }}
 
       - name: Set job log URL
         if: always()
