@@ -6,7 +6,7 @@ wiki_page:
       reports:
         - report-title: "Crash Free Rate Users"
           report-description: "Crash Free Rate Users"
-          attachment-filename: "crash-free-rate-users.png"
+          attachment-filename: "crash-free-rate-user.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2955"
         - report-title: "Crash Free Rate Session"
           report-description: "Crash Free Rate Session"
