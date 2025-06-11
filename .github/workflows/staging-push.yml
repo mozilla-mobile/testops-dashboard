@@ -74,9 +74,9 @@ jobs:
       #   if: always()
       #   run: python ./__main__.py --report-type bugzilla-qe-verify
 
-      - name: Bitrise Build Count
-        if: always()
-        run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
+      # - name: Bitrise Build Count
+      #   if: always()
+      #   run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
 
       - name: Sentry query
         run: |
