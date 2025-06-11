@@ -98,6 +98,10 @@ class TestRail:
         return self.client.send_get(
             'get_users/{0}'.format(testrail_project_id))
 
+    def user(self, user_id):
+        return self.client.send_get(
+            'get_user/{0}'.format(user_id))
+
 
 class TestRailClient(TestRail):
 
@@ -105,6 +109,147 @@ class TestRailClient(TestRail):
         super().__init__()
         self.db = DatabaseTestRail()
 
+    '''
+    def testrail_users(self):
+        project_id = 26
+        project_name = "Thunderbird"
+        all_user_records = []
+
+        created_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+        try:
+            user_response = self.users(project_id)
+            users = user_response.get("users", []) if isinstance(user_response, dict) else user_response
+
+            print(f"{project_name} (ID: {project_id}): {len(users)} users (all roles included)")
+
+            for user in users:
+                # Print all fields for full visibility
+                print("\n📋 User:")
+                for key, value in user.items():
+                    print(f"  {key}: {value}")
+
+                # Store all fields in the row (flattening for CSV)
+                user_row = dict(user)  # copy all key-value pairs
+                user_row["project_name"] = project_name
+                user_row["project_id"] = project_id
+                user_row["created_at"] = created_at
+                all_user_records.append(user_row)
+
+        except Exception as e:
+            print(f"⚠️ Error fetching users for project {project_id} ({project_name}): {e}")
+
+        # Convert to DataFrame and export
+        df = pd.DataFrame(all_user_records)
+        csv_path = "testrail_users_thunderbird.csv"
+        df.to_csv(csv_path, index=False)
+
+        print(f"\n✅ Exported {len(df)} Thunderbird user records to {csv_path}")
+
+    
+    def testrail_users(self):
+        projects_response = self.projects()
+        all_projects = projects_response.get("projects", [])
+        seen_project_ids = set()
+        all_user_records = []
+
+        created_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+        for project in all_projects:
+            project_id = project["id"]
+            project_name = project["name"]
+
+            if project_id in seen_project_ids:
+                continue
+            seen_project_ids.add(project_id)
+
+            try:
+                user_response = self.users(project_id)
+                users = user_response.get("users", [])
+
+                print(f"{project_name} (ID: {project_id}): {len(users)} users (all roles included)")
+
+                for user in users:
+                    all_user_records.append({
+                        "project_name": project_name,
+                        "project_id": project_id,
+                        "name": user.get("name"),
+                        "email": user.get("email"),
+                        "status": "active" if user.get("is_active") else "inactive",
+                        "role": user.get("role"),
+                        "created_at": created_at
+                    })
+
+            except Exception as e:
+                print(f"⚠️ Error fetching users for project {project_id} ({project_name}): {e}")
+
+        # Convert to DataFrame
+        df = pd.DataFrame(all_user_records)
+
+        # Save to CSV
+        csv_path = "testrail_users_by_project.csv"
+        df.to_csv(csv_path, index=False)
+
+        print(f"\n✅ Exported {len(df)} user records (including duplicates and all roles) to {csv_path}")
+    
+    def testrail_users(self):
+        # Step 1: Get all projects
+        projects_response = self.projects()
+        all_projects = projects_response.get("projects", [])
+        all_users = []  # List of all users across all projects
+        seen_project_ids = set()
+        project_user_counts = {}
+
+        for project in all_projects:
+            project_id = project["id"]
+            project_name = project["name"]
+
+            if project_id in seen_project_ids:
+                continue
+            seen_project_ids.add(project_id)
+
+            try:
+                user_response = self.users(project_id)
+                users = user_response.get("users", [])
+                all_users.extend(users)
+
+                user_count = len(users)
+                project_user_counts[project_name] = user_count
+
+                print(f"{project_name} (ID: {project_id}): {user_count} users (including duplicates)")
+
+            except Exception as e:
+                print(f"Error fetching users {project_id} ({project_name}): {e}")
+
+        print(f"\n📊 Total user records collected (with duplicates): {len(all_users)}")
+
+        # Optional: pretty-print first 10
+        print("\n📋 Sample users:")
+        for user in all_users[:10]:
+            status = "active" if user.get("is_active") else "inactive"
+            print(f"- {user.get('name')} | {user.get('email')} | {status} | role: {user.get('role')}")
+
+        # Build and export the full DataFrame
+        created_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+        user_data = [
+            {
+                "name": user.get("name"),
+                "email": user.get("email"),
+                "status": "active" if user.get("is_active") else "inactive",
+                "role": user.get("role"),
+                "created_at": created_at
+            }
+            for user in all_users
+        ]
+
+        df = pd.DataFrame(user_data)
+        csv_path = "testrail_users_full.csv"
+        df.to_csv(csv_path, index=False)
+
+        print(f"\n✅ Exported {len(df)} user records to {csv_path}")
+
+    '''
     def testrail_users(self):
         # Step 1: Get all projects
         projects_response = self.projects()
@@ -168,7 +313,7 @@ class TestRailClient(TestRail):
         df.to_csv(csv_path, index=False)
 
         print(f"\n✅ Exported {len(df)} unique users to {csv_path}")
-
+    
     def data_pump(self, project='all', suite='all'):
         # call database for 'all' values
         # convert inputs to a list so we can easily
