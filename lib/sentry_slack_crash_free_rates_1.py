@@ -57,21 +57,32 @@ def insert_crash_free_rate(json_data, csv_file):
             )
     json_data["blocks"].append(
         {
-    	    "type": "section",
-			"text": {
-			    "type": "mrkdwn",
-			    "text": ":chart_with_upwards_trend: Trends: https://mozilla.cloud.looker.com/dashboards/2381"
-		    }
-		}
-    )
-    json_data["blocks"].append(
-        {
-	        "type": "section",
-			"text": {
-	    	    "type": "mrkdwn",
-		        "text": ":scroll: Report: https://mozilla.cloud.looker.com/dashboards/2381"
-			}
-		}
+            "type": "actions",
+            "elements": [
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":chart_with_upwards_trend: Trends",
+                        "emoji": True
+                    },
+                    "value": "trends_click",
+                    "action_id": "trends",
+                    "url": "https://mozilla.cloud.looker.com/dashboards/2381"
+                },
+                {
+                    "type": "button",
+                    "text": {
+                        "type": "plain_text",
+                        "text": ":scroll: Report",
+                        "emoji": True
+                    },
+                    "value": "report_click",
+                    "action_id": "report",
+                    "url": "https://mozilla.cloud.looker.com/dashboards/2381"
+                }
+            ]
+        }
     )
     return json_data
 

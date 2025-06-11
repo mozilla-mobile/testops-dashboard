@@ -20,8 +20,8 @@ def insert_crash_free_rate(json_data, csv_file):
                     "text": {
                         "type": "mrkdwn",
                         "text": (
-                            ":white_check_mark: v{0} →  | {1}% :iphone: | "
-                            "{2}%  :bust_in_silhouette: | [N/A]% :rocket:"
+                            ":white_check_mark: v{0} →  {1}% :iphone: "
+                            "{2}%  :bust_in_silhouette: [N/A]% :rocket:"
                         ).format(
                             release_version,
                             crash_free_rate_session,
@@ -40,21 +40,32 @@ def insert_crash_free_rate(json_data, csv_file):
             )
         json_data["blocks"].append(
             {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": ":chart_with_upwards_trend: Trends: https://mozilla.cloud.looker.com/dashboards/2381"
-			}
-		}
-        )
-        json_data["blocks"].append(
-            {
-			"type": "section",
-			"text": {
-				"type": "mrkdwn",
-				"text": ":scroll: Report: https://mozilla.cloud.looker.com/dashboards/2381"
-			}
-		}
+                "type": "actions",
+                "elements": [
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": ":chart_with_upwards_trend: Trends",
+                            "emoji": True
+                        },
+                        "value": "trends_click",
+                        "action_id": "trends",
+                        "url": "https://mozilla.cloud.looker.com/dashboards/2381"
+                    },
+                    {
+                        "type": "button",
+                        "text": {
+                            "type": "plain_text",
+                            "text": ":scroll: Report",
+                            "emoji": True
+                        },
+                        "value": "report_click",
+                        "action_id": "report",
+                        "url": "https://mozilla.cloud.looker.com/dashboards/2381"
+                    }
+                ]
+            }
         )
         json_data["blocks"].append(
             {
@@ -68,8 +79,8 @@ def insert_crash_free_rate(json_data, csv_file):
                     {
                         "type": "mrkdwn",
                         "text": (
-                            "Legend: Crash-Free Sessions :iphone: | "
-                            "Crash-Free Users :bust_in_silhouette: | "
+                            "Legend: Crash-Free Sessions :iphone: "
+                            "Crash-Free Users :bust_in_silhouette: "
                             "Adoption Rate :rocket:"
                         )
                     }
@@ -100,7 +111,7 @@ def init_json():
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        "*:health: :sentry: iOS Health Report ({0})*"
+                        "*:health: iOS Health Report ({0})*"
                     ).format(now)
                 }
             }
