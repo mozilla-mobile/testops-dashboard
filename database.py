@@ -77,8 +77,8 @@ class ReportSentryIssues(Base):
     __table__ = Table('report_sentry_issues', Base.metadata, autoload=True) # noqa
 
 
-class ReportSentryCrashFreeRates(Base):
-    __table__ = Table('report_sentry_crash_free_rate', Base.metadata, autoload=True) # noqa
+class ReportSentryRates(Base):
+    __table__ = Table('report_sentry_rates', Base.metadata, autoload=True) # noqa
 
 
 class Database:

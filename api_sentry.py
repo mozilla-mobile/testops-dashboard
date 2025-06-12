@@ -15,7 +15,7 @@ from utils.datetime_utils import DatetimeUtils
 from database import (
     Database,
     ReportSentryIssues,
-    ReportSentryCrashFreeRates
+    ReportSentryRates
 )
 
 # The 2 major versions are beta and release.
@@ -75,8 +75,17 @@ class Sentry:
                 self.organization_slug, crash_free_rate_type,
                 self.project_id, release
             )
-        )
+        ) 
 
+    # API: Adoption Rate (Users)
+    def sentry_adoption_rate_user(self, release):
+        return self.client.http_get(
+            (
+                "organizations/{0}/releases/org.mozilla.ios.Firefox%40{1}/"
+                "?health=1&summaryStatsPeriod=7d&project={2}"
+                "&environment=Production&adoptionStages=1"
+            ).format(self.organization_slug, release, self.project_id)
+        )
 
 class SentryClient(Sentry):
 
@@ -93,7 +102,7 @@ class SentryClient(Sentry):
     # A one-stop function to fetch data on issues and crash free rate
     def sentry_reports(self):
         release_versions = self.sentry_releases()
-        self.sentry_crash_free_rate(release_versions)
+        self.sentry_rates(release_versions)
         self.sentry_issues(release_versions)
 
     def sentry_releases(self):
@@ -127,31 +136,36 @@ class SentryClient(Sentry):
         # Insert into database
         self.db.issue_insert(df_issues)
 
-    def sentry_crash_free_rate(self, releases=[]):
-        print("SentryClient.sentry_crash_free_rate()")
+    def sentry_rates(self, releases=[]):
+        print("SentryClient.sentry_rates()")
 
         if releases == []:
             release_versions = self.sentry_releases()
         else:
             release_versions = [releases]
 
-        df_crash_free_rate = pd.DataFrame()
+        df_rates = pd.DataFrame()
         for release_version in release_versions:
             response_session = self.sentry_session_crash_free(
                 "session", release_version)
             response_user = self.sentry_session_crash_free(
                 "user", release_version)
-            df_rate = self.db.report_crash_free_rate_payload(
-                response_user, response_session, release_version
+            response_adoption = self.sentry_adoption_rate_user(
+                release_version
+            )
+            df_rate = self.db.report_rates_payload(
+                response_user, response_session, response_adoption,
+                release_version
             )
             # If any of the rate is null, do not insert into the database.
             if df_rate is not None:
-                df_crash_free_rate = pd.concat(
-                    [df_crash_free_rate, df_rate], axis=0
+                df_rates = pd.concat(
+                    [df_rate, df_rates], axis=0
                 )
-        self.db.crash_free_rate_insert(df_crash_free_rate)
-        df_crash_free_rate.to_csv(
-            "sentry_crash_free_rates.csv",
+        # TODO: Insert adoption rate into the database
+        self.db.rate_insert(df_rates)
+        df_rates.to_csv(
+            "sentry_rates.csv",
             index=False
         )
 
@@ -253,28 +267,40 @@ class DatabaseSentry:
             self.db.session.add(issue)
             self.db.session.commit()
 
-    def report_crash_free_rate_payload(self, response_user,
-                                       response_session, release_version):
-        # Crash free rate is a float. Convert it to percentage.
-        session_rate = response_session['groups'][0]['totals'].get(
+    def report_rates_payload(self, response_user,
+                                       response_session, response_adoption,
+                                       release_version):
+        session_crash_free_rate = response_session['groups'][0]['totals'].get(
             'crash_free_rate(session)', None)
-        user_rate = response_user['groups'][0]['totals'].get(
+        user_crash_free_rate = response_user['groups'][0]['totals'].get(
             'crash_free_rate(user)', None)
         # Sometimes the REST API calls return null values in the field
         # Return None if either rate is null
-        if session_rate is not None and user_rate is not None:
-            percentage_session_rate = round(session_rate * 100, 3)
-            percentage_user_rate = round(user_rate * 100, 3)
+        user_adoption_rate = (
+            response_adoption['projects'][0]['healthData'].get('adoption', 0)
+            or 0.0
+        )
+        if (
+            session_crash_free_rate is not None
+            and user_crash_free_rate is not None
+            and user_adoption_rate is not None
+        ):
+            # Crash free rates are floats. Convert it to percentage.
+            percentage_session_crash_free_rate = round(session_crash_free_rate * 100, 2)
+            percentage_user_crash_free_rate = round(user_crash_free_rate * 100, 2)
+            # Adoption rate is already a percentage
+            percentage_user_adoption_rate = round(user_adoption_rate, 2)
         else:
             return None
         now = DatetimeUtils.start_date('0')
-        row = [percentage_session_rate, percentage_user_rate,
-               release_version, now]
+        row = [percentage_session_crash_free_rate, percentage_user_crash_free_rate,
+               percentage_user_adoption_rate, release_version, now]
         df = pd.DataFrame(
             data=[row],
             columns=[
-                'crash_free_rate_user',
-                'crash_free_rate_session',
+                'user_crash_free_rate',
+                'session_crash_free_rate',
+                'user_adoption_rate',
                 'release_version',
                 'created_at'
             ]
@@ -282,14 +308,15 @@ class DatabaseSentry:
         return df
 
     # Insert crash free rates of the day
-    def crash_free_rate_insert(self, payload):
+    def rate_insert(self, payload):
         for index, row in payload.iterrows():
             print(row)
-            crash_free_rate = ReportSentryCrashFreeRates(
-                crash_free_rate_session=row['crash_free_rate_session'],
-                crash_free_rate_user=row['crash_free_rate_user'],
+            rates = ReportSentryRates(
+                session_crash_free_rate=row['session_crash_free_rate'],
+                user_crash_free_rate=row['user_crash_free_rate'],
+                user_adoption_rate=row['user_adoption_rate'],
                 release_version=row['release_version'],
                 created_at=row['created_at']
             )
-            self.db.session.add(crash_free_rate)
+            self.db.session.add(rates)
             self.db.session.commit()

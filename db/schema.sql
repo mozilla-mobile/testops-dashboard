@@ -413,11 +413,12 @@ CREATE TABLE `report_sentry_issues` (
 ) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
-DROP TABLE IF EXISTS `report_sentry_crash_free_rate`;
-CREATE TABLE `report_sentry_crash_free_rate` (
+DROP TABLE IF EXISTS `report_sentry_rates`;
+CREATE TABLE `report_sentry_rates` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `crash_free_rate_user` float NOT NULL,
-  `crash_free_rate_session` float NOT NULL,
+  `user_crash_free_rate` float NOT NULL,
+  `session_crash_free_rate` float NOT NULL,
+  `user_adoption_rate` float NOT NULL,
   `release_version` varchar(250) NOT NULL,
   `created_at` timestamp NOT NULL,
   PRIMARY KEY (`id`)
