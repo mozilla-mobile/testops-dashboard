@@ -92,7 +92,7 @@ jobs:
         continue-on-error: true
 
       - name: Sentry query Crash Free Rate
-        run: python __main__.py --report-type sentry-crash-free-rates
+        run: python __main__.py --report-type sentry-rates
 
         continue-on-error: true
 
