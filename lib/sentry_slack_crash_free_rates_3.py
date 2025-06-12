@@ -27,8 +27,8 @@ def insert_crash_free_rate(json_data, csv_file):
                         ).format(
                             release_version,
                             crash_free_rate_session,
-                            user_adoption_rate,
-                            crash_free_rate_user
+                            crash_free_rate_user,
+                            user_adoption_rate
                         )
                     }
                 }
