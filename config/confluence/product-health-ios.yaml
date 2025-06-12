@@ -4,11 +4,11 @@ wiki_page:
   sections:
     - name: "Sentry"
       reports:
-        - report-title: "Crash Free Rate Users"
-          report-description: "Crash Free Rate Users"
+        - report-title: "Crash Free Users Rate"
+          report-description: "Crash Free Users Rate"
           attachment-filename: "crash-free-rate-user.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2955"
-        - report-title: "Crash Free Rate Session"
-          report-description: "Crash Free Rate Session"
+        - report-title: "Crash Free Session Rate"
+          report-description: "Crash Free Session Rate"
           attachment-filename: "crash-free-rate-session.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2956"
