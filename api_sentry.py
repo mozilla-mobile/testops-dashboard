@@ -75,7 +75,7 @@ class Sentry:
                 self.organization_slug, crash_free_rate_type,
                 self.project_id, release
             )
-        ) 
+        )
 
     # API: Adoption Rate (Users)
     def sentry_adoption_rate_user(self, release):
@@ -86,6 +86,7 @@ class Sentry:
                 "&environment=Production&adoptionStages=1"
             ).format(self.organization_slug, release, self.project_id)
         )
+
 
 class SentryClient(Sentry):
 
@@ -268,8 +269,8 @@ class DatabaseSentry:
             self.db.session.commit()
 
     def report_rates_payload(self, response_user,
-                                       response_session, response_adoption,
-                                       release_version):
+                             response_session, response_adoption,
+                             release_version):
         session_crash_free_rate = response_session['groups'][0]['totals'].get(
             'crash_free_rate(session)', None)
         user_crash_free_rate = response_user['groups'][0]['totals'].get(
@@ -286,15 +287,18 @@ class DatabaseSentry:
             and user_adoption_rate is not None
         ):
             # Crash free rates are floats. Convert it to percentage.
-            percentage_session_crash_free_rate = round(session_crash_free_rate * 100, 2)
-            percentage_user_crash_free_rate = round(user_crash_free_rate * 100, 2)
+            percentage_session_crash_free_rate = round(
+                session_crash_free_rate * 100, 2)
+            percentage_user_crash_free_rate = round(
+                user_crash_free_rate * 100, 2)
             # Adoption rate is already a percentage
             percentage_user_adoption_rate = round(user_adoption_rate, 2)
         else:
             return None
         now = DatetimeUtils.start_date('0')
-        row = [percentage_session_crash_free_rate, percentage_user_crash_free_rate,
-               percentage_user_adoption_rate, release_version, now]
+        row = [percentage_session_crash_free_rate,
+               percentage_user_crash_free_rate, percentage_user_adoption_rate,
+               release_version, now]
         df = pd.DataFrame(
             data=[row],
             columns=[
