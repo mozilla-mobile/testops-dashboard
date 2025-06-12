@@ -6,6 +6,7 @@
 
 import os
 import sys
+from datetime import datetime
 
 import pandas as pd
 import numpy as np
@@ -18,6 +19,7 @@ from database import (
     TestSuites,
     ReportTestCaseCoverage,
     ReportTestRailMilestones,
+    ReportTestRailUsers,
     # ReportTestRunCounts
 )
 
@@ -91,6 +93,11 @@ class TestRail:
 
     def test_results_for_run(self, run_id):
         return self.client.send_get('get_results_for_run/{0}'.format(run_id))
+
+    # API: Users
+    def users(self, testrail_project_id):
+        return self.client.send_get(
+            'get_users/{0}'.format(testrail_project_id))
 
 
 class TestRailClient(TestRail):
@@ -250,6 +257,67 @@ class TestRailClient(TestRail):
                 else:
                     print(f"No milestones data to insert into database for project {testrail_project_id}.") # noqa
 
+    def testrail_users(self):
+        # Step 1: Get all projects
+        projects_response = self.projects()
+        all_projects = projects_response.get("projects", [])
+        all_users = []  # List of all users across all projects
+        seen_project_ids = set()
+        project_user_counts = {}
+
+        for project in all_projects:
+            project_id = project["id"]
+            project_name = project["name"]
+
+            # Skip duplicate project IDs
+            if project_id in seen_project_ids:
+                continue
+            seen_project_ids.add(project_id)
+
+            try:
+                user_response = self.users(project_id)
+                users = user_response.get("users", [])
+                all_users.extend(users)
+
+                unique_emails = {user.get("email") for user in users if user.get("email")} # noqa
+                project_user_counts[project_name] = len(unique_emails)
+
+                print(f"{project_name} (ID: {project_id}): {len(unique_emails)} unique users (by email)") # noqa
+
+            except Exception as e:
+                print(f"Error fetching users {project_id} ({project_name}): {e}") # noqa
+
+        # Get unique users by email
+        unique_by_email = {}
+        for user in all_users:
+            email = user.get("email")
+            if email:
+                unique_by_email[email] = user
+
+        print(f"\n Total unique users across all accessible projects (by email): {len(unique_by_email)}") # noqa
+
+        # Diagnostic
+        print("\nSample of unique users:")
+        for email, user in list(unique_by_email.items()):
+            status = "active" if user.get("is_active") else "inactive"
+            print(f"- {user.get('name')} | {email} | {status} | role: {user.get('role')}") # noqa
+
+        created_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+
+        user_data = [
+            {
+                "name": user.get("name"),
+                "email": user.get("email"),
+                "status": "active" if user.get("is_active") else "inactive",
+                "role": user.get("role"),
+                "created_at": created_at
+            }
+            for user in unique_by_email.values()
+        ]
+
+        df = pd.DataFrame(user_data)
+        self.db.report_testrail_users_insert(df)
+
 
 class DatabaseTestRail(Database):
 
@@ -337,6 +405,19 @@ class DatabaseTestRail(Database):
                                             test_automation_coverage_id=row['cov'], # noqa
                                             test_sub_suites_id=row['sub'],
                                             test_count=row['tally'])
+            self.session.add(report)
+            self.session.commit()
+
+    def report_testrail_users_insert(self, payload):
+        for index, row in payload.iterrows():
+
+            report = ReportTestRailUsers(
+                                      name=row['name'], # noqa
+                                      email=row['email'],
+                                      status=row['status'],
+                                      role=row['role'],
+                                      created_at=row['created_at']
+                                      )
             self.session.add(report)
             self.session.commit()
 
