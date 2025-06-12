@@ -11,10 +11,10 @@ def insert_rates(json_data, csv_file):
         rows = csv.DictReader(file)
         for row in rows:
             print(row)
-            crash_free_rate_user = row['crash_free_rate_user']
-            crash_free_rate_session = row['crash_free_rate_session']
-            release_version = row['release_version']
+            user_crash_free_rate = row['user_crash_free_rate']
+            session_crash_free_rate = row['session_crash_free_rate']
             user_adoption_rate = row['user_adoption_rate']
+            release_version = row['release_version']
             json_data["blocks"].append(
                 {
                     "type": "section",
@@ -26,8 +26,8 @@ def insert_rates(json_data, csv_file):
                             ":rocket: {3}%"
                         ).format(
                             release_version,
-                            crash_free_rate_session,
-                            crash_free_rate_user,
+                            session_crash_free_rate,
+                            user_crash_free_rate,
                             user_adoption_rate
                         )
                     }
@@ -36,8 +36,8 @@ def insert_rates(json_data, csv_file):
             print(
                 "crash_free_rate_user: {0}, crash_free_rate_session: {1}, "
                 "user_adoption_rate: {2}, release_version: {3}".format(
-                    crash_free_rate_user,
-                    crash_free_rate_session,
+                    user_crash_free_rate,
+                    session_crash_free_rate,
                     user_adoption_rate,
                     release_version
                 )
