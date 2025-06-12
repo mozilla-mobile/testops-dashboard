@@ -269,7 +269,7 @@ class TestRailClient(TestRail):
             project_id = project["id"]
             project_name = project["name"]
 
-            # Avoid hitting duplicate project IDs if that ever happens
+            # Skip duplicate project IDs
             if project_id in seen_project_ids:
                 continue
             seen_project_ids.add(project_id)
@@ -287,7 +287,7 @@ class TestRailClient(TestRail):
             except Exception as e:
                 print(f"Error fetching users {project_id} ({project_name}): {e}") # noqa
 
-        # Deduplicate all users globally by email
+        # Get unique users by email
         unique_by_email = {}
         for user in all_users:
             email = user.get("email")
@@ -296,7 +296,7 @@ class TestRailClient(TestRail):
 
         print(f"\n Total unique users across all accessible projects (by email): {len(unique_by_email)}") # noqa
 
-        # Optional: pretty-print list
+        # Diagnostic
         print("\nSample of unique users:")
         for email, user in list(unique_by_email.items()):
             status = "active" if user.get("is_active") else "inactive"
