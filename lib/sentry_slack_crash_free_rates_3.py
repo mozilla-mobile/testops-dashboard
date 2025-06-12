@@ -14,6 +14,7 @@ def insert_crash_free_rate(json_data, csv_file):
             crash_free_rate_user = row['crash_free_rate_user']
             crash_free_rate_session = row['crash_free_rate_session']
             release_version = row['release_version']
+            user_adoption_rate = row['user_adoption_rate']
             json_data["blocks"].append(
                 {
                     "type": "section",
@@ -22,10 +23,11 @@ def insert_crash_free_rate(json_data, csv_file):
                         "text": (
                             "*v{0}* → :iphone: {1}% "
                             ":bust_in_silhouette: {2}% "
-                            ":rocket: [N/A]%"
+                            ":rocket: {3}%"
                         ).format(
                             release_version,
                             crash_free_rate_session,
+                            user_adoption_rate,
                             crash_free_rate_user
                         )
                     }
@@ -33,9 +35,10 @@ def insert_crash_free_rate(json_data, csv_file):
             )
             print(
                 "crash_free_rate_user: {0}, crash_free_rate_session: {1}, "
-                "release_version: {2}".format(
+                "user_adoption_rate: {2}, release_version: {3}".format(
                     crash_free_rate_user,
                     crash_free_rate_session,
+                    user_adoption_rate,
                     release_version
                 )
             )

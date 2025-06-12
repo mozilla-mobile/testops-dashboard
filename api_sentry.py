@@ -77,6 +77,16 @@ class Sentry:
             )
         )
 
+    # API: Adoption Rate (Users)
+    def sentry_adoption_rate_user(self, release):
+        return self.client.http_get(
+            (
+                "organizations/{0}/releases/org.mozilla.ios.Firefox%40{1}/"
+                "?health=1&summaryStatsPeriod=7d&project={2}"
+                "&environment=Production&adoptionStages=1"
+            ).format(self.organization_slug, release, self.project_id)
+        )
+
 
 class SentryClient(Sentry):
 
@@ -127,6 +137,7 @@ class SentryClient(Sentry):
         # Insert into database
         self.db.issue_insert(df_issues)
 
+    # TODO: Rename "crash_free_rate" to just "rates"
     def sentry_crash_free_rate(self, releases=[]):
         print("SentryClient.sentry_crash_free_rate()")
 
@@ -141,14 +152,19 @@ class SentryClient(Sentry):
                 "session", release_version)
             response_user = self.sentry_session_crash_free(
                 "user", release_version)
+            response_adoption = self.sentry_adoption_rate_user(
+                release_version
+            )
             df_rate = self.db.report_crash_free_rate_payload(
-                response_user, response_session, release_version
+                response_user, response_session, response_adoption,
+                release_version
             )
             # If any of the rate is null, do not insert into the database.
             if df_rate is not None:
                 df_crash_free_rate = pd.concat(
                     [df_crash_free_rate, df_rate], axis=0
                 )
+        # TODO: Insert adoption rate into the database
         self.db.crash_free_rate_insert(df_crash_free_rate)
         df_crash_free_rate.to_csv(
             "sentry_crash_free_rates.csv",
@@ -254,27 +270,41 @@ class DatabaseSentry:
             self.db.session.commit()
 
     def report_crash_free_rate_payload(self, response_user,
-                                       response_session, release_version):
+                                       response_session, response_adoption,
+                                       release_version):
         # Crash free rate is a float. Convert it to percentage.
         session_rate = response_session['groups'][0]['totals'].get(
             'crash_free_rate(session)', None)
         user_rate = response_user['groups'][0]['totals'].get(
             'crash_free_rate(user)', None)
+        user_adoption_rate = (
+            response_adoption['projects'][0]['healthData'].get('adoption', 0)
+            or 0.0
+        )
         # Sometimes the REST API calls return null values in the field
         # Return None if either rate is null
-        if session_rate is not None and user_rate is not None:
+        print("Rates: session={0}, user={1}, adoption={2}".format(
+            session_rate, user_rate, user_adoption_rate
+        ))
+        if (
+            session_rate is not None
+            and user_rate is not None
+            and user_adoption_rate is not None
+        ):
             percentage_session_rate = round(session_rate * 100, 2)
             percentage_user_rate = round(user_rate * 100, 2)
+            percentage_user_adoption_rate = round(user_adoption_rate, 2)
         else:
             return None
         now = DatetimeUtils.start_date('0')
         row = [percentage_session_rate, percentage_user_rate,
-               release_version, now]
+               percentage_user_adoption_rate, release_version, now]
         df = pd.DataFrame(
             data=[row],
             columns=[
                 'crash_free_rate_user',
                 'crash_free_rate_session',
+                'user_adoption_rate',
                 'release_version',
                 'created_at'
             ]
@@ -285,6 +315,7 @@ class DatabaseSentry:
     def crash_free_rate_insert(self, payload):
         for index, row in payload.iterrows():
             print(row)
+            # TODO: Insert user adoption rate
             crash_free_rate = ReportSentryCrashFreeRates(
                 crash_free_rate_session=row['crash_free_rate_session'],
                 crash_free_rate_user=row['crash_free_rate_user'],
