@@ -90,7 +90,7 @@ jobs:
 
         continue-on-error: true
 
-      - name: Sentry query Crash Free Rate and Adoption Rate
+      - name: Sentry query Crash Free and Adoption Rates
         run: python __main__.py --report-type sentry-rates
 
         continue-on-error: true

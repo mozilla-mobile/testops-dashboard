@@ -11,9 +11,9 @@ def insert_rates(json_data, csv_file):
         rows = csv.DictReader(file)
         for row in rows:
             print(row)
-            user_crash_free_rate = row['user_crash_free_rate']
-            session_crash_free_rate = row['session_crash_free_rate']
-            user_adoption_rate = row['user_adoption_rate']
+            crash_free_rate_user = row['crash_free_rate_user']
+            crash_free_rate_session = row['crash_free_rate_session']
+            adoption_rate_user = row['adoption_rate_user']
             release_version = row['release_version']
             json_data["blocks"].append(
                 {
@@ -36,9 +36,9 @@ def insert_rates(json_data, csv_file):
             print(
                 "crash_free_rate_user: {0}, crash_free_rate_session: {1}, "
                 "user_adoption_rate: {2}, release_version: {3}".format(
-                    user_crash_free_rate,
-                    session_crash_free_rate,
-                    user_adoption_rate,
+                    crash_free_rate_user,
+                    crash_free_rate_session,
+                    adoption_rate_user,
                     release_version
                 )
             )
@@ -129,9 +129,9 @@ def init_json():
     return json_data
 
 
-def main(csv_filename):
+def main(filename_csv):
     json_data = init_json()
-    insert_rates(json_data, csv_filename)
+    insert_rates(json_data, filename_csv)
 
     output_path = Path('sentry-slack.json')
     output_path.write_text(json.dumps(json_data, indent=4))

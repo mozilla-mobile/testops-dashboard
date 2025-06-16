@@ -65,7 +65,7 @@ class Sentry:
 
     # API: Session (crash free rate (session) and crash free rate (user))
     # The crash free rate for the past 24 hours
-    def sentry_session_crash_free(self, crash_free_rate_type, release):
+    def sentry_sessions_crash_free_rate(self, crash_free_rate_type, release):
         return self.client.http_get(
             (
                 'organizations/{0}/sessions/?field=crash_free_rate%28{1}%29'
@@ -78,7 +78,7 @@ class Sentry:
         )
 
     # API: Adoption Rate (Users)
-    def sentry_adoption_rate_user(self, release):
+    def sentry_adoption_rate(self, release):
         return self.client.http_get(
             (
                 "organizations/{0}/releases/org.mozilla.ios.Firefox%40{1}/"
@@ -147,16 +147,16 @@ class SentryClient(Sentry):
 
         df_rates = pd.DataFrame()
         for release_version in release_versions:
-            response_session = self.sentry_session_crash_free(
+            response_crash_free_rate_session = self.sentry_sessions_crash_free_rate(
                 "session", release_version)
-            response_user = self.sentry_session_crash_free(
+            response_crash_free_rate_user = self.sentry_sessions_crash_free_rate(
                 "user", release_version)
-            response_adoption = self.sentry_adoption_rate_user(
+            response_adoption_rate = self.sentry_adoption_rate(
                 release_version
             )
             df_rate = self.db.report_rates_payload(
-                response_user, response_session, response_adoption,
-                release_version
+                response_crash_free_rate_user, response_crash_free_rate_session, 
+                response_adoption_rate, release_version
             )
             # If any of the rate is null, do not insert into the database.
             if df_rate is not None:
@@ -268,43 +268,42 @@ class DatabaseSentry:
             self.db.session.add(issue)
             self.db.session.commit()
 
-    def report_rates_payload(self, response_user,
-                             response_session, response_adoption,
+    def report_rates_payload(self, response_crash_free_rate_user,
+                             response_crash_free_rate_session, response_adoption_rate,
                              release_version):
-        session_crash_free_rate = response_session['groups'][0]['totals'].get(
+        crash_free_rate_session = response_crash_free_rate_session['groups'][0]['totals'].get(
             'crash_free_rate(session)', None)
-        user_crash_free_rate = response_user['groups'][0]['totals'].get(
+        crash_free_rate_user = response_crash_free_rate_user['groups'][0]['totals'].get(
             'crash_free_rate(user)', None)
         # Sometimes the REST API calls return null values in the field
         # Return None if either rate is null
-        user_adoption_rate = (
-            response_adoption['projects'][0]['healthData'].get('adoption', 0)
+        adoption_rate_user = (
+            response_adoption_rate['projects'][0]['healthData'].get('adoption', 0)
             or 0.0
         )
-        if (
-            session_crash_free_rate is not None
-            and user_crash_free_rate is not None
-            and user_adoption_rate is not None
-        ):
+        if all(
+            value is not None for value in 
+                [crash_free_rate_session, crash_free_rate_user, adoption_rate_user]
+            ):
             # Crash free rates are floats. Convert it to percentage.
-            percentage_session_crash_free_rate = round(
-                session_crash_free_rate * 100, 2)
-            percentage_user_crash_free_rate = round(
-                user_crash_free_rate * 100, 2)
+            percentage_crash_free_rate_session = round(
+                crash_free_rate_session * 100, 2)
+            percentage_crash_free_rate_user = round(
+                crash_free_rate_user * 100, 2)
             # Adoption rate is already a percentage
-            percentage_user_adoption_rate = round(user_adoption_rate, 2)
+            percentage_adoption_rate_user = round(adoption_rate_user, 2)
         else:
             return None
         now = DatetimeUtils.start_date('0')
-        row = [percentage_session_crash_free_rate,
-               percentage_user_crash_free_rate, percentage_user_adoption_rate,
+        row = [percentage_crash_free_rate_session,
+               percentage_crash_free_rate_user, percentage_adoption_rate_user,
                release_version, now]
         df = pd.DataFrame(
             data=[row],
             columns=[
-                'user_crash_free_rate',
-                'session_crash_free_rate',
-                'user_adoption_rate',
+                'crash_free_rate_user',
+                'crash_free_rate_session',
+                'adoption_rate_user',
                 'release_version',
                 'created_at'
             ]
@@ -316,9 +315,9 @@ class DatabaseSentry:
         for index, row in payload.iterrows():
             print(row)
             rates = ReportSentryRates(
-                session_crash_free_rate=row['session_crash_free_rate'],
-                user_crash_free_rate=row['user_crash_free_rate'],
-                user_adoption_rate=row['user_adoption_rate'],
+                crash_free_rate_session=row['crash_free_rate_session'],
+                crash_free_rate_user=row['crash_free_rate_user'],
+                adoption_rate_user=row['adoption_rate_user'],
                 release_version=row['release_version'],
                 created_at=row['created_at']
             )
