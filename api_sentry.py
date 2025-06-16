@@ -147,15 +147,20 @@ class SentryClient(Sentry):
 
         df_rates = pd.DataFrame()
         for release_version in release_versions:
-            response_crash_free_rate_session = self.sentry_sessions_crash_free_rate(
-                "session", release_version)
-            response_crash_free_rate_user = self.sentry_sessions_crash_free_rate(
-                "user", release_version)
+            response_crash_free_rate_session = (
+                self.sentry_sessions_crash_free_rate(
+                    "session", release_version)
+            )
+            response_crash_free_rate_user = (
+                self.sentry_sessions_crash_free_rate(
+                    "user", release_version)
+            )
             response_adoption_rate = self.sentry_adoption_rate(
                 release_version
             )
             df_rate = self.db.report_rates_payload(
-                response_crash_free_rate_user, response_crash_free_rate_session, 
+                response_crash_free_rate_user,
+                response_crash_free_rate_session,
                 response_adoption_rate, release_version
             )
             # If any of the rate is null, do not insert into the database.
@@ -268,36 +273,51 @@ class DatabaseSentry:
             self.db.session.add(issue)
             self.db.session.commit()
 
-    def report_rates_payload(self, response_crash_free_rate_user,
-                             response_crash_free_rate_session, response_adoption_rate,
-                             release_version):
-        crash_free_rate_session = response_crash_free_rate_session['groups'][0]['totals'].get(
-            'crash_free_rate(session)', None)
-        crash_free_rate_user = response_crash_free_rate_user['groups'][0]['totals'].get(
-            'crash_free_rate(user)', None)
+    def report_rates_payload(
+        self,
+        response_crash_free_rate_user,
+        response_crash_free_rate_session,
+        response_adoption_rate,
+        release_version
+    ):
+        crash_free_rate_session = (
+            response_crash_free_rate_session['groups'][0]['totals'].get(
+                'crash_free_rate(session)', None
+            )
+        )
+        crash_free_rate_user = (
+            response_crash_free_rate_user['groups'][0]['totals'].get(
+                'crash_free_rate(user)', None
+            )
+        )
         # Sometimes the REST API calls return null values in the field
         # Return None if either rate is null
         adoption_rate_user = (
-            response_adoption_rate['projects'][0]['healthData'].get('adoption', 0)
-            or 0.0
+            response_adoption_rate['projects'][0]['healthData']
+            .get('adoption', 0) or 0.0
         )
-        if all(
-            value is not None for value in 
-                [crash_free_rate_session, crash_free_rate_user, adoption_rate_user]
-            ):
-            # Crash free rates are floats. Convert it to percentage.
+        if (
+            crash_free_rate_session is not None
+            and crash_free_rate_user is not None
+            and adoption_rate_user is not None
+        ):
             percentage_crash_free_rate_session = round(
-                crash_free_rate_session * 100, 2)
+                crash_free_rate_session * 100, 2
+            )
             percentage_crash_free_rate_user = round(
-                crash_free_rate_user * 100, 2)
-            # Adoption rate is already a percentage
+                crash_free_rate_user * 100, 2
+            )
             percentage_adoption_rate_user = round(adoption_rate_user, 2)
         else:
             return None
         now = DatetimeUtils.start_date('0')
-        row = [percentage_crash_free_rate_session,
-               percentage_crash_free_rate_user, percentage_adoption_rate_user,
-               release_version, now]
+        row = [
+            percentage_crash_free_rate_session,
+            percentage_crash_free_rate_user,
+            percentage_adoption_rate_user,
+            release_version,
+            now
+        ]
         df = pd.DataFrame(
             data=[row],
             columns=[

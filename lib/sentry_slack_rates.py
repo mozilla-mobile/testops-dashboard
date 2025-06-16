@@ -26,9 +26,9 @@ def insert_rates(json_data, csv_file):
                             ":rocket: {3}%"
                         ).format(
                             release_version,
-                            session_crash_free_rate,
-                            user_crash_free_rate,
-                            user_adoption_rate
+                            crash_free_rate_session,
+                            crash_free_rate_user,
+                            adoption_rate_user
                         )
                     }
                 }
