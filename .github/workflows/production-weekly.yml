@@ -48,6 +48,13 @@ jobs:
       - name: Update DB - test coverage 
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL 
 
+        continue-on-error: true
+
+      - name: Testrail Users
+        run: python ./__main__.py --report-type testrail-users
+
+        continue-on-error: true
+
       - name: Set job log URL
         if: always()
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV

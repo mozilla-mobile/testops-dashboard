@@ -423,3 +423,21 @@ CREATE TABLE `report_sentry_crash_free_rate` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_testrail_users`
+--
+
+DROP TABLE IF EXISTS `report_testrail_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_testrail_users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `status` varchar(50) NOT NULL,
+  `role` varchar(100) NOT NULL,
+  `created_at` timestamp NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=269 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;

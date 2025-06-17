@@ -26,8 +26,9 @@ class APIClient:
         if not base_url.endswith('/'):
             base_url += '/'
         self.__url = base_url + 'index.php?/api/v2/'
-
-    def send_get(self, uri, data_type, filepath=None):
+        print(self.__url)
+    
+    def send_get(self, uri, data_type=None, filepath=None):
         """Issue a GET request (read) against the API.
 
         Args:
@@ -38,7 +39,9 @@ class APIClient:
         Returns:
             A dict containing the result of the request.
         """
+
         return self.__send_request('GET', uri, data_type, filepath)
+    
 
     def send_post(self, uri, data):
         """Issue a POST request (write) against the API.
