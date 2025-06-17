@@ -38,7 +38,7 @@ jobs:
         run: |
             echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_NAME=cso-production-2025-06-16" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=staging" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
             echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
             echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
@@ -59,23 +59,23 @@ jobs:
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
 
-      # - name: Update DB - test runs
-      #   run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
+      - name: Update DB - test runs
+        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
 
-      # - name: Jira query qa-requests
-      #   run: python ./__main__.py --report-type jira-qa-requests
+      - name: Jira query qa-requests
+        run: python ./__main__.py --report-type jira-qa-requests
 
-      # - name: Jira query qa-needed
-      #   if: always()
-      #   run: python ./__main__.py --report-type jira-qa-needed
+      - name: Jira query qa-needed
+        if: always()
+        run: python ./__main__.py --report-type jira-qa-needed
 
-      # - name: Bugzilla query qe-verify
-      #   if: always()
-      #   run: python ./__main__.py --report-type bugzilla-qe-verify
+      - name: Bugzilla query qe-verify
+        if: always()
+        run: python ./__main__.py --report-type bugzilla-qe-verify
 
-      # - name: Bitrise Build Count
-      #   if: always()
-      #   run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
+      - name: Bitrise Build Count
+        if: always()
+        run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
 
       - name: Testrail Users
         run: python ./__main__.py --report-type testrail-users

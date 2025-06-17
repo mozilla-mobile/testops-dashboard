@@ -85,13 +85,10 @@ jobs:
 
         continue-on-error: true
 
-      - name: Sentry query Issues
-        run: python __main__.py --report-type sentry-issues
-
-        continue-on-error: true
-
-      - name: Sentry query Crash Free and Adoption Rates
-        run: python __main__.py --report-type sentry-rates
+      - name: Sentry query
+        run: |
+          python __main__.py --report-type sentry-issues
+          python __main__.py --report-type sentry-rates
 
         continue-on-error: true
 
