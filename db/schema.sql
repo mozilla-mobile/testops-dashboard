@@ -410,7 +410,7 @@ CREATE TABLE `report_sentry_issues` (
   `release_version` varchar(250) NOT NULL,
   `permalink` varchar(250) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 DROP TABLE IF EXISTS `report_sentry_crash_free_rate`;
