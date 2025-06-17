@@ -413,7 +413,6 @@ CREATE TABLE `report_sentry_issues` (
 ) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
-<<<<<<< HEAD
 DROP TABLE IF EXISTS `report_sentry_crash_free_rate`;
 CREATE TABLE `report_sentry_crash_free_rate` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -424,7 +423,7 @@ CREATE TABLE `report_sentry_crash_free_rate` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
-=======
+
 --
 -- Table structure for table `report_testrail_users`
 --
@@ -442,5 +441,3 @@ CREATE TABLE `report_testrail_users` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=269 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
->>>>>>> 95d6b57 (final changes with db connected)
