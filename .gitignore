@@ -5,3 +5,4 @@ __pycache__*
 .DS_Store
 cloud_sql_proxy
 .python-version*
+db/cloud-sql-proxy
