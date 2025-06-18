@@ -120,7 +120,8 @@ def main():
         h.testrail_run_counts_update(args.project, num_days)
     if args.report_type == 'testrail-milestones':
         h = TestRailClient()
-        h.testrail_milestones(arg_list)
+        #h.testrail_milestones(arg_list)
+        h.testrail_runs()
     if args.report_type == 'testrail-users':
         h = TestRailClient()
         h.testrail_users()
