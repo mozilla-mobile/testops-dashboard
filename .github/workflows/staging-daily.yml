@@ -3,25 +3,25 @@ name: Testops Report DAILY - Staging
 # Daily @4am UTC
 on:
   schedule:
-    - cron:  "0 4 * * *"
+    - cron: "0 4 * * *"
 
   workflow_dispatch:
     inputs:
       branchName:
-        description: 'Default branch'
+        description: "Default branch"
         required: true
-        default: 'master'
+        default: "master"
 
 jobs:
   deploy:
-    name: TestOps Report (DAILY) 
+    name: TestOps Report (DAILY)
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out source repository
         uses: actions/checkout@v2
 
-      - name: Setup python 
+      - name: Setup python
         uses: actions/setup-python@v1
 
       - name: Establish Cloud SQL Proxy
@@ -31,32 +31,32 @@ jobs:
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
 
-      - name: Install requirements 
+      - name: Install requirements
         run: pip install -r requirements.txt
 
-      - name: Set env vars 
+      - name: Set env vars
         run: |
-            echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_NAME=${{ secrets.CLOUD_SQL_DATABASE_NAME }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
-            echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
-            echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
-            echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
-            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
-            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
-            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
+          echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
+          echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
+          echo "CLOUD_SQL_DATABASE_NAME=${{ secrets.CLOUD_SQL_DATABASE_NAME }}" >> $GITHUB_ENV
+          echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
+          echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
+          echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
+          echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
+          echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+          echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
+          echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
+          echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
 
-            echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
+          echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
 
-            echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
-            echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
-            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
-            
-            echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
-            echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
-            echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
+          echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
+          echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
+          echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+
+          echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
+          echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
+          echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
 
       - name: Jira query
         run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
@@ -67,8 +67,8 @@ jobs:
       - name: Jira query
         run: python ./__main__.py --platform desktop --project ALL --report-type testrail-test-case-coverage
 
-      #- name: Update DB - test runs 
-      #  run: python ./__main__.py --report-type testrail-test-run-counts --project fenix --start-date 2021-08-15 --end-date 2021-10-01 
+      - name: Update DB - test runs
+        run: python ./__main__.py --report-type testrail-test-run-counts --project desktop --num-days 15
 
-      #- name: Update DB - test coverage 
-      #  run: python ./__main__.py --report-type testrail-test-case-coverage --project ALL 
+      #- name: Update DB - test coverage
+      #  run: python ./__main__.py --report-type testrail-test-case-coverage --project ALL
