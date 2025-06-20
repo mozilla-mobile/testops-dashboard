@@ -121,6 +121,9 @@ def main():
     if args.report_type == 'testrail-milestones':
         h = TestRailClient()
         h.testrail_milestones(arg_list)
+    if args.report_type == 'testrail-test-runs':
+        h = TestRailClient()
+        h.testrail_runs()
     if args.report_type == 'testrail-users':
         h = TestRailClient()
         h.testrail_users()

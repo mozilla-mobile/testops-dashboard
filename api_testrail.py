@@ -78,14 +78,7 @@ class TestRail:
                    .send_get('get_suite/{0}'.format(testrail_test_suite_id))
 
     # API: Runs
-    def test_runs(self, testrail_project_id, start_date='', end_date=''):
-        date_range = ''
-        if start_date:
-            after = dt.convert_datetime_to_epoch(start_date)
-            date_range += '&created_after={0}'.format(after)
-        if end_date:
-            before = dt.convert_datetime_to_epoch(end_date)
-            date_range += '&created_before={0}'.format(before)
+    def test_runs(self, testrail_project_id, date_range):
         return self.client.send_get('get_runs/{0}{1}'.format(testrail_project_id, date_range)) # noqa
 
     def test_run(self, run_id):
@@ -105,6 +98,45 @@ class TestRailClient(TestRail):
     def __init__(self):
         super().__init__()
         self.db = DatabaseTestRail()
+
+    def testrail_runs(self):
+        date_range = ''
+        start_date = "1750128000"
+        end_date = "1750214400"
+        #after = dt.convert_datetime_to_epoch(start_date)
+        date_range += '&created_after={0}'.format(start_date)
+        #before = dt.convert_datetime_to_epoch(end_date)
+        date_range += '&created_before={0}'.format(end_date)
+        print(date_range)
+
+        test_runs = self.test_runs(48, date_range)
+        print(test_runs)
+
+        # Extract `runs` from payload
+        runs = test_runs.get("runs", [])
+
+        # Create a list of dicts with selected fields
+        data = [
+            {
+                "run_id": run["id"],
+                "passed_count": run["passed_count"],
+                "failed_count": run["failed_count"],
+                "is_completed": run["is_completed"],
+                "name": run["name"],
+                "created_on": datetime.utcfromtimestamp(run["created_on"]).strftime('%Y-%m-%d %H:%M:%S')
+            }
+            for run in runs
+        ]
+
+        # Create DataFrame
+        df = pd.DataFrame(data)
+
+        # Save to CSV
+        df.to_csv("test_runs_summary.csv", index=False)
+
+        # Print DataFrame (optional)
+        print(df)
+
 
     def data_pump(self, project='all', suite='all'):
         # call database for 'all' values
