@@ -35,8 +35,8 @@ wiki_page:
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2734"
 
   sections:
-      - name: "Mobile Incidents"
-        reports:
+    - name: "Mobile Incidents"
+      reports:
         - report-title: "Mobile Incidents by Platform"
           report-description: "Number of incidents by platform"
           attachment-filename: "mobile-incidents-2025-pie-chart.png"
