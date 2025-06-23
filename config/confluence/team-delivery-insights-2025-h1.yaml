@@ -34,7 +34,6 @@ wiki_page:
           attachment-filename: "focus-ios-verified-builds-pie-chart.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2734"
 
-  sections:
     - name: "Mobile Incidents"
       reports:
         - report-title: "Mobile Incidents by Platform"
