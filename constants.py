@@ -32,6 +32,7 @@ PROJECTS_MOBILE = [
 
 REPORT_TYPES = [
     'bitrise-builds',
+    'bugzilla-desktop-bugs',
     'bugzilla-qe-verify',
     'confluence-updates',
     'confluence-new-page',
