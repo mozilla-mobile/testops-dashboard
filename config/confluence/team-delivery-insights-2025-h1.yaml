@@ -1,0 +1,48 @@
+wiki_page:
+  page_id: 1650786307
+  page_title: "Team Delivery Insights 2025 H1"
+  sections:
+    - name: "Testing"
+      reports:
+        - report-title: "Workload per Platform 2025"
+          report-description: "Number of Feature Requests per platform in 2025"
+          attachment-filename: "workload-per-platform-2025.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2707"
+
+        - report-title: "Feature Requests per half year cycle"
+          report-description: "Number of Feature Requests each half of the year and per Platform"
+          attachment-filename: "feature-requests-half-year.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2730"
+      
+       - report-title: "Fenix Releases Tested"
+          report-description: "Number of releases tested for Fenix"
+          attachment-filename: "fenix-verified-builds-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2718"
+          
+        - report-title: "Firefox-iOS Releases Tested"
+          report-description: "Number of releases tested for Firefox-iOS"
+          attachment-filename: "firefox-ios-verified-builds-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2719"
+
+        - report-title: "Focus-android Releases Tested"
+          report-description: "Number of releases tested for Focus-android"
+          attachment-filename: "focus-android-verified-builds-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2731"
+
+        - report-title: "Focus-iOS Releases Tested"
+          report-description: "Number of releases tested for Focus-iOS"
+          attachment-filename: "focus-ios-verified-builds-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2734"
+
+  sections:
+      - name: "Mobile Incidents"
+        reports:
+        - report-title: "Mobile Incidents by Platform"
+          report-description: "Number of incidents by platform"
+          attachment-filename: "mobile-incidents-2025-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2811"
+
+        - report-title: "Mobile Incidents Severity - 2025"
+          report-description: "Incidents by Severity"
+          attachment-filename: "mobile-incidents-severity-2025.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2867"
