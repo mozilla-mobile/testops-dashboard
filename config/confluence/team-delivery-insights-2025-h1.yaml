@@ -14,7 +14,7 @@ wiki_page:
           attachment-filename: "feature-requests-half-year.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2730"
       
-       - report-title: "Fenix Releases Tested"
+        - report-title: "Fenix Releases Tested"
           report-description: "Number of releases tested for Fenix"
           attachment-filename: "fenix-verified-builds-pie-chart.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2718"
@@ -33,7 +33,6 @@ wiki_page:
           report-description: "Number of releases tested for Focus-iOS"
           attachment-filename: "focus-ios-verified-builds-pie-chart.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2734"
-
     - name: "Mobile Incidents"
       reports:
         - report-title: "Mobile Incidents by Platform"
