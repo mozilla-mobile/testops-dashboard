@@ -76,18 +76,18 @@ class BugzillaClient(Bugz):
 
     def bugzilla_query_qa_found_in(self):
         CSV_PATH = "bugzilla_qa_found_in.csv"
-
+        '''
         # Load existing data (if any)
-        ''' Debugging with spreadsheet
+        # Debugging with spreadsheet
         if os.path.exists(CSV_PATH):
             df_existing = pd.read_csv(CSV_PATH, parse_dates=["created_at"])
             last_created_at = df_existing["created_at"].max()
         else:
             df_existing = pd.DataFrame()
             # fallback start date
-            last_created_at = datetime.datetime(2025, 6, 19)
+            last_created_at = datetime.datetime(2025, 5, 19)
+        
         '''
-
         # Format for Bugzilla API
         #creation_time = last_created_at.strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -96,13 +96,14 @@ class BugzillaClient(Bugz):
         creation_time = next_day.strftime("%Y-%m-%dT%H:%M:%SZ")
         print(f"Last fetched bug created_at: {last_creation_time}")
         print(creation_time)
+        #creation_time = last_creation_time
         
         # Query new bugs
         query = {
             "cf_qa_whiteboard_type": "substring",
             "cf_qa_whiteboard": "qa-found-in-",
             "creation_time": creation_time,
-            "include_fields": ["id", "summary", "product", "cf_qa_whiteboard", "severity", "priority", "status", "resolution", "creation_time", "last_change_time"]
+            "include_fields": ["id", "summary", "product", "cf_qa_whiteboard", "severity", "priority", "status", "resolution", "creation_time", "last_change_time", "whiteboard"]
         }
 
         # Use existing helper
@@ -121,7 +122,8 @@ class BugzillaClient(Bugz):
                 "status": bug.status,
                 "resolution": bug.resolution,
                 "created_at": pd.to_datetime(str(bug.creation_time)),
-                "last_change_time": pd.to_datetime(str(bug.last_change_time))
+                "last_change_time": pd.to_datetime(str(bug.last_change_time)),
+                "whiteboard": bug.whiteboard
             })
         # Convert to DataFrame
         df_new = pd.DataFrame(rows)
@@ -134,10 +136,11 @@ class BugzillaClient(Bugz):
             df_all = df_new
         '''
         # Save back to CSV
-        #df_all.to_csv(CSV_PATH, index=False)
+        #df_new.to_csv(CSV_PATH, index=False)
 
         print(f"Saved {len(df_new)} new bugs. Total now: {len(df_new)}")
         print(df_new)
+        #sys.exit()
         self.db.report_bugzilla_softvision_bugs(df_new)
         return df_new
 
@@ -250,7 +253,8 @@ class DatabaseBugzilla(Database):
                             bugzilla_bug_status=row['status'],
                             bugzilla_bug_resolution= None if pd.isna(row['resolution']) else row['resolution'],
                             bugzilla_bug_created_at=row['created_at'],
-                            bugzilla_bug_last_change_time=row['last_change_time']
+                            bugzilla_bug_last_change_time=row['last_change_time'],
+                            bugzilla_bug_whiteboard = row['whiteboard']
                     )
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")
