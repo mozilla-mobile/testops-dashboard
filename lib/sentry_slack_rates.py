@@ -11,9 +11,18 @@ def insert_rates(json_data, csv_file):
         rows = csv.DictReader(file)
         for row in rows:
             print(row)
-            crash_free_rate_user = row['crash_free_rate_user']
-            crash_free_rate_session = row['crash_free_rate_session']
-            adoption_rate_user = row['adoption_rate_user']
+            crash_free_rate_user = (
+                "NaN" if float(row['crash_free_rate_user']) < 0
+                else row['crash_free_rate_user']
+            )
+            crash_free_rate_session = (
+                "NaN" if float(row['crash_free_rate_session']) < 0
+                else row['crash_free_rate_session']
+            )
+            adoption_rate_user = (
+                "NaN" if float(row['adoption_rate_user']) < 0
+                else row['adoption_rate_user']
+            )
             release_version = row['release_version']
             json_data["blocks"].append(
                 {

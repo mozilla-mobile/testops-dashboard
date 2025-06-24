@@ -303,20 +303,21 @@ class DatabaseSentry:
                 .get('adoption', 0) or 0.0
             )
 
-        if (
-            crash_free_rate_session is not None
-            and crash_free_rate_user is not None
-            and adoption_rate_user is not None
-        ):
+        # Let me use -1 to indicate null values
+        percentage_crash_free_rate_session = -1
+        if crash_free_rate_session:
             percentage_crash_free_rate_session = round(
                 crash_free_rate_session * 100, 2
             )
+        percentage_crash_free_rate_user = -1
+        if crash_free_rate_user:
             percentage_crash_free_rate_user = round(
                 crash_free_rate_user * 100, 2
             )
+        percentage_adoption_rate_user = -1
+        if adoption_rate_user:
             percentage_adoption_rate_user = round(adoption_rate_user, 2)
-        else:
-            return None
+
         now = DatetimeUtils.start_date('0')
         row = [
             percentage_crash_free_rate_session,
