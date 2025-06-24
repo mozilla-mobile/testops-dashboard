@@ -8,7 +8,6 @@ import requests
 from urllib.error import HTTPError
 
 
-
 class APIClient:
     def __init__(self, base_url):
         self.api_token = ''
@@ -35,7 +34,6 @@ class APIClient:
                 response.raise_for_status()
             except HTTPError:
                 return None
-                
 
             data = response.json()
             if isinstance(data, list):
