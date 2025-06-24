@@ -5,6 +5,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import requests
+from urllib.error import HTTPError
+
 
 
 class APIClient:
@@ -29,7 +31,11 @@ class APIClient:
         while url:
             print(f"Fetching: {url}")
             response = requests.get(url, headers=headers)
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except HTTPError:
+                return None
+                
 
             data = response.json()
             if isinstance(data, list):
