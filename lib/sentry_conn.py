@@ -5,7 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import requests
-from urllib.error import HTTPError
+from requests.exceptions import HTTPError
 
 
 class APIClient:
