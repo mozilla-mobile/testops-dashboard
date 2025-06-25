@@ -185,7 +185,7 @@ class TestRailClient(TestRail):
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
-        projects_id, testrail_project_id = self.db.testrail_identity_ids(project) # noqa
+        projects_id, testrail_project_id, functional_test_suite_id = self.db.testrail_identity_ids(project) # noqa
 
         # Sample Testrail data from one run:
         # [{'run_id': 44113}, {'project_id': 59}, {'suite_id': 3192},
