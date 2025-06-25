@@ -20,7 +20,7 @@ from database import (
     ReportTestCaseCoverage,
     ReportTestRailMilestones,
     ReportTestRailUsers,
-    # ReportTestRunCounts
+    ReportTestRunCounts
 )
 
 from utils.datetime_utils import DatetimeUtils as dt
@@ -87,6 +87,17 @@ class TestRail:
             before = dt.convert_datetime_to_epoch(end_date)
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get('get_runs/{0}{1}'.format(testrail_project_id, date_range)) # noqa
+
+    def get_plans(self, testrail_project_id, start_date='', end_date=''):
+        """Return a run object by project id"""
+        date_range = ''
+        if start_date:
+            after = dt.convert_datetime_to_epoch(start_date)
+            date_range += '&created_after={0}'.format(after)
+        if end_date:
+            before = dt.convert_datetime_to_epoch(end_date)
+            date_range += '&created_before={0}'.format(before)
+        return self.client.send_get(f"/get_plans/{testrail_project_id}{date_range}")
 
     def test_run(self, run_id):
         return self.client.send_get('get_run/{0}'.format(run_id))
@@ -174,7 +185,7 @@ class TestRailClient(TestRail):
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
-        projects_id, testrail_project_id, functional_test_suite_id = self.db.testrail_identity_ids(project) # noqa 
+        projects_id, testrail_project_id = self.db.testrail_identity_ids(project) # noqa
 
         # Sample Testrail data from one run:
         # [{'run_id': 44113}, {'project_id': 59}, {'suite_id': 3192},
@@ -318,6 +329,25 @@ class TestRailClient(TestRail):
         df = pd.DataFrame(user_data)
         self.db.report_testrail_users_insert(df)
 
+    def testrail_runs(self, project, num_days):
+        start_date = dt.start_date(num_days)
+
+        # Get reference IDs from DB
+        project_ids_list = self.testrail_project_ids(project) # noqa
+
+        for project_ids in project_ids_list:
+            projects_id = project_ids[0]
+
+            testrail_project_id = project_ids[1]
+            result = self.get_plans(testrail_project_id, start_date) # noqa
+            full_plans = {
+                plan['name']: pl.extract_plan_info(plan)
+                for plan in result['plans']
+                if "Automated testing" in plan['name']
+            }
+
+            # Insert data in the formated plan info array into DB
+            self.db.report_test_runs_insert(projects_id, full_plans)
 
 class DatabaseTestRail(Database):
 
@@ -469,7 +499,7 @@ class DatabaseTestRail(Database):
             if t['testrail_completed_on']:
                 created_on = dt.convert_epoch_to_datetime(t['testrail_created_on']) # noqa
                 completed_on = dt.convert_epoch_to_datetime(t['testrail_completed_on']) # noqa
-                '''
+
                 report = ReportTestRunCounts(
                     projects_id=project_id,
                     testrail_run_id=t['testrail_run_id'],
@@ -477,8 +507,9 @@ class DatabaseTestRail(Database):
                     test_case_retest_count=t['retest_count'],
                     test_case_failed_count=t['failed_count'],
                     test_case_blocked_count=t['blocked_count'],
+                    test_case_total_count=t['total_count'],
                     testrail_created_on=created_on,
                     testrail_completed_on=completed_on)
-                '''
-                # self.session.add(report)
+
+                self.session.add(report)
                 self.session.commit()

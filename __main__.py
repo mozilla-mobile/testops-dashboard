@@ -118,6 +118,13 @@ def main():
         else:
             num_days = ''
         h.testrail_run_counts_update(args.project, num_days)
+    if args.report_type == 'testrail-test-runs':
+        h = TestRailClient()
+        if args.num_days:
+            num_days = args.num_days
+        else:
+            num_days = ''
+        h.testrail_runs(num_days)
     if args.report_type == 'testrail-milestones':
         h = TestRailClient()
         h.testrail_milestones(arg_list)
