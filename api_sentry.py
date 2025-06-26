@@ -89,12 +89,13 @@ class Sentry:
         # Long version name could be beta
         if health_info_release is None:
             return self.client.http_get(
-            (
-                "organizations/{0}/releases/org.mozilla.ios.FirefoxBeta%40{1}/"
-                "?health=1&summaryStatsPeriod=7d&project={2}"
-                "&environment=Production&adoptionStages=1"
-            ).format(self.organization_slug, release, self.project_id)
-        )
+                (
+                    "organizations/{0}/releases/"
+                    "org.mozilla.ios.FirefoxBeta%40{1}/"
+                    "?health=1&summaryStatsPeriod=7d&project={2}"
+                    "&environment=Production&adoptionStages=1"
+                ).format(self.organization_slug, release, self.project_id)
+            )
         else:
             return health_info_release
 
