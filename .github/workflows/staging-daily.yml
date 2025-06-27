@@ -67,6 +67,10 @@ jobs:
       - name: Jira query
         run: python ./__main__.py --platform desktop --project ALL --report-type testrail-test-case-coverage
 
+      - name: Bugzilla Desktop Bugs
+        run: python ./__main__.py --report-type bugzilla-desktop-bugs
+
+
       #- name: Update DB - test runs 
       #  run: python ./__main__.py --report-type testrail-test-run-counts --project fenix --start-date 2021-08-15 --end-date 2021-10-01 
 

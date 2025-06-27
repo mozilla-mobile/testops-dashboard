@@ -137,6 +137,9 @@ def main():
     if args.report_type == 'bugzilla-qe-verify':
         h = BugzillaClient()
         h.bugzilla_qe_verify()
+    if args.report_type == 'bugzilla-desktop-bugs':
+        h = BugzillaClient()
+        h.bugzilla_query_desktop_bugs()
     if args.report_type == 'jira-softvision-worklogs':
         h = JiraClient()
         h.jira_softvision_worklogs()
