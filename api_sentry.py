@@ -79,13 +79,25 @@ class Sentry:
 
     # API: Adoption Rate (Users)
     def sentry_adoption_rate(self, release):
-        return self.client.http_get(
+        health_info_release = self.client.http_get(
             (
                 "organizations/{0}/releases/org.mozilla.ios.Firefox%40{1}/"
                 "?health=1&summaryStatsPeriod=7d&project={2}"
                 "&environment=Production&adoptionStages=1"
             ).format(self.organization_slug, release, self.project_id)
         )
+        # Long version name could be beta
+        if health_info_release is None:
+            return self.client.http_get(
+                (
+                    "organizations/{0}/releases/"
+                    "org.mozilla.ios.FirefoxBeta%40{1}/"
+                    "?health=1&summaryStatsPeriod=7d&project={2}"
+                    "&environment=Production&adoptionStages=1"
+                ).format(self.organization_slug, release, self.project_id)
+            )
+        else:
+            return health_info_release
 
 
 class SentryClient(Sentry):
