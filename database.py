@@ -33,8 +33,8 @@ class ReportTestCaseCoverage(Base):
     __table__ = Table('report_test_case_coverage', Base.metadata, autoload=True) # noqa
 
 
-# class ReportTestRunCounts(Base):
-#    __table__ = Table('report_test_run_counts', Base.metadata, autoload=True)
+class ReportTestRunCounts(Base):
+   __table__ = Table('report_test_run_counts', Base.metadata, autoload=True)
 
 
 class ReportGithubIssues(Base):
