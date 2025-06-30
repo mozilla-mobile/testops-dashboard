@@ -7,7 +7,6 @@ import pandas as pd
 
 from constants import PRODUCTS, FIELDS
 from lib.bugzilla_conn import BugzillaAPIClient
-from sqlalchemy import func
 from utils.datetime_utils import DatetimeUtils
 
 from database import (
@@ -71,13 +70,17 @@ class BugzillaClient(Bugz):
         return all(entry.get(key) == value for key, value in criteria.items())
 
     def bugzilla_query_desktop_bugs(self):
-        # Get latest entry in database
-        last_creation_time = self.db.session.query(func.max(ReportBugzillaSoftvisionBugs.bugzilla_bug_created_at)).scalar() # noqa
-        next_day = (last_creation_time + DatetimeUtils.delta_days(1)).replace(hour=0, minute=0, second=0, microsecond=0) # noqa
+        # Get latest entry in database to update bugs
+        # last_creation_time = self.db.session.query(func.max(ReportBugzillaSoftvisionBugs.bugzilla_bug_created_at)).scalar() # noqa
+        # next_day = (last_creation_time + DatetimeUtils.delta_days(1)).replace(hour=0, minute=0, second=0, microsecond=0) # noqa
 
-        creation_time = next_day.strftime("%Y-%m-%dT%H:%M:%SZ")
-        print(f"Last fetched bug created_at: {last_creation_time}")
-        print(f"Fetch new bugs up until : {creation_time}")
+        # creation_time = next_day.strftime("%Y-%m-%dT%H:%M:%SZ")
+        # print(f"Last fetched bug created_at: {last_creation_time}")
+        # print(f"Fetch new bugs up until : {creation_time}")
+
+        # Temp solution
+        # Get all bugs from
+        creation_time = DatetimeUtils.create_date(2025, 4, 1).strftime("%Y-%m-%dT%H:%M:%SZ") # noqa
 
         # Query new bugs
         query = {
@@ -116,6 +119,10 @@ class BugzillaClient(Bugz):
         # Convert to DataFrame
         df_new = pd.DataFrame(rows)
         print(f"Saved {len(df_new)} new bugs. Total now: {len(df_new)}")
+
+        # Remove data
+        self.db.clean_table(ReportBugzillaSoftvisionBugs)
+        # Insert data
         self.db.report_bugzilla_desktop_bugs(df_new)
         return df_new
 
@@ -212,7 +219,10 @@ class DatabaseBugzilla(Database):
         """ Wipe out all bugs.
         NOTE: we'll print daily bugs data from Bugzilla every day."""
         print("Delete entries from db first")
-        self.session.query(ReportBugzillaQENeeded).delete()
+        self.clean_table(ReportBugzillaQENeeded)
+
+    def clean_table(self, table):
+        self.session.query(table).delete()
         self.session.commit()
 
     def report_bugzilla_desktop_bugs(self, payload):
