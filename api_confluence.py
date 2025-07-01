@@ -27,7 +27,8 @@ confluence = Confluence(
 )
 
 PATH_IMAGES = "config/confluence/images"
-PATH_YAML_FILES = "config/confluence"
+PATH_YAML_FILES = "config/confluence/yaml"
+PATH_XML_FILES = "config/confluence/xml"
 
 
 def url_page(page_id):
