@@ -46,3 +46,9 @@ class DatetimeUtils:
         if ts:
             return datetime.fromisoformat(ts.replace("Z", "+00:00"))
         return None
+
+    def delta_days(n):
+        return timedelta(days=n)
+
+    def create_date(year, month, day):
+        return datetime(year, month, day)

@@ -102,7 +102,7 @@ jobs:
         with:
           payload-file-path: "./sentry-slack.json"
           payload-templated: true 
-          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook:  ${{ secrets.SLACK_WEBHOOK_FIREFOX_IOS_DEV }}
           webhook-type: incoming-webhook
         continue-on-error: true
   

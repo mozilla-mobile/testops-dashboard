@@ -79,13 +79,25 @@ class Sentry:
 
     # API: Adoption Rate (Users)
     def sentry_adoption_rate(self, release):
-        return self.client.http_get(
+        health_info_release = self.client.http_get(
             (
                 "organizations/{0}/releases/org.mozilla.ios.Firefox%40{1}/"
                 "?health=1&summaryStatsPeriod=7d&project={2}"
                 "&environment=Production&adoptionStages=1"
             ).format(self.organization_slug, release, self.project_id)
         )
+        # Long version name could be beta
+        if health_info_release is None:
+            return self.client.http_get(
+                (
+                    "organizations/{0}/releases/"
+                    "org.mozilla.ios.FirefoxBeta%40{1}/"
+                    "?health=1&summaryStatsPeriod=7d&project={2}"
+                    "&environment=Production&adoptionStages=1"
+                ).format(self.organization_slug, release, self.project_id)
+            )
+        else:
+            return health_info_release
 
 
 class SentryClient(Sentry):
@@ -280,36 +292,44 @@ class DatabaseSentry:
         response_adoption_rate,
         release_version
     ):
-        crash_free_rate_session = (
-            response_crash_free_rate_session['groups'][0]['totals'].get(
-                'crash_free_rate(session)', None
+        crash_free_rate_session = None
+        if response_crash_free_rate_session:
+            crash_free_rate_session = (
+                response_crash_free_rate_session['groups'][0]['totals'].get(
+                    'crash_free_rate(session)', None
+                )
             )
-        )
-        crash_free_rate_user = (
-            response_crash_free_rate_user['groups'][0]['totals'].get(
-                'crash_free_rate(user)', None
+        crash_free_rate_user = None
+        if response_crash_free_rate_user:
+            crash_free_rate_user = (
+                response_crash_free_rate_user['groups'][0]['totals'].get(
+                    'crash_free_rate(user)', None
+                )
             )
-        )
         # Sometimes the REST API calls return null values in the field
         # Return None if either rate is null
-        adoption_rate_user = (
-            response_adoption_rate['projects'][0]['healthData']
-            .get('adoption', 0) or 0.0
-        )
-        if (
-            crash_free_rate_session is not None
-            and crash_free_rate_user is not None
-            and adoption_rate_user is not None
-        ):
+        adoption_rate_user = None
+        if response_adoption_rate:
+            adoption_rate_user = (
+                response_adoption_rate['projects'][0]['healthData']
+                .get('adoption', 0) or 0.0
+            )
+
+        # Let me use -1 to indicate null values
+        percentage_crash_free_rate_session = -1
+        if crash_free_rate_session:
             percentage_crash_free_rate_session = round(
                 crash_free_rate_session * 100, 2
             )
+        percentage_crash_free_rate_user = -1
+        if crash_free_rate_user:
             percentage_crash_free_rate_user = round(
                 crash_free_rate_user * 100, 2
             )
+        percentage_adoption_rate_user = -1
+        if adoption_rate_user:
             percentage_adoption_rate_user = round(adoption_rate_user, 2)
-        else:
-            return None
+
         now = DatetimeUtils.start_date('0')
         row = [
             percentage_crash_free_rate_session,
