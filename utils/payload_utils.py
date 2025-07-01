@@ -42,4 +42,5 @@ class PayloadUtils:
         plan_info = {k: plan[k] for k in count_keys}
         plan_info['total_count'] = sum(plan_info.values())
         plan_info |= {k: plan[k] for k in other_keys}
+        plan_info['plan_id'] = plan_info.pop('id')
         return plan_info

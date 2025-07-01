@@ -34,10 +34,11 @@ USE `staging`;
 
 
 
-CREATE TABLE `report_test_run_counts` (
+CREATE TABLE `test_plans` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `testrail_run_id` int NOT NULL,
+  `testrail_plan_id` int NOT NULL,
   `projects_id` int NOT NULL,
+  `name` varchar(75) NOT NULL,
   `test_case_passed_count` int(11) NOT NULL DEFAULT '0',
   `test_case_retest_count` int(11) NOT NULL DEFAULT '0',
   `test_case_failed_count` int(11) NOT NULL DEFAULT '0',
@@ -47,5 +48,24 @@ CREATE TABLE `report_test_run_counts` (
   `testrail_completed_on` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `test_run_projects` FOREIGN KEY (`projects_id`) REFERENCES `projects` (`id`)
-)
+);
+
+CREATE TABLE `test_runs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `testrail_run_id` int NOT NULL,
+  `plan_id` int NOT NULL,
+  `suite_id` int NOT NULL,
+  `name` varchar(75) NOT NULL,
+  `config` varchar(55) NOT NULL,
+  `test_case_passed_count` int(11) NOT NULL DEFAULT '0',
+  `test_case_retest_count` int(11) NOT NULL DEFAULT '0',
+  `test_case_failed_count` int(11) NOT NULL DEFAULT '0',
+  `test_case_blocked_count` int(11) NOT NULL DEFAULT '0',
+  `test_case_total_count` int(11) NOT NULL DEFAULT '0',
+  `testrail_created_on` date DEFAULT NULL,
+  `testrail_completed_on` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `test_run_plans` FOREIGN KEY (`plan_id`) REFERENCES `test_plans` (`id`)
+);
+
 -- Dump completed on 2025-06-27 15:33:59
