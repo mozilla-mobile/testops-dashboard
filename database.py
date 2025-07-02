@@ -24,6 +24,10 @@ class TestAutomationCoverage(Base):
 class TestSuites(Base):
     __table__ = Table('test_suites', Base.metadata, autoload=True)
 
+class TestPlans(Base):
+    __table__ = Table('test_plans', Base.metadata, autoload=True)
+
+
 
 class TestSubSuites(Base):
     __table__ = Table('test_sub_suites', Base.metadata, autoload=True)
@@ -35,6 +39,10 @@ class ReportTestCaseCoverage(Base):
 
 # class ReportTestRunCounts(Base):
 #    __table__ = Table('report_test_run_counts', Base.metadata, autoload=True)
+
+class TestRuns(Base):
+   __table__ = Table('test_runs', Base.metadata, autoload=True)
+
 
 
 class ReportGithubIssues(Base):
