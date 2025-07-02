@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime
 from sqlalchemy import func
 
 from constants import PRODUCTS, FIELDS
@@ -76,7 +76,6 @@ class BugzillaClient(Bugz):
         # Get latest entry in database to update bugs
         last_creation_time = self.db.session.query(func.max(ReportBugzillaSoftvisionBugs.bugzilla_bug_created_at)).scalar() # noqa
         next_day = (last_creation_time + DatetimeUtils.delta_days(1)).replace(hour=0, minute=0, second=0, microsecond=0) # noqa
-        #creation_time = DatetimeUtils.create_date(2025, 4, 1).strftime("%Y-%m-%dT%H:%M:%SZ") # noqa
         creation_time = next_day.strftime("%Y-%m-%dT%H:%M:%SZ")
         print(f"Last fetched bug created_at: {last_creation_time}")
         print(f"Fetch new bugs up until : {creation_time}")
@@ -129,7 +128,7 @@ class BugzillaClient(Bugz):
         # Query bugzilla with these fields where updated is > fecha query
 
         # Calculate start of yesterday in UTC
-        yesterday = datetime.utcnow().date() - timedelta(days=1)
+        yesterday = datetime.utcnow().date() - DatetimeUtils.delta_days(1)
         last_change_time = f"{yesterday}T00:00:00Z"
         print(f"Update bugs if any after yesterday {last_change_time}")
 

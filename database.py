@@ -85,10 +85,6 @@ class ReportBugzillaSoftvisionBugs(Base):
     __table__ = Table('report_bugzilla_softvision_bugs', Base.metadata, autoload=True) # noqa
 
 
-class ReportBugzillaSoftvisionBugsSync(Base):
-    __table__ = Table('report_bugzilla_softvision_bugs_sync', Base.metadata, autoload=True) # noqa
-
-
 class Database:
     def __init__(self):
         self.session = Session()
