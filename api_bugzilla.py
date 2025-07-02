@@ -145,6 +145,9 @@ class BugzillaClient(Bugz):
 
         rows = []
         for bug in bugs:
+            resolved_raw = getattr(bug, "cf_last_resolved", None)
+            resolved_at = pd.to_datetime(str(resolved_raw)) if resolved_raw else None # noqa
+
             rows.append({
                 "bug_id": bug.id,
                 "summary": bug.summary,
@@ -158,15 +161,14 @@ class BugzillaClient(Bugz):
                 "last_change_time": pd.to_datetime(str(bug.last_change_time)),
                 "whiteboard": bug.whiteboard,
                 "keyword": bug.keywords,
-                "resolved_at": getattr(bug, "cf_last_resolved", None)
+                "resolved_at": resolved_at
             })
 
         # Convert to DataFrame
         df_update = pd.DataFrame(rows)
-        print(df_update)
-        print(f"Saved {len(df_update)} new bugs. Total now: {len(df_update)}")
+        print(f"Updated {len(df_update)} bugs")
 
-        self.db.sync_bugzilla_desktop_bugs(df_update)
+        self.db.bugzilla_desktop_bugs_update_insert(df_update)
 
     def bugzilla_query(self):
         all_bugs = []
@@ -267,7 +269,7 @@ class DatabaseBugzilla(Database):
         self.session.query(table).delete()
         self.session.commit()
 
-    def sync_bugzilla_desktop_bugs(self, payload):
+    def bugzilla_desktop_bugs_update_insert(self, payload):
         for index, row in payload.iterrows():
             try:
                 kw = row.get('keyword', [])
@@ -297,26 +299,6 @@ class DatabaseBugzilla(Database):
 
                         existing.bugzilla_bug_keyword = bugzilla_bug_keyword,
                         existing.bugzilla_bug_resolved_at = row['resolved_at']
-                '''
-                else:
-                    # Insert new bug
-                    report = ReportBugzillaSoftvisionBugsSync(
-                        bugzilla_key=bug_id,
-                        bugzilla_summary=row['summary'],
-                        bugzilla_product=row['product'],
-                        bugzilla_qa_whiteboard=row['qa_whiteboard'],
-                        bugzilla_bug_severity=row['severity'],
-                        bugzilla_bug_priority=row['priority'],
-                        bugzilla_bug_status=row['status'],
-                        bugzilla_bug_resolution=None if pd.isna(row['resolution']) else row['resolution'], # noqa
-                        bugzilla_bug_created_at=row['created_at'],
-                        bugzilla_bug_last_change_time=row['last_change_time'],
-                        bugzilla_bug_whiteboard=None if pd.isna(row['whiteboard']) else row['whiteboard'], # noqa
-                        bugzilla_bug_keyword=bugzilla_bug_keyword,
-                        bugzilla_bug_resolved_at=row['resolved_at']
-                    )
-                    self.session.add(report)
-                '''
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")
 
