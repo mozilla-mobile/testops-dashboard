@@ -17,7 +17,6 @@ from database import (
     ReportBugzillaQEVerifyCount,
     ReportBugzillaQENeeded,
     ReportBugzillaSoftvisionBugs,
-    ReportBugzillaSoftvisionBugsSync,
 )
 
 
@@ -75,7 +74,7 @@ class BugzillaClient(Bugz):
 
     def bugzilla_query_desktop_bugs(self):
         # Get latest entry in database to update bugs
-        last_creation_time = self.db.session.query(func.max(ReportBugzillaSoftvisionBugsSync.bugzilla_bug_created_at)).scalar() # noqa
+        last_creation_time = self.db.session.query(func.max(ReportBugzillaSoftvisionBugs.bugzilla_bug_created_at)).scalar() # noqa
         next_day = (last_creation_time + DatetimeUtils.delta_days(1)).replace(hour=0, minute=0, second=0, microsecond=0) # noqa
         #creation_time = DatetimeUtils.create_date(2025, 4, 1).strftime("%Y-%m-%dT%H:%M:%SZ") # noqa
         creation_time = next_day.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -278,7 +277,7 @@ class DatabaseBugzilla(Database):
                 bug_id = row['bug_id']
 
                 # Check if the bug already exists
-                existing = self.session.query(ReportBugzillaSoftvisionBugsSync).filter_by( # noqa
+                existing = self.session.query(ReportBugzillaSoftvisionBugs).filter_by( # noqa
                     bugzilla_key=bug_id
                 ).one_or_none()
                 if existing:
@@ -298,7 +297,7 @@ class DatabaseBugzilla(Database):
                         existing.bugzilla_bug_whiteboard = None if pd.isna(row['whiteboard']) else row['whiteboard'] # noqa
 
                         existing.bugzilla_bug_keyword = bugzilla_bug_keyword,
-                        existing.bugzilla_bug_resolved_at = row['resolved_at']
+                        existing.bugzilla_bug_resolved_at = None if pd.isna(row['resolved_at']) else row['resolved_at'] # noqa
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")
 
@@ -310,7 +309,7 @@ class DatabaseBugzilla(Database):
                 kw = row.get('keyword', [])
                 bugzilla_bug_keyword = ", ".join(kw) if isinstance(kw, list) and kw else None # noqa
 
-                report = ReportBugzillaSoftvisionBugsSync(
+                report = ReportBugzillaSoftvisionBugs(
                             bugzilla_key=row['bug_id'],
                             bugzilla_summary=row['summary'],
                             bugzilla_product=row['product'],
