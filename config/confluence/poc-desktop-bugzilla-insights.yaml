@@ -5,14 +5,14 @@ wiki_page:
     - name: "All Bugs per Release"
       reports:
         - report-title: "Number of Bugs per Release"
-          report-description: "Count number of bugs found per release"
+          report-description: "Count number of bugs found per release QA Whiteboard qa-found-in-<b/cversion>"
           attachment-filename: "number-of-bugs-per-release.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2983"
     
     - name: "Release 140"
       reports:
         - report-title: "Regressions"
-          report-description: "Regressions found"
+          report-description: "Number of regressions found - Keywords: regression"
           attachment-filename: "140-regressions.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2975"
         - report-title: "S1/S2"
@@ -28,11 +28,11 @@ wiki_page:
           attachment-filename: "140-bugs-by-severity.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2979"
         - report-title: "Papercut bugs"
-          report-description: "Papercut bugs - keyword: "
+          report-description: "Papercut bugs - Whiteboard: [fidefe-quality-foundation?] "
           attachment-filename: "140-papercuts.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2977"
-        - report-title: "Average time-to-fix"
-          report-description: "Average time to fix a bug"
+        - report-title: "Average time to fix a bug"
+          report-description: "Average time to fix a bug (days)"
           attachment-filename: "140-average-time-to-fix-days.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2980"
 
