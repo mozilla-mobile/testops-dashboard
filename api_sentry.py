@@ -30,7 +30,7 @@ class Sentry:
             self.client.api_token = os.environ['SENTRY_API_TOKEN']
             self.organization_slug = \
                 os.environ['SENTRY_ORGANIZATION_SLUG']
-            self.project_id = os.environ['SENTRY_PROJECT_ID']
+            self.project_id = os.environ['SENTRY_FENIX_BETA_PROJECT_ID']
         except KeyError:
             print("ERROR: Missing testrail env var")
             sys.exit(1)
