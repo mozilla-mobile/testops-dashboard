@@ -124,7 +124,7 @@ def main():
     """
 
     params = {
-        'date_published': '2025-01-01',
+        'release_date': '2025-01-01',
         'version': 'v149',
         'testrail_report_url': 'https://mozilla.testrail.io/index.php?/runs/view/108599&group_by=cases:section_id&group_order=asc',
         'version_commit_hash': '12345',
