@@ -89,8 +89,8 @@ class ReportSentryRates(Base):
     __table__ = Table('report_sentry_rates', Base.metadata, autoload=True) # noqa
 
 
-class ReportBugzillaSoftvisionBugs(Base):
-    __table__ = Table('report_bugzilla_softvision_bugs', Base.metadata, autoload=True) # noqa
+# class ReportBugzillaSoftvisionBugs(Base):
+#     __table__ = Table('report_bugzilla_softvision_bugs', Base.metadata, autoload=True) # noqa
 
 
 class Database:
