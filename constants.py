@@ -36,6 +36,7 @@ REPORT_TYPES = [
     'bugzilla-qe-verify',
     'confluence-updates',
     'confluence-new-page',
+    'confluence-build-validation',
     'github-issue-regression',
     'jira-qa-needed',
     'jira-qa-requests',
