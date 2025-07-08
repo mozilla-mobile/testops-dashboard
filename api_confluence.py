@@ -242,7 +242,17 @@ def render_xml_template(template_path, params):
     return rendered_xml
 
 
-def page_report_build_validation():
+def page_report_build_validation(
+        projects_id,
+        testrail_milestone_id,
+        testrail_milestone_title,
+        signoff_date,
+        test_status,
+        test_summary,
+        ship_recommend,
+        ship_recommend_verbose,
+        contacts,
+    ):
     """
     iterates over confluence XML files and generates pages
     """
@@ -310,7 +320,19 @@ def main():
     pages_looker_graphs()
 
     # TODO: design approach for custom (XML-config) reports
-    # page_report_build_validation()
+    """
+    page_report_build_validation(
+        projects_id,
+        testrail_milestone_id,
+        testrail_milestone_title,
+        signoff_date,
+        test_status,
+        test_summary,
+        ship_recommend,
+        ship_recommend_verbose,
+        contacts,
+    )
+    """
 
 
 if __name__ == "__main__":
