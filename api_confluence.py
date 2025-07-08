@@ -36,7 +36,7 @@ PATH_XML_FILES = f"{PATH_CONFIG}/xml"
 
 
 # ------------------------------------------------------------------
-# URL strings 
+# URL string builders
 # ------------------------------------------------------------------
 
 def url_page(page_id):
@@ -51,8 +51,7 @@ def url_attachments(page_id):
 # ------------------------------------------------------------------
 
 def page_object(page_url):
-    """
-    give page url, returns page object as JSON
+    """give page url, returns page object as JSON
     """
 
     response = requests.get(page_url, auth=auth, headers=headers)
@@ -95,7 +94,7 @@ def page_payload(page_id, page_title, page_data, current_version, new_content):
     return update_payload
 
 # ------------------------------------------------------------------
-# attachment processing 
+# Attachment processing 
 # ------------------------------------------------------------------
 
 def image_attachments_delete(page_id):
@@ -173,6 +172,7 @@ def table_row_write(report_title, report_description,
         </row>
         """ # noqa
 
+
 # def page_html(image_name, page_id):
 def page_html(page_id, sections):
 
@@ -196,9 +196,10 @@ def page_html(page_id, sections):
         </table>"""
     return html_content
 
-def pages_yaml():
-    """
-    iterates over confluence YAML files and generates pages
+
+def pages_looker_graphs():
+    """iterates over confluence YAML config files and generates 
+    looker graph pages in bulk (all have same format)
     """
     for filepath in glob.glob(f"{PATH_YAML_FILES}/*.yaml"):  # Only YAML files
         with open(filepath, 'r', encoding='utf-8') as file:
@@ -241,7 +242,7 @@ def render_xml_template(template_path, params):
     return rendered_xml
 
 
-def pages_xml():
+def page_report_build_validation():
     """
     iterates over confluence XML files and generates pages
     """
@@ -268,7 +269,6 @@ def pages_xml():
     RELEASE: Build Validation sign-off - Firefox Beta 141.0b12
     RELEASE_TAG_URL: https://archive.mozilla.org/pub/fenix/releases/
     """
-
 
     params = {
         'release_date': '2025-01-01',
@@ -306,9 +306,11 @@ def pages_xml():
 
 
 def main():
-    # TODO: instead of invoking this directly from main, invoke it from __main__.py --report-type yaml
-    pages_yaml()
-    # TODO: need to design an approach for XML-type reports
+    # TODO: instead of invoking this directly from main, invoke it from __main__.py --report-type looker-graphs 
+    pages_looker_graphs()
+
+    # TODO: design approach for custom (XML-config) reports
+    # page_report_build_validation()
 
 
 if __name__ == "__main__":
