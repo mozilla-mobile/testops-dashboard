@@ -45,7 +45,15 @@ def url_page(page_id):
 
 
 def url_attachments(page_id):
-    return f"{URL_WIKI_REST_API}/content/{page_id}/child/attachment"
+    # return f"{URL_WIKI_REST_API}/content/{page_id}/child/attachment"
+    path = url_page(page_id)
+    return f"{path}/child/attachment"
+
+
+def url_page_content_storage(page_id):
+    path = url_page(page_id)
+    return f"{path}?expand=body.storage"
+
 
 
 # ------------------------------------------------------------------
@@ -79,7 +87,6 @@ def page_payload_write(page_id, update_payload):
         print(update_response.text)
 
 
-#def page_payload(page_id, page_data, current_version, new_content):
 def page_payload(page_id, page_title, page_data, current_version, new_content):
     # Update the page with new content
     update_payload = {
@@ -167,6 +174,7 @@ def image_attachments_upload(page_id):
 # Page rendering: Looker Reports (YAML)
 # ------------------------------------------------------------------
 
+
 def table_row_write(report_title, report_description,
                     attachment_filename, looker_graph_url):
     return f"""
@@ -203,7 +211,7 @@ def page_html(page_id, sections):
 
 
 def pages_looker_graphs():
-    """iterates over confluence YAML config files and generates 
+    """iterates over confluence YAML config files and generates
     looker graph pages in bulk (all have same format)
     """
     for filepath in glob.glob(f"{PATH_YAML_FILES}/*.yaml"):  # Only YAML files
@@ -231,13 +239,16 @@ def pages_looker_graphs():
                                    current_version, new_content)
             page_payload_write(page_id, payload)
 
+
 # ------------------------------------------------------------------
-# Page rendering: Custom pages (XML) 
+# Page rendering: Custom pages (XML)
 # ------------------------------------------------------------------
 
+
 def render_xml_template(template_path, params):
-    """ 1. open Mustache-style (jinja compatible) XML template 
+    """ 1. open Mustache-style (jinja compatible) XML template
         2. parameterize template with params """
+
     with open(template_path, 'r') as file:
         template_content = file.read()
     
@@ -263,10 +274,11 @@ def page_content_retrieve_xml(page_id):
         f.write(pretty_xml)
 
 
-def page_content_insert_xml(page_id):
+def page_content_insert_xml(page_id, params):
     """Utility function only
 
-    Confluence API returns page content in XML format.
+    NOTE: Confluence API returns page content in XML format.
+
     Use this function as a stand-alone utility / example for pulling page
     content for rewriting pages or creating new XML template configs.
     """
@@ -286,7 +298,7 @@ def page_content_insert_xml(page_id):
     page_data = page_object(page_url)
     current_version = page_data["version"]["number"]
 
-    payload = page_payload(page_id, page_title, page_data, current_version, output_xml)
+    payload = page_payload(page_id, page_title, page_data, current_version, output_xml) # noqa
     page_payload_write(page_id, payload)
 
 
@@ -345,12 +357,13 @@ def page_report_build_validation(
     current_version = page_data["version"]["number"]
 
     # new_content = page_html(page_id, page_sections)
-    payload = page_payload(page_id, page_title, page_data, current_version, output_xml)
+    payload = page_payload(page_id, page_title, page_data, current_version, output_xml) # noqa
     page_payload_write(page_id, payload)
 
 
 def main():
-    # TODO: instead of invoking this directly from main, invoke it from __main__.py --report-type looker-graphs 
+    # TODO: phase 2 PR - instead of invoking this directly from main,
+    # invoke it from __main__.py --report-type looker-graphs 
     pages_looker_graphs()
 
     # TODO: design approach for custom (XML-config) reports
@@ -370,7 +383,7 @@ def main():
     release_tag_url = "https://archive.mozilla.org/pub/fenix/releases/"
     qa_contacts = '''
      <a href='mailto:csuciu@mozilla.com'>Catalin Suc1u</a>,
-     <a href='mailto:amoldovan@mozilla.com'>Alina M0ld0van</a>,   
+     <a href='mailto:amoldovan@mozilla.com'>Alina M0ld0van</a>,
      <a href='mailto:abodea@mozilla.com'>Andr3i Bodea</a>
      '''
 
