@@ -1,5 +1,5 @@
-name: Testops Confluence Update
-
+name: TEMP XML update validator 
+ 
 on:
   push:
     branches:
