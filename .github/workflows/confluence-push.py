@@ -20,16 +20,16 @@ jobs:
       - name: Check out source repository
         uses: actions/checkout@v2
 
-      - name: Setup python 
+      - name: Setup python
         uses: actions/setup-python@v1
 
-      - name: Install requirements 
+      - name: Install requirements
         run: pip install -r requirements.txt
 
-      - name: Explicitly Install Jinja2 
-        run: pip install Jinja2 
+      - name: Explicitly Install Jinja2
+        run: pip install Jinja2
 
-      - name: Set env vars 
+      - name: Set env vars
         run: |
             echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
             echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
