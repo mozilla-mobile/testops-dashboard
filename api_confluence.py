@@ -55,7 +55,6 @@ def url_page_content_storage(page_id):
     return f"{path}?expand=body.storage"
 
 
-
 # ------------------------------------------------------------------
 # Page handlers
 # ------------------------------------------------------------------
@@ -251,10 +250,10 @@ def render_xml_template(template_path, params):
 
     with open(template_path, 'r') as file:
         template_content = file.read()
-    
+
     template = Template(template_content)
     rendered_xml = template.render(**params)
-    
+   
     return rendered_xml
 
 
@@ -284,7 +283,7 @@ def page_content_insert_xml(page_id, params):
     """
 
     TEMPLATE_PATH = f"{PATH_XML_FILES}/build-validation.xml"
-    
+
     # XML template
     # with open(TEMPLATE_PATH, "r", encoding="utf-8") as file:
     #     xml_content = file.read()
@@ -305,18 +304,19 @@ def page_content_insert_xml(page_id, params):
 # REPORT: Build Validation
 
 def page_report_build_validation(
-        projects_id,
-        testrail_milestone_id,
-        testrail_milestone_title,
-        testrail_report_url,
-        build_version,
-        signoff_date,
-        test_status,
-        test_summary,
-        ship_recommend,
-        ship_recommend_verbose,
-        contacts,
-    ):
+    page_id,
+    projects_id,
+    testrail_milestone_id,
+    testrail_milestone_title,
+    testrail_report_url,
+    build_version,
+    signoff_date,
+    test_status,
+    test_summary,
+    ship_recommend,
+    ship_recommend_verbose,
+    contacts,
+):
     """
     Applies params to jinja/mustache-style XML template and inserts into page
     """
