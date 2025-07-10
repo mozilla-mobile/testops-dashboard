@@ -4,9 +4,9 @@ This module updates Confluence pages based on structured configuration files in 
 
 ## Supported Config Formats
 
-### YAML Configs
+### Looker Graph Page (YAML) Configs
 
-YAML is used for simple, uniform, and scalable bulk page generation.
+YAML is used for simple, uniform, and scalable page generation where Looker graphs are mirrored to Confluence tables in bulk.
 
 - Each YAML file maps to one Confluence page with a standard table layout.
 - Designed for high-volume updates with minimal effort.
@@ -14,7 +14,7 @@ YAML is used for simple, uniform, and scalable bulk page generation.
 - The YAML parser processes all files in this directory and writes one Confluence page per file.
 
 
-### XML Configs
+### Custom Page (XML) Configs
 
 XML is used for more complex, page-specific templates that require flexible layout control.
 
