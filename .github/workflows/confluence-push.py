@@ -1,0 +1,65 @@
+name: Testops Confluence Update
+
+on:
+  push:
+    branches
+    - rpapa-conf-buildvalid 
+  workflow_dispatch:
+    inputs:
+      branchName:
+        description: 'rpapa-build-valid branch'
+        required: true
+        default: 'rpapa-conf-buildvalid'
+
+jobs:
+  deploy:
+    name: TestOps Confluence Update (DAILY) 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v2
+
+      - name: Setup python 
+        uses: actions/setup-python@v1
+
+      - name: Install requirements 
+        run: pip install -r requirements.txt
+
+      - name: Explicitly Install Jinja2 
+        run: pip install Jinja2 
+
+      - name: Set env vars 
+        run: |
+            echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+            echo "LOOKER_HOST=${{ secrets.LOOKER_HOST }}" >> $GITHUB_ENV
+            echo "LOOKER_CLIENT_ID=${{ secrets.LOOKER_CLIENT_ID }}" >> $GITHUB_ENV
+            echo "LOOKER_SECRET=${{ secrets.LOOKER_SECRET }}" >> $GITHUB_ENV
+
+      - name: Generate Looker Thumbnails
+        run: |
+            python3 ./api_looker.py
+            ls
+            ls config/confluence/images/
+
+      - name: Update Confluence Page
+        run: python3 ./api_confluence.py
+
+      - name: Set job log URL
+        if: always()
+        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+      - name: Send custom JSON data to Slack workflow
+        if: always()
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        env:
+          WORKFLOW_NAME: ${{ github.workflow }}
+          JOB_STATUS: ${{ job.status == 'success' && ':white_check_mark:' || job.status == 'failure' && ':x:' }}
+          JOB_STATUS_COLOR: ${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#FF0000' }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+        with:
+          payload-file-path: "./config/payload-slack-content.json"
