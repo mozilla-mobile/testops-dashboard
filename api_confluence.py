@@ -253,7 +253,7 @@ def render_xml_template(template_path, params):
 
     template = Template(template_content)
     rendered_xml = template.render(**params)
-   
+
     return rendered_xml
 
 
@@ -326,7 +326,7 @@ def page_report_build_validation(
         'release_date': signoff_date,
         'build_version': build_version,
         'build_version_commit_hash': '12345',
-        'testrail_report_url': 'https://mozilla.testrail.io/index.php?/runs/view/108599&group_by=cases:section_id&group_order=asc',
+        'testrail_report_url': 'https://mozilla.testrail.io/index.php?/runs/view/108599&group_by=cases:section_id&group_order=asc', # noqa
         'testrail_report_summary': test_summary,
         'testrail_run_1_result': 'PASS3D',
         'testrail_run_1_build_type': 'ARM64',
@@ -336,7 +336,7 @@ def page_report_build_validation(
         'testrail_run_2_device': 'iPhone 16 Pro (iOS 18.3.2)',
         'testrail_issues_verified': 'N/A',
         'testrail_issues_new': 'N/A',
-        'testrail_issues_known': '<a href="https://mozilla-hub.atlassian.net/browse/FXIOS-12650"</a>',
+        'testrail_issues_known': '<a href="https://mozilla-hub.atlassian.net/browse/FXIOS-12650"</a>', # noqa
         'testrail_contacts': contacts,
     }
 
@@ -363,7 +363,7 @@ def page_report_build_validation(
 
 def main():
     # TODO: phase 2 PR - instead of invoking this directly from main,
-    # invoke it from __main__.py --report-type looker-graphs 
+    # invoke it from __main__.py --report-type looker-graphs
     pages_looker_graphs()
 
     # TODO: design approach for custom (XML-config) reports
@@ -371,14 +371,14 @@ def main():
     page_id = "1663598593"
     page_title = "DEMO v2"
     projects_id = 14 # Firefox for iOS
-    testrail_milestone_id = "1066" # Manual functional testing sign-off - Firefox v120 (36024) RC1
+    testrail_milestone_id = "1066" # Manual functional testing sign-off - Firefox v120 (36024) RC1 # noqa
     testrail_report_url = "http://mozilla.org"
     release = "Manual functional testing sign-off - Firefox v120 (36024) RC1"
     build_version = "v149"
     testing_status = "green"
     testing_summary = '''
     <li>We started Full Functional test suite.</li>
-    <li>We ran X sets of automated Full Functional tests on iPhone and iPad with XYZ experiment ON.</li>
+    <li>We ran X sets of automated Full Functional tests on iPhone and iPad with XYZ experiment ON.</li> # noqa
     '''
     release_tag_url = "https://archive.mozilla.org/pub/fenix/releases/"
     qa_contacts = '''
