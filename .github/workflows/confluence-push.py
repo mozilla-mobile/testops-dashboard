@@ -2,8 +2,8 @@ name: Testops Confluence Update
 
 on:
   push:
-    branches
-    - rpapa-conf-buildvalid 
+    branches:
+      - rpapa-conf-buildvalid 
   workflow_dispatch:
     inputs:
       branchName:
