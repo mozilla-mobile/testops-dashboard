@@ -39,6 +39,7 @@ PATH_XML_FILES = f"{PATH_CONFIG}/xml"
 # URL string builders
 # ------------------------------------------------------------------
 
+
 def url_page(page_id):
     return f"{URL_WIKI_REST_API}/content/{page_id}"
 
@@ -46,9 +47,11 @@ def url_page(page_id):
 def url_attachments(page_id):
     return f"{URL_WIKI_REST_API}/content/{page_id}/child/attachment"
 
+
 # ------------------------------------------------------------------
-# Page handlers 
+# Page handlers
 # ------------------------------------------------------------------
+
 
 def page_object(page_url):
     """give page url, returns page object as JSON
@@ -60,6 +63,7 @@ def page_object(page_url):
         print(response.text)
         exit()
     return response.json()
+
 
 def page_payload_write(page_id, update_payload):
     update_url = f"{URL_WIKI_REST_API}/content/{page_id}"
@@ -93,9 +97,11 @@ def page_payload(page_id, page_title, page_data, current_version, new_content):
     }
     return update_payload
 
+
 # ------------------------------------------------------------------
-# Attachment processing 
+# Attachment processing
 # ------------------------------------------------------------------
+
 
 def image_attachments_delete(page_id):
     # get list of attachments for page
@@ -268,8 +274,8 @@ def page_content_insert_xml(page_id):
     TEMPLATE_PATH = f"{PATH_XML_FILES}/build-validation.xml"
     
     # XML template
-    with open(TEMPLATE_PATH, "r", encoding="utf-8") as file:
-        xml_content = file.read()
+    # with open(TEMPLATE_PATH, "r", encoding="utf-8") as file:
+    #     xml_content = file.read()
     output_xml = render_xml_template(TEMPLATE_PATH, params)
 
     # Confluence page (for updating)
@@ -326,11 +332,10 @@ def page_report_build_validation(
         **locals()
     }
 
-
     TEMPLATE_PATH = f"{PATH_XML_FILES}/build-validation.xml"
 
     page_url = url_page(page_id)
-    #page_url_storage = url_page_content_storage(page_id)
+    # page_url_storage = url_page_content_storage(page_id)
     with open(TEMPLATE_PATH, "r", encoding="utf-8") as file:
         xml_content = file.read()
     output_xml = render_xml_template(TEMPLATE_PATH, params)
@@ -339,7 +344,7 @@ def page_report_build_validation(
     page_data = page_object(page_url)
     current_version = page_data["version"]["number"]
 
-    #new_content = page_html(page_id, page_sections)
+    # new_content = page_html(page_id, page_sections)
     payload = page_payload(page_id, page_title, page_data, current_version, output_xml)
     page_payload_write(page_id, payload)
 
@@ -358,18 +363,16 @@ def main():
     release = "Manual functional testing sign-off - Firefox v120 (36024) RC1"
     build_version = "v149"
     testing_status = "green"
-    testing_summary = ''' 
+    testing_summary = '''
     <li>We started Full Functional test suite.</li>
-    <li>We ran X sets of automated Full Functional tests on iPhone and iPad with XYZ experiment ON.</li>    
-    ''' 
+    <li>We ran X sets of automated Full Functional tests on iPhone and iPad with XYZ experiment ON.</li>
+    '''
     release_tag_url = "https://archive.mozilla.org/pub/fenix/releases/"
-    qa_contacts = ''' 
-     <a href='mailto:csuciu@mozilla.com'>Catalin Suc1u</a>
-     ,   
-     <a href='mailto:amoldovan@mozilla.com'>Alina M0ld0van</a>
-     ,   
+    qa_contacts = '''
+     <a href='mailto:csuciu@mozilla.com'>Catalin Suc1u</a>,
+     <a href='mailto:amoldovan@mozilla.com'>Alina M0ld0van</a>,   
      <a href='mailto:abodea@mozilla.com'>Andr3i Bodea</a>
-     ''' 
+     '''
 
     page_report_build_validation(
         page_id=page_id,
