@@ -60,7 +60,7 @@ FILTER_ID_ALL_REQUESTS_2022 = "13856"
 MAX_RESULT = "maxResults=100"
 
 # JQL query Requests, Internal Task, Sub-Task filter_id: 14323
-FILTER_ID_NEW_ISSUE_TYPES = "14323"
+FILTER_ID_ALL_REQUEST_ISSUE_TYPE = "14323"
 
 # JQL query All QA Needed iOS filter_id: 13789
 FILTER_ID_QA_NEEDED_iOS = "13789"
@@ -79,6 +79,7 @@ FIREFOX_RELEASE_TRAIN = "customfield_10155"
 ENGINEERING_TEAM = "customfield_10134"
 DEFAULT_COLUMNS = "id,key,status,created,summary,labels,assignee"
 COLUMNS_ISSUE_TYPE = ",issuetype,parent"
+
 TESTED_TRAINS = "customfield_11930"
 
 # Bugzilla queries
