@@ -12,8 +12,8 @@ from utils.datetime_utils import DatetimeUtils
 from database import (
     Database,
     ReportBugzillaQEVerifyCount,
-    ReportBugzillaQENeeded
-    # ReportBugzillaSoftvisionBugs
+    ReportBugzillaQENeeded,
+    ReportBugzillaSoftvisionBugs
 )
 
 
@@ -121,7 +121,7 @@ class BugzillaClient(Bugz):
         print(f"Saved {len(df_new)} new bugs. Total now: {len(df_new)}")
 
         # Remove data
-        # self.db.clean_table(ReportBugzillaSoftvisionBugs)
+        self.db.clean_table(ReportBugzillaSoftvisionBugs)
         # Insert data
         self.db.report_bugzilla_desktop_bugs(df_new)
         return df_new
@@ -221,33 +221,29 @@ class DatabaseBugzilla(Database):
         print("Delete entries from db first")
         self.clean_table(ReportBugzillaQENeeded)
 
-    def clean_table(self, table):
-        self.session.query(table).delete()
-        self.session.commit()
-
     def report_bugzilla_desktop_bugs(self, payload):
         for index, row in payload.iterrows():
             try:
                 kw = row.get('keyword', [])
                 bugzilla_bug_keyword = ", ".join(kw) if isinstance(kw, list) and kw else None # noqa
 
-                # report = ReportBugzillaSoftvisionBugs(
-                #             bugzilla_key=row['bug_id'],
-                #             bugzilla_summary=row['summary'],
-                #             bugzilla_product=row['product'],
-                #             bugzilla_qa_whiteboard=row['qa_whiteboard'],
-                #             bugzilla_bug_severity=row['severity'],
-                #             bugzilla_bug_priority=row['priority'],
-                #             bugzilla_bug_status=row['status'],
-                #             bugzilla_bug_resolution=None if pd.isna(row['resolution']) else row['resolution'], # noqa
-                #             bugzilla_bug_created_at=row['created_at'],
-                #             bugzilla_bug_last_change_time=row['last_change_time'], # noqa
-                #             bugzilla_bug_whiteboard=None if pd.isna(row['whiteboard']) else row['whiteboard'], # noqa
-                #             bugzilla_bug_keyword=bugzilla_bug_keyword
-                #             )
+                report = ReportBugzillaSoftvisionBugs(
+                            bugzilla_key=row['bug_id'],
+                            bugzilla_summary=row['summary'],
+                            bugzilla_product=row['product'],
+                            bugzilla_qa_whiteboard=row['qa_whiteboard'],
+                            bugzilla_bug_severity=row['severity'],
+                            bugzilla_bug_priority=row['priority'],
+                            bugzilla_bug_status=row['status'],
+                            bugzilla_bug_resolution=None if pd.isna(row['resolution']) else row['resolution'], # noqa
+                            bugzilla_bug_created_at=row['created_at'],
+                            bugzilla_bug_last_change_time=row['last_change_time'], # noqa
+                            bugzilla_bug_whiteboard=None if pd.isna(row['whiteboard']) else row['whiteboard'], # noqa
+                            bugzilla_bug_keyword=bugzilla_bug_keyword
+                            )
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")
-            # self.session.add(report)
+            self.session.add(report)
         self.session.commit()
 
     def report_bugzilla_qa_needed(self, payload):

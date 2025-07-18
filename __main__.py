@@ -107,7 +107,7 @@ def main():
     arg_list = args_to_list(args.platform, args.project)
 
     # if args.report_type == 'confluence-updates':
-        # api_confluence.main()
+    #     api_confluence.main()
     if args.report_type == 'testrail-test-case-coverage':
         h = TestRailClient()
         h.data_pump(arg_list)

@@ -20,7 +20,7 @@ from database import (
     ReportTestCaseCoverage,
     ReportTestRailMilestones,
     ReportTestRailUsers,
-    TestPlans, TestRuns
+    ReportTestPlans, ReportTestRuns
 )
 
 from utils.datetime_utils import DatetimeUtils as dt
@@ -88,7 +88,11 @@ class TestRail:
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get('get_runs/{0}{1}'.format(testrail_project_id, date_range))  # noqa
 
-    def get_plans(self, testrail_project_id, start_date='', end_date=''):
+    def test_run(self, run_id):
+        return self.client.send_get('get_run/{0}'.format(run_id))
+
+    # API: Plans
+    def get_test_plans(self, testrail_project_id, start_date='', end_date=''):
         """Return all plans related to a project id"""
         date_range = ''
         if start_date:
@@ -99,7 +103,7 @@ class TestRail:
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get(f"/get_plans/{testrail_project_id}{date_range}")
 
-    def get_plan(self, plan_id, start_date='', end_date=''):
+    def get_test_plan(self, plan_id, start_date='', end_date=''):
         """Return a plan object by plan id"""
         date_range = ''
         if start_date:
@@ -109,9 +113,6 @@ class TestRail:
             before = dt.convert_datetime_to_epoch(end_date)
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get(f"/get_plan/{plan_id}{date_range}")
-
-    def test_run(self, run_id):
-        return self.client.send_get('get_run/{0}'.format(run_id))
 
     def test_results_for_run(self, run_id):
         return self.client.send_get('get_results_for_run/{0}'.format(run_id))
@@ -193,27 +194,19 @@ class TestRailClient(TestRail):
         # Insert data in 'totals' array into DB
         self.db.report_test_coverage_insert(projects_id, payload)
 
-    def testrail_run_counts_update(self, project, num_days):
+    def estrail_run_counts_update(self, project, num_days):
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
         projects_id, testrail_project_id, functional_test_suite_id = self.db.testrail_identity_ids(project)  # noqa
 
-        # Sample Testrail data from one run:
-        # [{'run_id': 44113}, {'project_id': 59}, {'suite_id': 3192},
-        # {'name': 'Smoke and sanity automated tests - Beta 90.0.0-beta.2'},
-        # {'created_on': 1623151551}, {'completed_on': 1623158050},
-        # {'failed_count': 0}, {'passed_count': 35}, {'retest_count': 0},
-        # {'blocked_count': 0}, {'untested_count': 0}, {'untested_count': 0}]
-
         # Pull JSON blob from Testrail
-        # runs = self.testrail.test_runs(testrail_project_id, start_date) # noqa
         runs = self.test_runs(testrail_project_id, start_date)  # noqa
 
         # Format and store data in a 'totals' array
         totals = self.db.report_test_run_payload(runs)
 
-        # Insert data in 'totals' array into DB
+        # Insert data in the 'totals' array into DB
         self.db.report_test_runs_insert(projects_id, totals)
 
     def testrail_milestones(self, project):
@@ -355,20 +348,22 @@ class TestRailClient(TestRail):
             projects_id = project_ids[0]
 
             testrail_project_id = project_ids[1]
-            result = self.get_plans(testrail_project_id, start_date)  # noqa
+            result = self.get_test_plans(testrail_project_id, start_date)  # noqa
             full_plans = {
                 plan['name']: pl.extract_plan_info(plan)
                 for plan in result['plans']
                 if "Automated testing" in plan['name']
             }
+
             # delete test plans and runs
-            self.db.test_runs_delete()
-            self.db.test_plans_delete()
+            self.db.clean_table(ReportTestRuns)
+            self.db.clean_table(ReportTestPlans)
+
             # Insert data in the formated plan info array into DB
             # get table ids for the plans
             self.db.report_test_plans_insert(projects_id, full_plans)
             for plan in full_plans.values():
-                plan_info = self.get_plan(plan['plan_id'], start_date)
+                plan_info = self.get_test_plan(plan['plan_id'], start_date)
                 for entry in plan_info['entries']:
                     self.db.report_test_runs_insert(plan['id'], entry['suite_id'], entry['runs'])
 
@@ -385,20 +380,6 @@ class DatabaseTestRail(Database):
         self.session.query(TestSuites).delete()
         self.session.commit()
 
-    def test_plans_delete(self):
-        """
-            Wipe out all test plan data.
-        """
-        self.session.query(TestPlans).delete()
-        self.session.commit()
-
-    def test_runs_delete(self):
-        """
-            Wipe out all test runs data.
-        """
-        self.session.query(TestRuns).delete()
-        self.session.commit()
-
     def test_suites_update(self, testrail_project_id,
                            testrail_test_suites_id, test_suite_name):
         suites = TestSuites(testrail_project_id=testrail_project_id,
@@ -411,29 +392,19 @@ class DatabaseTestRail(Database):
         self.session.query(ReportTestRailMilestones).delete()
         self.session.commit()
 
-    def projects_insert(self, project_id, project_abbrev, project_name):
-        """
-            Helper method to insert project ids
-        """
-        if not self.session.query(Projects).first():
-            project = Projects(testrail_project_id=project_id, project_name_abbrev=project_abbrev,
-                               project_name=project_name)
-            self.session.add(project)
-            self.session.commit()
-
     def report_test_runs_insert(self, db_plan_id, suite_id, runs):
         for run in runs:
             created_on = dt.convert_epoch_to_datetime(run['created_on'])  # noqa
             completed_on = dt.convert_epoch_to_datetime(run['completed_on']) if run['completed_on'] else None
 
-            report_run = TestRuns(testrail_run_id=run['id'], plan_id=db_plan_id, suite_id=suite_id, name=run['name'],
-                                  config=run['config'],
-                                  test_case_passed_count=run['passed_count'],
-                                  test_case_retest_count=run['retest_count'],
-                                  test_case_failed_count=run['failed_count'],
-                                  test_case_blocked_count=run['blocked_count'],
-                                  testrail_created_on=created_on,
-                                  testrail_completed_on=completed_on)
+            report_run = ReportTestRuns(testrail_run_id=run['id'], plan_id=db_plan_id, suite_id=suite_id, name=run['name'],
+                                        config=run['config'],
+                                        test_case_passed_count=run['passed_count'],
+                                        test_case_retest_count=run['retest_count'],
+                                        test_case_failed_count=run['failed_count'],
+                                        test_case_blocked_count=run['blocked_count'],
+                                        testrail_created_on=created_on,
+                                        testrail_completed_on=completed_on)
             self.session.add(report_run)
             self.session.commit()
 
@@ -558,7 +529,7 @@ class DatabaseTestRail(Database):
             completed_on = dt.convert_epoch_to_datetime(total['completed_on']) if total[
                 'completed_on'] else None  # noqa
 
-            report = TestPlans(
+            report = ReportTestPlans(
                 projects_id=project_id,
                 testrail_plan_id=total['plan_id'],
                 name=total['name'],
@@ -574,27 +545,3 @@ class DatabaseTestRail(Database):
             self.session.commit()
             total['id'] = report.id
         return payload
-    # def report_test_runs_insert(self, project_id, payload):
-    #     # insert data from payload into report_test_run_counts table
-    #
-    #     totals = payload
-    #
-    #     for total in totals.values():
-    #         t = total
-    #         print(t['completed_on'])
-    #         created_on = dt.convert_epoch_to_datetime(t['created_on']) # noqa
-    #         completed_on = dt.convert_epoch_to_datetime(t['completed_on']) if t['completed_on'] else None # noqa
-    #
-    #         report = ReportTestRunCounts(
-    #             projects_id=project_id,
-    #             testrail_plan_id=t['id'],
-    #             test_case_passed_count=t['passed_count'],
-    #             test_case_retest_count=t['retest_count'],
-    #             test_case_failed_count=t['failed_count'],
-    #             test_case_blocked_count=t['blocked_count'],
-    #             test_case_total_count=t['total_count'],
-    #             testrail_created_on=created_on,
-    #             testrail_completed_on=completed_on)
-    #
-    #         self.session.add(report)
-    #         self.session.commit()
