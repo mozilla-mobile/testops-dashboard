@@ -13,7 +13,7 @@ from api_github import GithubClient
 from api_jira import JiraClient
 from api_testrail import TestRailClient
 from api_sentry import SentryClient
-# import api_confluence
+import api_confluence
 
 from api_bitrise import BitriseClient
 
@@ -106,8 +106,8 @@ def main():
     validate_project(args.platform, args.project, args.report_type)
     arg_list = args_to_list(args.platform, args.project)
 
-    # if args.report_type == 'confluence-updates':
-    #     api_confluence.main()
+    if args.report_type == 'confluence-updates':
+        api_confluence.main()
     if args.report_type == 'testrail-test-case-coverage':
         h = TestRailClient()
         h.data_pump(arg_list)
