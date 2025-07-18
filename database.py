@@ -25,7 +25,7 @@ class TestSuites(Base):
     __table__ = Table('test_suites', Base.metadata, autoload=True)
 
 class ReportTestPlans(Base):
-    __table__ = Table('test_plans', Base.metadata, autoload=True)
+    __table__ = Table('report_test_plans', Base.metadata, autoload=True)
 
 
 
@@ -41,7 +41,7 @@ class ReportTestCaseCoverage(Base):
 #    __table__ = Table('report_test_run_counts', Base.metadata, autoload=True)
 
 class ReportTestRuns(Base):
-   __table__ = Table('test_runs', Base.metadata, autoload=True)
+   __table__ = Table('report_test_runs', Base.metadata, autoload=True)
 
 
 
