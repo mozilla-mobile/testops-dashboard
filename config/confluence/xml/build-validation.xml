@@ -1,0 +1,218 @@
+<p>
+ <u>
+  <strong>
+   Build Validation
+  </strong>
+ </u>
+</p>
+<p>
+ <strong>
+  Firefox iOS
+ </strong>
+</p>
+<table class="relative-table wrapped" style="width: 89.5731%;">
+ <colgroup>
+  <col style="width: 31.9374%;"/>
+ </colgroup>
+ <colgroup>
+  <col style="width: 10.5173%;"/>
+ </colgroup>
+ <colgroup>
+  <col style="width: 8.25295%;"/>
+ </colgroup>
+ <colgroup>
+  <col style="width: 49.3036%;"/>
+ </colgroup>
+ <tbody>
+
+  <!-- ROW:START ============================ -->
+
+
+  <tr>
+
+   <td colspan="1">
+    <time datetime="{{ release_date }}">
+    </time>
+   </td>
+
+   <!-- NEW COLUMN -->
+
+
+   <td colspan="1">
+    <div class="content-wrapper">
+     <p>
+      <strong>
+       <strong>
+        Firefox iOS {{ build_version }} ({{ build_version_commit_hash }})
+       </strong>
+      </strong>
+     </p>
+     <p>
+      <strong>
+       <ac:structured-macro ac:macro-id="a73871e9-9472-4480-897c-babfe9fbc160" ac:name="status" ac:schema-version="1">
+        <ac:parameter ac:name="colour">
+         Green
+        </ac:parameter>
+        <ac:parameter ac:name="title">
+         Beta 4
+        </ac:parameter>
+        <ac:parameter ac:name="">
+        </ac:parameter>
+       </ac:structured-macro>
+      </strong>
+     </p>
+    </div>
+   </td>
+
+   <!-- NEW COLUMN -->
+
+
+   <td colspan="1" style="text-align: center;">
+    <strong>
+     <ac:structured-macro ac:macro-id="b07d07bf-2d48-4d87-8121-7ee0e80b0704" ac:name="status" ac:schema-version="1">
+      <ac:parameter ac:name="colour">
+       Green
+      </ac:parameter>
+      <ac:parameter ac:name="">
+      </ac:parameter>
+     </ac:structured-macro>
+    </strong>
+   </td>
+
+   <!-- NEW COLUMN -->
+
+   <td colspan="1">
+    <p>
+     <strong>
+      Testing summary:
+      <a href="https://mozilla.testrail.io/index.php?/runs/view/108599&amp;group_by=cases:section_id&amp;group_order=asc">
+      <a href="{{ testrail_report_url }}">
+       Testrail Report
+      </a>
+     </strong>
+    </p>
+    <ul>
+     {{ testrail_report_summary }}
+
+     <li>
+      <strong class="legacy-color-text-blue3">
+       <span class="legacy-color-text-default">
+        Testing results:
+       </span>
+      </strong>
+     </li>
+    </ul>
+    <p style="text-align: left;">
+     <span class="legacy-color-text-default">
+      <span>
+       <span class="legacy-color-text-default">
+        <span>
+         <strong>
+          <span class="status-macro aui-lozenge aui-lozenge-success aui-lozenge-subtle conf-macro output-inline" style="color: rgb(0,102,68);text-decoration: none;">
+           {{ testrail_run_1_result }} 
+          </span>
+          Build Type:
+         </strong>
+         <span class="legacy-color-text-default">
+          <span class="legacy-color-text-default">
+           <span>
+	    {{ testrail_run_1_build_type }}
+           </span>
+          </span>
+         </span>
+         |
+         <strong>
+          Device:
+         </strong>
+	 {{ testrail_run_1_device }}
+        </span>
+       </span>
+      </span>
+     </span>
+    </p>
+    <p style="text-align: left;">
+     <span class="legacy-color-text-default">
+      <span>
+       <strong>
+        <span class="status-macro aui-lozenge aui-lozenge-success aui-lozenge-subtle conf-macro output-inline" style="color: rgb(0,102,68);text-decoration: none;">
+           {{ testrail_run_2_result }} 
+        </span>
+        Build Type:
+       </strong>
+       <span class="legacy-color-text-default">
+        <span class="legacy-color-text-default">
+         <span>
+       {{ testrail_run_2_build_type }}
+         </span>
+        </span>
+       </span>
+       |
+       <strong>
+        Device:
+       </strong>
+       {{ testrail_run_2_device }}
+      </span>
+     </span>
+     <span class="legacy-color-text-default">
+      <span>
+      </span>
+     </span>
+    </p>
+    <ul>
+     <li>
+      <strong>
+       <strong>
+        Verified issues:
+        <strong>
+         <strong>
+	 {{ testrail_issues_verified }}
+         </strong>
+        </strong>
+       </strong>
+      </strong>
+     </li>
+     <li>
+      <strong>
+       New issues:
+       <strong>
+        <strong>
+	 {{ testrail_issues_new }}
+        </strong>
+       </strong>
+      </strong>
+     </li>
+     <li>
+      <strong>
+       <strong>
+        Known issues:
+	{{ testrail_issues_known }}
+       </strong>
+      </strong>
+     </li>
+    </ul>
+    <strong>
+     QA Contact:
+    {{ testrail_contacts }}
+    </strong>
+   </td>
+
+   <!-- COLUMN: END -->
+  </tr>
+
+  <!-- ROW: END -->
+
+
+ </tbody>
+</table>
+<p class="auto-cursor-target">
+ <br/>
+</p>
+<p>
+ <br/>
+</p>
+<p>
+ <br/>
+</p>
+<p>
+ <br/>
+</p>

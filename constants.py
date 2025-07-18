@@ -36,6 +36,7 @@ REPORT_TYPES = [
     'bugzilla-qe-verify',
     'confluence-updates',
     'confluence-new-page',
+    'confluence-build-validation',
     'github-issue-regression',
     'jira-qa-needed',
     'jira-qa-requests',
@@ -71,3 +72,16 @@ BUGZILLA_URL = "bugzilla.mozilla.org"
 PRODUCTS = ["Fenix", "Focus", "GeckoView"]
 FIELDS = ["id", "summary", "flags", "severity",
           "priority", "status", "resolution"]
+
+BUGZILLA_QA_WHITEBOARD_FILTER = {
+    "cf_qa_whiteboard_type": "substring",
+    "cf_qa_whiteboard": "qa-found-in-"
+}
+
+BUGZILLA_BUGS_FIELDS = [
+    "id", "summary", "product",
+    "cf_qa_whiteboard", "severity",
+    "priority", "status", "resolution",
+    "creation_time", "last_change_time",
+    "whiteboard", "keywords", "cf_last_resolved"
+]
