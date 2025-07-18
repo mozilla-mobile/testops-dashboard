@@ -24,6 +24,10 @@ class TestAutomationCoverage(Base):
 class TestSuites(Base):
     __table__ = Table('test_suites', Base.metadata, autoload=True)
 
+class ReportTestPlans(Base):
+    __table__ = Table('report_test_plans', Base.metadata, autoload=True)
+
+
 
 class TestSubSuites(Base):
     __table__ = Table('test_sub_suites', Base.metadata, autoload=True)
@@ -35,6 +39,10 @@ class ReportTestCaseCoverage(Base):
 
 # class ReportTestRunCounts(Base):
 #    __table__ = Table('report_test_run_counts', Base.metadata, autoload=True)
+
+class ReportTestRuns(Base):
+   __table__ = Table('report_test_runs', Base.metadata, autoload=True)
+
 
 
 class ReportGithubIssues(Base):
@@ -88,3 +96,7 @@ class ReportBugzillaSoftvisionBugs(Base):
 class Database:
     def __init__(self):
         self.session = Session()
+
+    def clean_table(self, table):
+        self.session.query(table).delete()
+        self.session.commit()
