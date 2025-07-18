@@ -347,7 +347,6 @@ class TestRailClient(TestRail):
 
     def testrail_runs(self, project, num_days):
         start_date = dt.start_date(num_days)
-        self.db.projects_insert(17, 'desktop', 'firefox-desktop')
 
         # Get reference IDs from DB
         project_ids_list = self.testrail_project_ids(project)  # noqa
