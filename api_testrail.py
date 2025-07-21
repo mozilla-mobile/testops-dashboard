@@ -194,7 +194,7 @@ class TestRailClient(TestRail):
         # Insert data in 'totals' array into DB
         self.db.report_test_coverage_insert(projects_id, payload)
 
-    def estrail_run_counts_update(self, project, num_days):
+    def testrail_run_counts_update(self, project, num_days):
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
@@ -338,7 +338,30 @@ class TestRailClient(TestRail):
         df = pd.DataFrame(user_data)
         self.db.report_testrail_users_insert(df)
 
-    def testrail_runs(self, project, num_days):
+    def testrail_runs_update(self, num_days, project_plans):
+        """
+            Update the test_runs table with the latest entries up until the specified number of days.
+
+            Args:
+                num_days (str): number of days to go back from.
+                project_plans (dict): the queried and filtered testrail plans.
+        """
+        start_date = dt.start_date(num_days)
+        # for each test plan, querying it individually returns the associated runs.
+        for plan in project_plans.values():
+            plan_info = self.get_test_plan(plan['plan_id'], start_date)
+            for entry in plan_info['entries']:
+                self.db.report_test_runs_insert(plan['id'], entry['suite_id'], entry['runs'])
+
+    def testrail_plans_and_runs(self, project, num_days):
+        """
+            Given a testrail project, update the test_plans and test_runs tables with the latest entries up until the specified number of days.
+            Only take the 'Automated testing' plans.
+
+            Args:
+                project (str): the name of the testrail project
+                num_days (str): number of days to go back from.
+        """
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
@@ -348,7 +371,9 @@ class TestRailClient(TestRail):
             projects_id = project_ids[0]
 
             testrail_project_id = project_ids[1]
+            # for the test rails project, get the test plans from the start_date
             result = self.get_test_plans(testrail_project_id, start_date)  # noqa
+            # filter out the Automated testing Plans.
             full_plans = {
                 plan['name']: pl.extract_plan_info(plan)
                 for plan in result['plans']
@@ -362,10 +387,8 @@ class TestRailClient(TestRail):
             # Insert data in the formated plan info array into DB
             # get table ids for the plans
             self.db.report_test_plans_insert(projects_id, full_plans)
-            for plan in full_plans.values():
-                plan_info = self.get_test_plan(plan['plan_id'], start_date)
-                for entry in plan_info['entries']:
-                    self.db.report_test_runs_insert(plan['id'], entry['suite_id'], entry['runs'])
+            # add the test runs for the queried test plans
+            self.testrail_runs_update(num_days, full_plans)
 
 
 class DatabaseTestRail(Database):

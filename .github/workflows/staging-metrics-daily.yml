@@ -60,5 +60,5 @@ jobs:
 
 
       - name: Query Test Plans and Runs
-        run: python ./__main__.py --report-type testrail-test-runs --project firefox-desktop --num-days 30
+        run: python ./__main__.py --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
 
