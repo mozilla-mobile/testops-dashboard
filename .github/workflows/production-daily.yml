@@ -98,7 +98,7 @@ jobs:
         continue-on-error: true
       - name: Send latest Sentry issues to Slack
         id: slack-sentry
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v2.1.1
         with:
           payload-file-path: "./sentry-slack.json"
           payload-templated: true 
@@ -112,7 +112,7 @@ jobs:
       - name: Send custom JSON data to Slack workflow
         if: always()
         id: slack
-        uses: slackapi/slack-github-action@v1.26.0
+        uses: slackapi/slack-github-action@v2.1.1
         env:
           WORKFLOW_NAME: ${{ github.workflow }}
           JOB_STATUS: ${{ job.status == 'success' && ':white_check_mark:' || job.status == 'failure' && ':x:' }}
