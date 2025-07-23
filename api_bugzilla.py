@@ -17,6 +17,7 @@ from database import (
     ReportBugzillaQEVerifyCount,
     ReportBugzillaQENeeded,
     ReportBugzillaSoftvisionBugs,
+    ReportBugzillaMetaBugs,
 )
 
 
@@ -27,6 +28,10 @@ class Bugz:
 
     def get_bugs(self, bug_ids: list) -> list:
         bugs = self.conn.bz_client.getbugs(bug_ids)
+        return bugs
+
+    def get_bug(self, bug_ids: list) -> list:
+        bugs = self.conn.bz_client.getbug(bug_ids)
         return bugs
 
     def build_query(self, query: dict) -> dict:
@@ -49,6 +54,10 @@ class BugzillaHelper:
     def get_bugs(self, bugs: list) -> list:
         """Get a list of bugs from Bugzilla."""
         return self.bugzilla.get_bugs(bugs)
+
+    def get_bug(self, bug: int) -> list:
+        """Get a list of bugs from Bugzilla."""
+        return self.bugzilla.get_bug(bug)
 
     def build_query(self, query: dict) -> dict:
         """Build a query for Bugzilla."""
@@ -180,6 +189,43 @@ class BugzillaClient(Bugz):
                 all_bugs.append(bug_)
 
         return all_bugs
+
+    def bugzilla_meta_bug(self, meta_bug_id: int):
+        bug = self.BugzillaHelperClient.get_bug(meta_bug_id)
+        print(f"Bug {bug.id}: {bug.summary}")
+        print("Depends on:", bug.depends_on)
+
+        query = {
+            "bug_id": bug.depends_on,
+            "include_fields": BUGZILLA_BUGS_FIELDS + ["assigned_to", "product"]
+        }
+        child_bugs = BugzillaHelper().query(query)
+
+        rows = []
+        for b in child_bugs:
+            resolved_raw = getattr(b, "cf_last_resolved", None)
+            resolved_at = pd.to_datetime(str(resolved_raw)) if resolved_raw else None # noqa
+
+            rows.append({
+                "id": b.id,
+                "status": b.status,
+                "summary": b.summary,
+                "creation_time": pd.to_datetime(str(bug.creation_time)),
+                "resolution": b.resolution,
+                "severity": b.severity,
+                "priority": b.priority,
+                "assigned_to": getattr(b, "assigned_to", None),
+                "keywords": ", ".join(b.keywords),
+                "cf_last_resolution": resolved_at,
+                "parent_bug_id": meta_bug_id,
+                "product": b.product,
+            })
+
+        # Create DataFrame
+        df = pd.DataFrame(rows)
+        self.db.clean_table(ReportBugzillaMetaBugs)
+
+        self.db.report_bugzilla_meta_bug(df)
 
     def bugzilla_query_qe_verify(self):
         qe_bugs = []
@@ -383,4 +429,27 @@ class DatabaseBugzilla(Database):
                         bugzilla_total_qa_needed=payload[0])
 
         self.session.add(report)
+        self.session.commit()
+
+    def report_bugzilla_meta_bug(self, payload):
+        for index, row in payload.iterrows():
+            print(row)
+            try:
+                report = ReportBugzillaMetaBugs(
+                    bugzilla_key=row['id'],
+                    bugzilla_summary=row['summary'],
+                    bugzilla_bug_status=row['status'],
+                    bugzilla_bug_created_at=row['creation_time'],
+                    bugzilla_bug_resolution=None if pd.isna(row['resolution']) else row['resolution'], # noqa
+                    bugzilla_bug_severity=row['severity'],
+                    bugzilla_bug_priority=row['priority'],
+                    bugzilla_bug_assigned_to=row['assigned_to'],
+                    bugzilla_bug_keyword=row['keywords'],
+                    bugzilla_bug_resolved_at=None if pd.isna(row['cf_last_resolution']) else row['cf_last_resolution'], # noqa            
+                    bugzilla_bug_parent=row['parent_bug_id'],
+                    bugzilla_bug_product=row['product']
+                )
+            except KeyError as e:
+                print(f"Missing key: {e} in row {index}")
+            self.session.add(report)
         self.session.commit()

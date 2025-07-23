@@ -442,3 +442,29 @@ CREATE TABLE `report_testrail_users` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=269 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `production.report_bugzilla_meta_bugs`
+--
+
+DROP TABLE IF EXISTS `production.report_bugzilla_meta_bugs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `production.report_bugzilla_meta_bugs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `bugzilla_key` int NOT NULL,
+  `bugzilla_summary` text,
+  `bugzilla_bug_status` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_created_at` datetime DEFAULT NULL,
+  `bugzilla_bug_resolution` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_severity` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_priority` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_assigned_to` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_keyword` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_resolved_at` datetime DEFAULT NULL,
+  `bugzilla_bug_parent` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_product` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+

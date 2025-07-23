@@ -51,6 +51,13 @@ def parse_args(cmdln_args):
         required=False
     )
 
+    parser.add_argument(
+        "--meta-bug-id",
+        help="Indicate Bugzilla metabug ID for bugzilla-meta-bugs",
+        required=False,
+        type=int,
+    )
+
     return parser.parse_args(args=cmdln_args)
 
 
@@ -106,6 +113,10 @@ def main():
     validate_project(args.platform, args.project, args.report_type)
     arg_list = args_to_list(args.platform, args.project)
 
+    if args.report_type == 'bugzilla-meta-bugs' and not args.meta_bug_id:
+        print("--meta-bug-id is required for report-type bugzilla-meta-bugs")
+        sys.exit(1)
+
     if args.report_type == 'confluence-updates':
         api_confluence.main()
     if args.report_type == 'testrail-test-case-coverage':
@@ -137,6 +148,9 @@ def main():
     if args.report_type == 'bugzilla-qe-verify':
         h = BugzillaClient()
         h.bugzilla_qe_verify()
+    if args.report_type == 'bugzilla-meta-bugs':
+        h = BugzillaClient()
+        h.bugzilla_meta_bug(meta_bug_id=args.meta_bug_id)
     if args.report_type == 'bugzilla-desktop-bugs':
         h = BugzillaClient()
         h.bugzilla_query_desktop_bugs()
