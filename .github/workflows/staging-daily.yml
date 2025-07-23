@@ -71,7 +71,7 @@ jobs:
         run: python ./__main__.py --report-type bugzilla-desktop-bugs
 
       - name: Bugzilla Metabug Android Memory Leaks
-        run: python3 __main__.py --report-type bugzilla-meta-bugs --meta-bug-id 1935100
+        run: python  ./__main__.py --report-type bugzilla-meta-bugs --meta-bug-id 1935100
 
       #- name: Update DB - test runs 
       #  run: python ./__main__.py --report-type testrail-test-run-counts --project fenix --start-date 2021-08-15 --end-date 2021-10-01 
