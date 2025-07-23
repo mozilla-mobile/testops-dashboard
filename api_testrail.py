@@ -20,7 +20,7 @@ from database import (
     ReportTestCaseCoverage,
     ReportTestRailMilestones,
     ReportTestRailUsers,
-    ReportTestPlans, ReportTestRuns
+    ReportTestRailTestPlans, ReportTestRailTestRuns, ReportTestResultsL10N, ReportTestResultsBeta
 )
 
 from utils.datetime_utils import DatetimeUtils as dt
@@ -78,6 +78,9 @@ class TestRail:
             .send_get('get_suite/{0}'.format(testrail_test_suite_id))
 
     # API: Runs
+    def test_run(self, run_id):
+        return self.client.send_get('get_run/{0}'.format(run_id))
+
     def test_runs(self, testrail_project_id, start_date='', end_date=''):
         date_range = ''
         if start_date:
@@ -88,8 +91,8 @@ class TestRail:
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get('get_runs/{0}{1}'.format(testrail_project_id, date_range))  # noqa
 
-    def test_run(self, run_id):
-        return self.client.send_get('get_run/{0}'.format(run_id))
+    def test_results_for_run(self, run_id):
+        return self.client.send_get('get_results_for_run/{0}'.format(run_id))
 
     # API: Plans
     def get_test_plans(self, testrail_project_id, start_date='', end_date=''):
@@ -113,9 +116,6 @@ class TestRail:
             before = dt.convert_datetime_to_epoch(end_date)
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get(f"/get_plan/{plan_id}{date_range}")
-
-    def test_results_for_run(self, run_id):
-        return self.client.send_get('get_results_for_run/{0}'.format(run_id))
 
     # API: Users
     def users(self, testrail_project_id):
@@ -381,8 +381,10 @@ class TestRailClient(TestRail):
             }
 
             # delete test plans and runs
-            self.db.clean_table(ReportTestRuns)
-            self.db.clean_table(ReportTestPlans)
+            self.db.clean_table(ReportTestResultsL10N)
+            self.db.clean_table(ReportTestResultsBeta)
+            self.db.clean_table(ReportTestRailTestRuns)
+            self.db.clean_table(ReportTestRailTestPlans)
 
             # Insert data in the formated plan info array into DB
             # get table ids for the plans
@@ -420,14 +422,15 @@ class DatabaseTestRail(Database):
             created_on = dt.convert_epoch_to_datetime(run['created_on'])  # noqa
             completed_on = dt.convert_epoch_to_datetime(run['completed_on']) if run['completed_on'] else None
 
-            report_run = ReportTestRuns(testrail_run_id=run['id'], plan_id=db_plan_id, suite_id=suite_id, name=run['name'],
-                                        config=run['config'],
-                                        test_case_passed_count=run['passed_count'],
-                                        test_case_retest_count=run['retest_count'],
-                                        test_case_failed_count=run['failed_count'],
-                                        test_case_blocked_count=run['blocked_count'],
-                                        testrail_created_on=created_on,
-                                        testrail_completed_on=completed_on)
+            report_run = ReportTestRailTestRuns(testrail_run_id=run['id'], plan_id=db_plan_id, suite_id=suite_id,
+                                                name=run['name'],
+                                                config=run['config'],
+                                                test_case_passed_count=run['passed_count'],
+                                                test_case_retest_count=run['retest_count'],
+                                                test_case_failed_count=run['failed_count'],
+                                                test_case_blocked_count=run['blocked_count'],
+                                                testrail_created_on=created_on,
+                                                testrail_completed_on=completed_on)
             self.session.add(report_run)
             self.session.commit()
 
@@ -552,7 +555,7 @@ class DatabaseTestRail(Database):
             completed_on = dt.convert_epoch_to_datetime(total['completed_on']) if total[
                 'completed_on'] else None  # noqa
 
-            report = ReportTestPlans(
+            report = ReportTestRailTestPlans(
                 projects_id=project_id,
                 testrail_plan_id=total['plan_id'],
                 name=total['name'],
