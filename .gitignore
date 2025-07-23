@@ -1,6 +1,7 @@
 venv*
 __pycache__*
 ~archive
+.idea
 *.sw[op]
 .DS_Store
 cloud_sql_proxy
