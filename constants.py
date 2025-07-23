@@ -33,6 +33,7 @@ PROJECTS_MOBILE = [
 REPORT_TYPES = [
     'bitrise-builds',
     'bugzilla-desktop-bugs',
+    'bugzilla-meta-bugs',
     'bugzilla-qe-verify',
     'confluence-updates',
     'confluence-new-page',
@@ -70,7 +71,7 @@ WORKLOG_URL_TEMPLATE = "issue/{issue_key}/worklog"
 BUGZILLA_URL = "bugzilla.mozilla.org"
 PRODUCTS = ["Fenix", "Focus", "GeckoView"]
 FIELDS = ["id", "summary", "flags", "severity",
-          "priority", "status", "resolution"]
+          "priority", "status", "resolution", "keywords"]
 
 BUGZILLA_QA_WHITEBOARD_FILTER = {
     "cf_qa_whiteboard_type": "substring",
@@ -78,6 +79,14 @@ BUGZILLA_QA_WHITEBOARD_FILTER = {
 }
 
 BUGZILLA_BUGS_FIELDS = [
+    "id", "summary", "product",
+    "cf_qa_whiteboard", "severity",
+    "priority", "status", "resolution",
+    "creation_time", "last_change_time",
+    "whiteboard", "keywords", "cf_last_resolved"
+]
+
+BUGZILLA_META_BUGS_FIELDS = [
     "id", "summary", "product",
     "cf_qa_whiteboard", "severity",
     "priority", "status", "resolution",
