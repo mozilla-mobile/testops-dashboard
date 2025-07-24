@@ -173,7 +173,10 @@ class TestRailClient(TestRail):
            from each respective project
         """
         # Query with filtering
-        q = self.db.session.query(Projects).filter(Projects.project_name_abbrev == project)  # noqa
+        if isinstance(project, list):
+            q = self.db.session.query(Projects).filter(Projects.project_name_abbrev.in_(project))  # noqa
+        else:
+            q = self.db.session.query(Projects).filter(Projects.project_name_abbrev == project)  # noqa
 
         # Fetch results
         results = q.all()
