@@ -1,7 +1,7 @@
 numpy
 pandas
 PyMySQL
-SQLAlchemy==1.4.49
+SQLAlchemy==2.0.41
 certifi
 charset-normalizer
 idna
