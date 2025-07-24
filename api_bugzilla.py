@@ -309,10 +309,6 @@ class DatabaseBugzilla(Database):
         print("Delete entries from db first")
         self.clean_table(ReportBugzillaQENeeded)
 
-    def clean_table(self, table):
-        self.session.query(table).delete()
-        self.session.commit()
-
     def bugzilla_desktop_bugs_update_insert(self, payload):
         for index, row in payload.iterrows():
             try:
