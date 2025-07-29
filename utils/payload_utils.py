@@ -30,3 +30,17 @@ class PayloadUtils:
             if match:
                 return match.group(1)
         return None
+
+    def extract_plan_info(plan):
+        """Extracts and aggregates the counts and other info for a single plan."""
+        count_keys = ['passed_count', 'failed_count', 'untested_count', 'blocked_count', 'retest_count']
+        other_keys = ['id',
+                      'project_id',
+                      'name',
+                      'created_on',
+                      'completed_on']
+        plan_info = {k: plan[k] for k in count_keys}
+        plan_info['total_count'] = sum(plan_info.values())
+        plan_info |= {k: plan[k] for k in other_keys}
+        plan_info['plan_id'] = plan_info.pop('id')
+        return plan_info
