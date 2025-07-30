@@ -398,29 +398,28 @@ class TestRailClient(TestRail):
         Precondition: testrail_plans_and_runs have been run prior"""
         
         # Get the most recent test plan ids for beta and l10n
-        beta_tp_id = None
-        l10n_tp_id = None
+        tp_ids = [None, None]
         for tp in self.db.session.query(ReportTestRailTestPlans).order_by(ReportTestRailTestPlans.testrail_plan_id.desc()).all():
-            tp_name = tp.name
-            if "Beta" in tp_name:
-                if not beta_tp_id and not "L10N" in tp_name:
-                    beta_tp_id = tp.testrail_plan_id
-                elif not l10n_tp_id and "L10N" in tp_name:
-                    l10n_tp_id = tp.testrail_plan_id
-                if beta_tp_id and l10n_tp_id:
+            if "Beta" in tp.name:
+                if not tp_ids[0] and not "L10N" in tp.name:
+                    tp_ids[0] = tp.testrail_plan_id
+                elif not tp_ids[1] and "L10N" in tp.name:
+                    tp_ids[1] = tp.testrail_plan_id
+                if tp_ids[0] and tp_ids[1]:
                     break
-        print(f"beta: {beta_tp_id}, l10n: {l10n_tp_id}")
-            
+        print(f"beta: {tp_ids[0]}, l10n: {tp_ids[1]}")
+
         # Insert data for beta and refer back to test run table
         self.db.clean_table(ReportTestResults)
-        print(self.get_test_plan(beta_tp_id))
-        beta_runs = self.get_test_plan(beta_tp_id)["entries"]
-        # self.db.session.query(ReportTestPlans).order_by(ReportTestPlans.testrail_plan_id.desc()).all()
-        for run in beta_runs:
-            for os in run["runs"]:
-                db_run_id = self.db.session.query(ReportTestRailTestRuns).filter_by(testrail_run_id=os["id"]).first().id
-                run_results = self.test_results_for_run(os["id"])["results"]
-                self.db.report_test_results_insert(db_run_id, run_results, True)
+        types = ("beta", "l10n")
+        for i, type in enumerate(types):
+            runs = self.get_test_plan(tp_ids[i])["entries"]
+            for run in runs:
+                for os in run["runs"]:
+                    db_run_id = self.db.session.query(ReportTestRailTestRuns).filter_by(testrail_run_id=os["id"]).first().id
+                    run_results = self.test_results_for_run(os["id"])["results"]
+                    self.db.report_test_results_insert(db_run_id, run_results, type)
+            print(f"Added all test results from table {type}")
 
 
 class DatabaseTestRail(Database):
