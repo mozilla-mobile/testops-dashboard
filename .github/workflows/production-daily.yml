@@ -85,6 +85,11 @@ jobs:
 
         continue-on-error: true
 
+      - name: Bugzilla Metabug Android Memory Leaks
+        run: python  ./__main__.py --report-type bugzilla-meta-bugs --meta-bug-id 1935100
+
+        continue-on-error: true
+
       - name: Sentry query
         run: |
           python __main__.py --report-type sentry-issues
