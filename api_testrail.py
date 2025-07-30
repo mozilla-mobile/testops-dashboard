@@ -47,7 +47,7 @@ class TestRail:
         return self.client.send_get(
             'get_milestones/{0}'.format(testrail_project_id), data_type='milestones')  # noqa
 
-    def milestone (self, testrail_milestone_id):
+    def milestone(self, testrail_milestone_id):
         return self.client.send_get(
             'get_milestone/{0}'.format(testrail_milestone_id))
 
@@ -357,7 +357,9 @@ class TestRailClient(TestRail):
                 project_plans (dict): the queried and filtered testrail plans.
         """
         start_date = dt.start_date(num_days)
-        # for each test plan, querying it individually returns the associated runs.
+
+        # for each test plan, querying it individually returns
+        # the associated runs.
         for plan in project_plans.values():
             plan_info = self.get_test_plan(plan['plan_id'], start_date)
             for entry in plan_info['entries']:
@@ -378,14 +380,14 @@ class TestRailClient(TestRail):
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
-        project_ids_list = self.testrail_project_ids(project)  # noqa
+        project_ids_list = self.testrail_project_ids(project)
 
         for project_ids in project_ids_list:
             projects_id = project_ids[0]
 
             testrail_project_id = project_ids[1]
-            # for the test rails project, get the test plans from the start_date
-            result = self.get_test_plans(testrail_project_id, start_date)  # noqa
+            # for test rails project, get test plans from start_date
+            result = self.get_test_plans(testrail_project_id, start_date)
             # filter out the Automated testing Plans.
             full_plans = {
                 plan['name']: pl.extract_plan_info(plan)
