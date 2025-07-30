@@ -41,7 +41,7 @@ class ReportTestRailTestPlans(Base):
 
 
 class ReportTestRailTestRuns(Base):
-    __table__ = Table('report_testrail_test_runs', Base.metadata, autoload=True)
+    __table__ = Table('report_testrail_test_runs', Base.metadata, autoload=True) # noqa
 
 
 class ReportGithubIssues(Base):

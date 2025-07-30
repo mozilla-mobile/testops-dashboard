@@ -572,7 +572,7 @@ class DatabaseTestRail(Database):
         # insert data from payload into test_plans table
         for total in payload.values():
             created_on = dt.convert_epoch_to_datetime(total['created_on'])  # noqa
-            completed_on = dt.convert_epoch_to_datetime(total['completed_on']) if total[
+            completed_on = dt.convert_epoch_to_datetime(total['completed_on']) if total[  # noqa
                 'completed_on'] else None  # noqa
 
             report = ReportTestRailTestPlans(

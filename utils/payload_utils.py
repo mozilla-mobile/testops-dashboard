@@ -52,4 +52,3 @@ class PayloadUtils:
         plan_info |= {k: plan[k] for k in other_keys}
         plan_info['plan_id'] = plan_info.pop('id')
         return plan_info
-
