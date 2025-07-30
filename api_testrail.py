@@ -20,7 +20,10 @@ from database import (
     ReportTestCaseCoverage,
     ReportTestRailMilestones,
     ReportTestRailUsers,
-    ReportTestRailTestPlans, ReportTestRailTestRuns, ReportTestResultsL10N, ReportTestResultsBeta
+    ReportTestRailTestPlans,
+    ReportTestRailTestRuns,
+    ReportTestResultsL10N,
+    ReportTestResultsBeta,
 )
 
 from utils.datetime_utils import DatetimeUtils as dt
@@ -107,7 +110,7 @@ class TestRail:
         if end_date:
             before = dt.convert_datetime_to_epoch(end_date)
             date_range += '&created_before={0}'.format(before)
-        return self.client.send_get(f"/get_plans/{testrail_project_id}{date_range}")
+        return self.client.send_get(f"/get_plans/{testrail_project_id}{date_range}") # noqa
 
     def get_test_plan(self, plan_id, start_date='', end_date=''):
         """Return a plan object by plan id"""
@@ -257,19 +260,19 @@ class TestRailClient(TestRail):
 
                 # Convert valid timestamps, leave empty ones as NaT
                 if 'started_on' in df_selected.columns:
-                    df_selected['started_on'] = pd.to_datetime(df_selected['started_on'], unit='s',
+                    df_selected['started_on'] = pd.to_datetime(df_selected['started_on'], unit='s', # noqa
                                                                errors='coerce')  # noqa
                     df_selected['started_on'] = df_selected['started_on'].replace({np.nan: None})  # noqa
 
                 if 'completed_on' in df_selected.columns:
-                    df_selected['completed_on'] = pd.to_datetime(df_selected['completed_on'], unit='s',
+                    df_selected['completed_on'] = pd.to_datetime(df_selected['completed_on'], unit='s', # noqa
                                                                  errors='coerce')  # noqa
                     df_selected['completed_on'] = df_selected['completed_on'].replace({np.nan: None})  # noqa
 
                 # Apply transformations only if description column exists
                 if 'description' in df_selected.columns:
                     df_selected['testing_status'] = df_selected['description'].apply(pl.extract_testing_status)  # noqa
-                    df_selected['testing_recommendation'] = df_selected['description'].apply(
+                    df_selected['testing_recommendation'] = df_selected['description'].apply( # noqa
                         pl.extract_testing_recommendation)  # noqa
 
                 # Apply transformations only if name column exists
@@ -346,7 +349,8 @@ class TestRailClient(TestRail):
 
     def testrail_runs_update(self, num_days, project_plans):
         """
-            Update the test_runs table with the latest entries up until the specified number of days.
+            Update the test_runs table with the latest entries up until the
+            specified number of days.
 
             Args:
                 num_days (str): number of days to go back from.
@@ -357,11 +361,14 @@ class TestRailClient(TestRail):
         for plan in project_plans.values():
             plan_info = self.get_test_plan(plan['plan_id'], start_date)
             for entry in plan_info['entries']:
-                self.db.report_test_runs_insert(plan['id'], entry['suite_id'], entry['runs'])
+                self.db.report_test_runs_insert(plan['id'], entry['suite_id'], entry['runs']) # noqa
 
     def testrail_plans_and_runs(self, project, num_days):
         """
-            Given a testrail project, update the test_plans and test_runs tables with the latest entries up until the specified number of days.
+            Given a testrail project, update the test_plans and test_runs
+            tables with the latest entries up until the specified number
+            of days.
+
             Only take the 'Automated testing' plans.
 
             Args:
@@ -407,7 +414,8 @@ class DatabaseTestRail(Database):
 
     def test_suites_delete(self):
         """ Wipe out all test suite data.
-        NOTE: we'll renew this data from Testrail every session."""
+        NOTE: this data is cached in DB for easy reference and will be renewed
+        from Testrail every session."""
         self.session.query(TestSuites).delete()
         self.session.commit()
 
@@ -426,17 +434,21 @@ class DatabaseTestRail(Database):
     def report_test_runs_insert(self, db_plan_id, suite_id, runs):
         for run in runs:
             created_on = dt.convert_epoch_to_datetime(run['created_on'])  # noqa
-            completed_on = dt.convert_epoch_to_datetime(run['completed_on']) if run['completed_on'] else None
+            completed_on = dt.convert_epoch_to_datetime(run['completed_on']) if run['completed_on'] else None # noqa
 
-            report_run = ReportTestRailTestRuns(testrail_run_id=run['id'], plan_id=db_plan_id, suite_id=suite_id,
-                                                name=run['name'],
-                                                config=run['config'],
-                                                test_case_passed_count=run['passed_count'],
-                                                test_case_retest_count=run['retest_count'],
-                                                test_case_failed_count=run['failed_count'],
-                                                test_case_blocked_count=run['blocked_count'],
-                                                testrail_created_on=created_on,
-                                                testrail_completed_on=completed_on)
+            report_run = ReportTestRailTestRuns(
+                testrail_run_id=run['id'],
+                plan_id=db_plan_id,
+                suite_id=suite_id,
+                name=run['name'],
+                config=run['config'],
+                test_case_passed_count=run['passed_count'],
+                test_case_retest_count=run['retest_count'],
+                test_case_failed_count=run['failed_count'],
+                test_case_blocked_count=run['blocked_count'],
+                testrail_created_on=created_on,
+                testrail_completed_on=completed_on,
+            )
             self.session.add(report_run)
             self.session.commit()
 
