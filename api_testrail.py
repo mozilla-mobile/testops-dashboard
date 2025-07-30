@@ -40,10 +40,13 @@ class TestRail:
             sys.exit(1)
 
     # API: Milestones
-    # https://mozilla.testrail.io/index.php?/api/v2/get_milestones/59
     def milestones(self, testrail_project_id):
         return self.client.send_get(
             'get_milestones/{0}'.format(testrail_project_id), data_type='milestones')  # noqa
+
+    def milestone (self, testrail_milestone_id):
+        return self.client.send_get(
+            'get_milestone/{0}'.format(testrail_milestone_id))
 
     # API: Projects
     def projects(self):
@@ -129,7 +132,7 @@ class TestRailClient(TestRail):
         super().__init__()
         self.db = DatabaseTestRail()
 
-    def data_pump(self, project='all', suite='all'):
+    def data_pump_report_test_cases(self, project='all', suite='all'):
         # call database for 'all' values
         # convert inputs to a list so we can easily
         # loop thru them

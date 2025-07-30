@@ -17,7 +17,13 @@ import api_confluence
 
 from api_bitrise import BitriseClient
 
-from constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
+from constants import (
+    PROJECTS_MOBILE,
+    PROJECTS_ECOSYSTEM,
+    PROJECTS_DESKTOP,
+    PLATFORMS,
+    REPORT_TYPES,
+)
 
 
 def parse_args(cmdln_args):
@@ -85,7 +91,7 @@ def validate_project(platform, project, report_type):
         sys.exit(1)
 
 
-def args_to_list(platform, projects):
+def expand_project_args(platform, projects):
     projects_list = []
     platform = (platform or "").lower()
     projects = (projects or "").lower()
@@ -111,7 +117,7 @@ def args_to_list(platform, projects):
 def main():
     args = parse_args(sys.argv[1:])
     validate_project(args.platform, args.project, args.report_type)
-    arg_list = args_to_list(args.platform, args.project)
+    arg_list = expand_project_args(args.platform, args.project)
 
     if args.report_type == 'bugzilla-meta-bugs' and not args.meta_bug_id:
         print("--meta-bug-id is required for report-type bugzilla-meta-bugs")
@@ -121,7 +127,7 @@ def main():
         api_confluence.main()
     if args.report_type == 'testrail-test-case-coverage':
         h = TestRailClient()
-        h.data_pump(arg_list)
+        h.data_pump_report_test_cases(arg_list)
     if args.report_type == 'testrail-test-run-counts':
         h = TestRailClient()
         if args.num_days:
