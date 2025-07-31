@@ -307,7 +307,7 @@ def page_content_insert_xml(page_id, params):
 def page_report_build_validation():
     page_id = "1663598593"
     page_title = "DEMO v2"
-    #  projects_id = 14 # Firefox for iOS
+    # projects_id = 14 # Firefox for iOS
     testrail_project_id = "59" # Fenix
     testrail_milestone_id = "1066" # Manual functional testing sign-off - Firefox v120 (36024) RC1 # noqa
     testrail_report_url = "http://mozilla.org"
@@ -325,17 +325,17 @@ def page_report_build_validation():
      <a href='mailto:abodea@mozilla.com'>Andr3i Bodea</a>
      '''
     client = TestRailClient()
-    client.get_milestones(testrail_project_id)
-    lastest_milestone = sorted(
+    milestones = client.get_milestones(testrail_project_id)
+    latest_milestone = sorted(
         milestones,
         key=lambda m: m.get('start_on', m.get('created_on', 0)),
         reverse=True
     )[0]
 
-    print(f"latest milestone: {latest_milestone['name']} (ID: {latest_milestone['id']})")
+    print(f"latest milestone: {latest_milestone['name']} (ID: {latest_milestone['id']})") # noqa
     print(f"latest milestone: {latest_milestone['description']}")
+    import sys
     sys.exit()
-
 
 
     """
@@ -343,6 +343,7 @@ def page_report_build_validation():
     """
 
     # TODO: hard-coded params for now...
+    """
     params = {
         'release_date': signoff_date,
         'build_version': build_version,
@@ -364,6 +365,7 @@ def page_report_build_validation():
     params = {
         **locals()
     }
+    """
 
     TEMPLATE_PATH = f"{PATH_XML_FILES}/build-validation.xml"
 
