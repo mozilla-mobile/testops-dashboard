@@ -332,8 +332,8 @@ def page_report_build_validation():
         reverse=True
     )[0]
 
-    print(f"latest milestone: {latest_milestone}['name']} (ID: {latest_milestone['id']})")
-    print(f"latest milestone: {latest_milestone}['description']}")
+    print(f"latest milestone: {latest_milestone['name']} (ID: {latest_milestone['id']})")
+    print(f"latest milestone: {latest_milestone['description']}")
     sys.exit()
 
 
