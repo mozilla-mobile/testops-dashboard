@@ -114,19 +114,23 @@ def expand_project_args(platform, projects):
 # === COMMAND HANDLERS ===
 
 def handle_bitrise_builds(args):
-    BitriseClient().post_build_data(args.project_list)
+    client = BitriseClient()
+    client.post_build_data(args.project_list)
 
 
 def handle_bugzilla_desktop_bugs(args):
-    BugzillaClient().post_desktop_bugs()
+    client = BugzillaClient()
+    client.post_desktop_bugs()
 
 
 def handle_bugzilla_meta_bugs(args):
-    BugzillaClient().post_meta_bugs(args.meta_bug_id)
+    client = BugzillaClient()
+    client.post_meta_bugs(args.meta_bug_id)
 
 
 def handle_bugzilla_qe_verify(args):
-    BugzillaClient().post_qe_verify_bugs()
+    client = BugzillaClient()
+    client.post_qe_verify_bugs()
 
 
 def handle_confluence_updates(args):
@@ -142,39 +146,48 @@ def handle_confluence_build_validation(args):
 
 
 def handle_github_issue_regression(args):
-    GithubClient().post_regression_issues()
+    client = GithubClient()
+    client.post_regression_issues()
 
 
 def handle_jira_qa_needed(args):
-    JiraClient().post_qa_needed()
+    client = JiraClient()
+    client.post_qa_needed()
 
 
 def handle_jira_qa_requests(args):
-    JiraClient().post_qa_requests()
+    client = JiraClient()
+    client.post_qa_requests()
 
 
 def handle_jira_softvision_worklogs(args):
-    JiraClient().post_softvision_worklogs()
+    client = JiraClient()
+    client.post_softvision_worklogs()
 
 
 def handle_sentry_issues(args):
-    SentryClient().post_sentry_issues()
+    client = SentryClient()
+    client.post_sentry_issues()
 
 
 def handle_testrail_milestones(args):
-    TestRailClient().post_milestone_report(args.project_list, args.platform)
+    client = TestRailClient()
+    client.post_milestone_report(args.project_list, args.platform)
 
 
 def handle_testrail_users(args):
-    TestRailClient().post_user_report(args.project_list, args.platform)
+    client = TestRailClient()
+    client.post_user_report(args.project_list, args.platform)
 
 
 def handle_testrail_test_case_coverage(args):
-    TestRailClient().post_test_case_coverage(args.project_list, args.platform)
+    client = TestRailClient()
+    client.post_test_case_coverage(args.project_list, args.platform)
 
 
 def handle_testrail_test_run_counts(args):
-    TestRailClient().post_test_run_counts(args.project_list, args.platform)
+    client = TestRailClient()
+    client.post_test_run_counts(args.project_list, args.platform)
 
 
 # === DISPATCH MAP ===

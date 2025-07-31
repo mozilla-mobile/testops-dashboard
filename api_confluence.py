@@ -13,6 +13,7 @@ from atlassian import Confluence
 import requests
 from bs4 import BeautifulSoup
 from jinja2 import Template
+from api_testrail import TestRailClient
 
 
 # Confluence ENV vars
@@ -317,6 +318,7 @@ def page_report_build_validation(
     ship_recommend_verbose,
     contacts,
 ):
+    #h = Testrail.....
     """
     Applies params to jinja/mustache-style XML template and inserts into page
     """
@@ -366,8 +368,11 @@ def main():
     # invoke it from __main__.py --report-type looker-graphs
     pages_looker_graphs()
 
-    # TODO: design approach for custom (XML-config) reports
-    """
+
+def main_2():
+    # TODO: phase 2 PR - instead of invoking this directly from main,
+    # invoke it from __main__.py --report-type looker-graphs
+
     page_id = "1663598593"
     page_title = "DEMO v2"
     projects_id = 14 # Firefox for iOS
@@ -401,7 +406,6 @@ def main():
         ship_recommend_verbose=qa_recommendation_verbose,
         contacts=qa_contacts,
     )
-    """
 
 
 if __name__ == "__main__":
