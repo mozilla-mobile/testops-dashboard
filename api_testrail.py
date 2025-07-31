@@ -20,7 +20,7 @@ from database import (
     ReportTestCaseCoverage,
     ReportTestRailMilestones,
     ReportTestRailUsers,
-    ReportTestRailTestPlans, ReportTestRailTestRuns, ReportTestResults
+    ReportTestRailTestPlans, ReportTestRailTestRuns, ReportTestRailTestResults
 )
 
 from utils.datetime_utils import DatetimeUtils as dt
@@ -410,7 +410,7 @@ class TestRailClient(TestRail):
         print(f"beta: {tp_ids[0]}, l10n: {tp_ids[1]}")
 
         # Insert data for beta and refer back to test run table
-        self.db.clean_table(ReportTestResults)
+        self.db.clean_table(ReportTestRailTestResults)
         types = ("beta", "l10n")
         for i, type in enumerate(types):
             runs = self.get_test_plan(tp_ids[i])["entries"]
@@ -603,7 +603,7 @@ class DatabaseTestRail(Database):
             total['id'] = report.id
         return payload
 
-    def report_test_results_insert(self, db_run_id, payload, type):
+    def report_testrail_test_result_insert(self, db_run_id, payload, type):
         # insert data from payload into report_testrail_test_results table
         for result in payload:
             # Skip if not automated testing
@@ -632,7 +632,7 @@ class DatabaseTestRail(Database):
                 'type': type
             }
 
-            report = ReportTestResults(**args)
+            report = ReportTestRailTestResults(**args)
 
             self.session.add(report)
             self.session.commit()

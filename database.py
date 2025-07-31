@@ -92,8 +92,8 @@ class ReportBugzillaSoftvisionBugs(Base):
     __table__ = Table('report_bugzilla_softvision_bugs', Base.metadata, autoload=True)  # noqa
 
 
-class ReportTestResults(Base):
-    __table__ = Table('report_testrail_test_results', Base.metadata, autoload=True)
+class ReportTestRailTestResults(Base):
+    __table__ = Table('report_testrail_test_results', Base.metadata, autoload=True)  # noqa
 
 
 class ReportBugzillaMetaBugs(Base):
