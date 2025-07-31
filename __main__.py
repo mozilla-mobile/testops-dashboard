@@ -13,7 +13,7 @@ from api_github import GithubClient
 from api_jira import JiraClient
 from api_testrail import TestRailClient
 from api_sentry import SentryClient
-# import api_confluence
+import api_confluence
 
 from api_bitrise import BitriseClient
 
