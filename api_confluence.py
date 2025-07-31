@@ -304,21 +304,40 @@ def page_content_insert_xml(page_id, params):
 
 # REPORT: Build Validation
 
-def page_report_build_validation(
-    page_id,
-    projects_id,
-    testrail_milestone_id,
-    testrail_milestone_title,
-    testrail_report_url,
-    build_version,
-    signoff_date,
-    test_status,
-    test_summary,
-    ship_recommend,
-    ship_recommend_verbose,
-    contacts,
-):
-    #h = Testrail.....
+def page_report_build_validation():
+    page_id = "1663598593"
+    page_title = "DEMO v2"
+    #  projects_id = 14 # Firefox for iOS
+    testrail_project_id = "59" # Fenix
+    testrail_milestone_id = "1066" # Manual functional testing sign-off - Firefox v120 (36024) RC1 # noqa
+    testrail_report_url = "http://mozilla.org"
+    release = "Manual functional testing sign-off - Firefox v120 (36024) RC1"
+    build_version = "v149"
+    testing_status = "green"
+    testing_summary = '''
+    <li>We started Full Functional test suite.</li>
+    <li>We ran X sets of automated Full Functional tests on iPhone and iPad with XYZ experiment ON.</li> # noqa
+    '''
+    release_tag_url = "https://archive.mozilla.org/pub/fenix/releases/"
+    qa_contacts = '''
+     <a href='mailto:csuciu@mozilla.com'>Catalin Suc1u</a>,
+     <a href='mailto:amoldovan@mozilla.com'>Alina M0ld0van</a>,
+     <a href='mailto:abodea@mozilla.com'>Andr3i Bodea</a>
+     '''
+    client = TestRailClient()
+    client.get_milestones(testrail_project_id)
+    lastest_milestone = sorted(
+        milestones,
+        key=lambda m: m.get('start_on', m.get('created_on', 0)),
+        reverse=True
+    )[0]
+
+    print(f"latest milestone: {latest_milestone}['name']} (ID: {latest_milestone['id']})")
+    print(f"latest milestone: {latest_milestone}['description']}")
+    sys.exit()
+
+
+
     """
     Applies params to jinja/mustache-style XML template and inserts into page
     """
@@ -372,40 +391,7 @@ def main():
 def main_2():
     # TODO: phase 2 PR - instead of invoking this directly from main,
     # invoke it from __main__.py --report-type looker-graphs
-
-    page_id = "1663598593"
-    page_title = "DEMO v2"
-    projects_id = 14 # Firefox for iOS
-    testrail_milestone_id = "1066" # Manual functional testing sign-off - Firefox v120 (36024) RC1 # noqa
-    testrail_report_url = "http://mozilla.org"
-    release = "Manual functional testing sign-off - Firefox v120 (36024) RC1"
-    build_version = "v149"
-    testing_status = "green"
-    testing_summary = '''
-    <li>We started Full Functional test suite.</li>
-    <li>We ran X sets of automated Full Functional tests on iPhone and iPad with XYZ experiment ON.</li> # noqa
-    '''
-    release_tag_url = "https://archive.mozilla.org/pub/fenix/releases/"
-    qa_contacts = '''
-     <a href='mailto:csuciu@mozilla.com'>Catalin Suc1u</a>,
-     <a href='mailto:amoldovan@mozilla.com'>Alina M0ld0van</a>,
-     <a href='mailto:abodea@mozilla.com'>Andr3i Bodea</a>
-     '''
-
-    page_report_build_validation(
-        page_id=page_id,
-        projects_id=projects_id,
-        testrail_milestone_id,
-        testrail_milestone_title=release,
-        testrail_report_url=testrail_report_url,
-        build_version=build_version,
-        signoff_date=release_date,
-        test_status=testing_status,
-        test_summary=testing_summary,
-        ship_recommend=qa_recommendation,
-        ship_recommend_verbose=qa_recommendation_verbose,
-        contacts=qa_contacts,
-    )
+    page_report_build_validation()
 
 
 if __name__ == "__main__":

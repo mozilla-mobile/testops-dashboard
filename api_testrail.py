@@ -219,7 +219,7 @@ class TestRailClient(TestRail):
         self.db.report_test_runs_insert(projects_id, totals)
 
     def testrail_milestones(self, project):
-        self.db.testrail_milestons_delete()
+        self.db.testrail_milestones_delete()
 
         project_ids_list = self.testrail_project_ids(project)
         milestones_all = pd.DataFrame()
@@ -429,7 +429,7 @@ class DatabaseTestRail(Database):
         self.session.add(suites)
         self.session.commit()
 
-    def testrail_milestons_delete(self):
+    def testrail_milestones_delete(self):
         self.session.query(ReportTestRailMilestones).delete()
         self.session.commit()
 
