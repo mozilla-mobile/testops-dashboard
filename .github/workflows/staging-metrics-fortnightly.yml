@@ -51,5 +51,5 @@ jobs:
             echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
             echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
 
-      - name: Query Test Plans and Runs
+      - name: Query Test Results
         run: python ./__main__.py --platform desktop --project firefox-desktop --report-type testrail-test-results
