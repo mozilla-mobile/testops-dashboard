@@ -1,9 +1,9 @@
-name: Testops Report PUSH 
+name: Testops Check All Jobs on Push
 
 on:
-  # push:
-  #  branches:
-  #  - master
+  push:
+    branches:
+    - master 
   workflow_dispatch:
     inputs:
       branchName:
@@ -38,7 +38,7 @@ jobs:
         run: |
             echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_NAME=staging" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=preflight" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
             echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
             echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
@@ -58,28 +58,47 @@ jobs:
             echo "SENTRY_API_TOKEN=${{ secrets.SENTRY_API_TOKEN_CSO }}" >> $GITHUB_ENV
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
-
-      - name: Update DB - test runs
+      # TestRail
+      - name: Mobile Test Case Coverage
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
 
-      - name: Jira query qa-requests
-        run: python ./__main__.py --report-type jira-qa-requests
-
-      - name: Jira query qa-needed
-        if: always()
-        run: python ./__main__.py --report-type jira-qa-needed
-
-      - name: Bugzilla query qe-verify
-        if: always()
-        run: python ./__main__.py --report-type bugzilla-qe-verify
-
-      - name: Bitrise Build Count
-        if: always()
-        run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
+      - name: Desktop Test Case Coverage
+        run: python ./__main__.py --report-type testrail-test-case-coverage --platform desktop --project ALL
 
       - name: Testrail Users
         run: python ./__main__.py --report-type testrail-users
 
+      - name: Mobile testrail milestones
+        run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones
+  
+      # Jira
+      - name: Jira query qa-needed
+        if: always()
+        run: python ./__main__.py --report-type jira-qa-needed
+
+      - name: Jira query qa-requests
+        run: python ./__main__.py --report-type jira-qa-requests
+
+      - name: Jira Softvision Worklogs
+        run: python ./__main__.py --report-type jira-softvision-worklogs
+
+      # Bugzilla
+      - name: Bugzilla query qe-verify
+        if: always()
+        run: python ./__main__.py --report-type bugzilla-qe-verify
+
+      - name: Bugzilla Metabug Android Memory Leaks
+        run: python  ./__main__.py --report-type bugzilla-meta-bugs --meta-bug-id 1935100
+
+      - name: Bugzilla Desktop Bugs
+        run: python ./__main__.py --report-type bugzilla-desktop-bugs
+
+      # Bitrise
+      - name: Bitrise Build Count
+        if: always()
+        run: python ./__main__.py --platform mobile --project firefox-ios --report-type bitrise-builds
+
+      # Sentry
       - name: Sentry query
         run: |
           python __main__.py --report-type sentry-issues
@@ -92,14 +111,6 @@ jobs:
       - name: Construct JSON for Slack (Sentry)
         run: |
           python -m lib.sentry_slack_rates ./sentry_rates.csv
-      - name: Send latest Sentry issues to Slack
-        id: slack-sentry
-        uses: slackapi/slack-github-action@v2.1.0
-        with:
-          payload-file-path: "./sentry-slack.json"
-          payload-templated: true 
-          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
-          webhook-type: incoming-webhook
 
       - name: Set job log URL
         if: always()
