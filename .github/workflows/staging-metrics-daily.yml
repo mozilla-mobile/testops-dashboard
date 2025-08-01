@@ -2,7 +2,6 @@ name: Desktop Testops Report DAILY - Staging Metrics
 
 # Daily @4am UTC
 on:
-  pull_request:
   schedule:
     - cron:  "0 4 * * *"
   workflow_dispatch:

@@ -65,6 +65,9 @@ jobs:
       - name: Desktop Test Case Coverage
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform desktop --project ALL
 
+      - name: Desktop Query Test Plans and Runs
+        run: python ./__main__.py --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
+
       - name: Testrail Users
         run: python ./__main__.py --report-type testrail-users
 
