@@ -1,6 +1,7 @@
 name: Testops Check All Jobs on Push
 
 on:
+  pull_request:
   push:
     branches:
     - master 
