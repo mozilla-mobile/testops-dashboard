@@ -344,7 +344,7 @@ class TestRailClient(TestRail):
 
     def testrail_runs_update(self, num_days, project_plans):
         """
-            Update the test_runs table with the latest entries up until 
+            Update the test_runs table with the latest entries up until
             the specified number of days.
 
             Args:
@@ -400,7 +400,7 @@ class TestRailClient(TestRail):
     def testrail_test_results(self):
         """Gets all the test result duration for the latest test plans
         Precondition: testrail_plans_and_runs have been run prior"""
-        
+
         # Get the most recent test plan ids for beta and l10n
         tp_ids = [None, None]
         for tp in self.db.session.query(ReportTestRailTestPlans).order_by(
@@ -426,7 +426,7 @@ class TestRailClient(TestRail):
                             testrail_run_id=config["id"]).first().id
                     run_results = self.test_results_for_run(config["id"])["results"]    # noqa
                     self.db.report_testrail_test_result_insert(
-                        db_run_id, run_results, type)  
+                        db_run_id, run_results, type)
             print(f"Added all test results from table {type}")
 
 
@@ -623,7 +623,7 @@ class DatabaseTestRail(Database):
 
             created_on = dt.convert_epoch_to_datetime(result['created_on'])  # noqa
             completed_on = dt.convert_epoch_to_datetime(result['completed_on']) if result.get('completed_on') else None  # noqa
-            
+
             elapsed = result["elapsed"]
             if elapsed:
                 if "min" in elapsed:
