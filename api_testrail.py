@@ -77,7 +77,7 @@ class TestRail:
         return self.client.send_get(
             f"get_suites/{testrail_project_id}",
             data_type="suites"
-    )
+        )
 
     def test_suite(self, testrail_test_suite_id):
         return self.client.send_get(f"get_suite/{testrail_test_suite_id}")
@@ -129,6 +129,7 @@ class TestRail:
         return self.client.send_get(
             f'get_users/{testrail_project_id}'
         )
+
 
 class TestRailClient(TestRail):
 
@@ -251,7 +252,7 @@ class TestRailClient(TestRail):
                 )
 
                 # Empty DataFrame to avoid errors
-                milestones_all = pd.DataFrame()  
+                milestones_all = pd.DataFrame()
 
             else:
                 # Convert JSON to DataFrame
@@ -260,9 +261,9 @@ class TestRailClient(TestRail):
             # Ensure DataFrame is not empty before processing
             if milestones_all.empty:
                 print(
-                    f"Milestones DataFrame is empty for project {testrail_project_id}." 
+                    f"Milestones DataFrame is empty for project {testrail_project_id}."
                     f"Skipping..."
-                )  
+                )
                 # Continue to next project (if inside a loop)
             else:
                 # Define selected columns
@@ -278,8 +279,10 @@ class TestRailClient(TestRail):
 
                 # Select specific columns (only if they exist)
                 existing_columns = [
-                    col for col in selected_columns.keys() if col in milestones_all.columns
+                    col for col in selected_columns.keys()
+                    if col in milestones_all.columns
                 ]
+
                 df_selected = milestones_all[existing_columns].rename(
                     columns={
                         k: v
@@ -293,13 +296,17 @@ class TestRailClient(TestRail):
                     df_selected['started_on'] = pd.to_datetime(
                         df_selected['started_on'], unit='s', errors='coerce'
                     )
-                    df_selected['started_on'] = df_selected['started_on'].replace({np.nan: None})
+                    df_selected['started_on'] = df_selected['started_on'].replace(
+                        {np.nan: None}
+                    )
 
                 if 'completed_on' in df_selected.columns:
                     df_selected['completed_on'] = pd.to_datetime(
                         df_selected['completed_on'], unit='s', errors='coerce'
                     )
-                    df_selected['completed_on'] = df_selected['completed_on'].replace({np.nan: None})
+                    df_selected['completed_on'] = df_selected['completed_on'].replace(
+                        {np.nan: None}
+                    )
 
                 # Apply transformations only if description column exists
                 if 'description' in df_selected.columns:
@@ -312,7 +319,11 @@ class TestRailClient(TestRail):
 
                 # Apply transformations only if name column exists
                 if 'name' in df_selected.columns:
-                    df_selected['build_name'] = df_selected['name'].apply(pl.extract_build_name)
+
+                    df_selected['build_name'] = df_selected['name'].apply(
+                        pl.extract_build_name
+                    )
+
                     df_selected['build_version'] = df_selected['build_name'].apply(
                         pl.extract_build_version
                     )
