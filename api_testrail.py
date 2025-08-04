@@ -378,11 +378,7 @@ class TestRailClient(TestRail):
                     f"Error fetching users {project_id} ({project_name}): {e}"
                 )
 
-
-
-        # Get i               print(
-                    f"Error fetching users {project_id} ({project_name}): {e}"
-                )unique users by email
+        # Get unique users by email
         unique_by_email = {}
         for user in all_users:
             email = user.get("email")
