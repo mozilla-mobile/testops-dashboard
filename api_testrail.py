@@ -329,8 +329,6 @@ class TestRailClient(TestRail):
                         df_selected['build_name'].apply(pl.extract_build_version)
                     )
 
-
-
                 # Insert into database only if there is data
                 if not df_selected.empty:
                     self.db.report_milestones_insert(projects_id, df_selected)
@@ -369,7 +367,7 @@ class TestRailClient(TestRail):
                 }
 
                 project_user_counts[project_name] = len(unique_emails)
-       
+
                 print(
                     f"{project_name} (ID: {project_id}): "
                     f"{len(unique_emails)} unique users (by email)"
@@ -436,8 +434,6 @@ class TestRailClient(TestRail):
                     entry['suite_id'],
                     entry['runs'],
                 )
-
-
 
     def testrail_plans_and_runs(self, project, num_days):
         """
