@@ -20,7 +20,10 @@ from database import (
     ReportTestCaseCoverage,
     ReportTestRailMilestones,
     ReportTestRailUsers,
-    ReportTestRailTestPlans, ReportTestRailTestRuns, ReportTestResultsL10N, ReportTestResultsBeta
+    ReportTestRailTestPlans,
+    ReportTestRailTestRuns,
+    ReportTestResultsL10N,
+    ReportTestResultsBeta,
 )
 
 from utils.datetime_utils import DatetimeUtils as dt
@@ -39,19 +42,28 @@ class TestRail:
             print("ERROR: Missing testrail env var")
             sys.exit(1)
 
+
     # API: Milestones
     # https://mozilla.testrail.io/index.php?/api/v2/get_milestones/59
     def milestones(self, testrail_project_id):
         return self.client.send_get(
             'get_milestones/{0}'.format(testrail_project_id), data_type='milestones')  # noqa
 
-    # API: Projects
+
+    def milestone(self, testrail_milestone_id):
+        return self.client.send_get(
+            'get_milestones/{0}'.format(testrail_milestone_id))
+
+
+ API: Projects
     def projects(self):
         return self.client.send_get('get_projects')
+
 
     def project(self, testrail_project_id):
         return self.client.send_get(
             'get_project/{0}'.format(testrail_project_id))
+
 
     # API: Cases
     def test_cases(self, testrail_project_id, testrail_test_suite_id):
@@ -59,27 +71,33 @@ class TestRail:
             'get_cases/{0}&suite_id={1}'
             .format(testrail_project_id, testrail_test_suite_id), data_type='cases')  # noqa
 
+
     def test_case(self, testrail_test_case_id):
         return self.client.send_get(
             'get_case/{0}'.format(testrail_test_case_id))
+
 
     # API: Case Fields
     def test_case_fields(self):
         return self.client.send_get(
             'get_case_fields')
 
+
     # API: Suites
     def test_suites(self, testrail_project_id):
         return self.client \
             .send_get('get_suites/{0}'.format(testrail_project_id), data_type='suites')  # noqa
 
+
     def test_suite(self, testrail_test_suite_id):
         return self.client \
             .send_get('get_suite/{0}'.format(testrail_test_suite_id))
 
+
     # API: Runs
     def test_run(self, run_id):
         return self.client.send_get('get_run/{0}'.format(run_id))
+
 
     def test_runs(self, testrail_project_id, start_date='', end_date=''):
         date_range = ''
@@ -91,8 +109,10 @@ class TestRail:
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get('get_runs/{0}{1}'.format(testrail_project_id, date_range))  # noqa
 
+
     def test_results_for_run(self, run_id):
         return self.client.send_get('get_results_for_run/{0}'.format(run_id))
+
 
     # API: Plans
     def get_test_plans(self, testrail_project_id, start_date='', end_date=''):
@@ -106,6 +126,7 @@ class TestRail:
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get(f"/get_plans/{testrail_project_id}{date_range}")
 
+
     def get_test_plan(self, plan_id, start_date='', end_date=''):
         """Return a plan object by plan id"""
         date_range = ''
@@ -116,6 +137,7 @@ class TestRail:
             before = dt.convert_datetime_to_epoch(end_date)
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get(f"/get_plan/{plan_id}{date_range}")
+
 
     # API: Users
     def users(self, testrail_project_id):
@@ -129,7 +151,8 @@ class TestRailClient(TestRail):
         super().__init__()
         self.db = DatabaseTestRail()
 
-    def data_pump(self, project='all', suite='all'):
+
+    def data_pump_report_test_case_coverage(self, project='all', suite='all'):
         # call database for 'all' values
         # convert inputs to a list so we can easily
         # loop thru them
@@ -160,6 +183,7 @@ class TestRailClient(TestRail):
                 self.testrail_coverage_update(projects_id,
                                               testrail_project_id, suite['id'])
 
+
     def testrail_project_ids(self, project):
         """ Return the ids needed to be able to query the TestRail API for
         a specific test suite from a specific project
@@ -184,6 +208,7 @@ class TestRailClient(TestRail):
         print(project_ids_list)
         return project_ids_list
 
+
     def testrail_coverage_update(self, projects_id,
                                  testrail_project_id, test_suite_id):
 
@@ -197,11 +222,16 @@ class TestRailClient(TestRail):
         # Insert data in 'totals' array into DB
         self.db.report_test_coverage_insert(projects_id, payload)
 
+
     def testrail_run_counts_update(self, project, num_days):
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
-        projects_id, testrail_project_id, functional_test_suite_id = self.db.testrail_identity_ids(project)  # noqa
+        (
+            projects_id,
+            testrail_project_id,
+            functional_test_suite_id,
+        ) = self.db.testrail_identity_ids(project)
 
         # Pull JSON blob from Testrail
         runs = self.test_runs(testrail_project_id, start_date)  # noqa
@@ -211,6 +241,7 @@ class TestRailClient(TestRail):
 
         # Insert data in the 'totals' array into DB
         self.db.report_test_runs_insert(projects_id, totals)
+
 
     def testrail_milestones(self, project):
         self.db.testrail_milestons_delete()
@@ -248,37 +279,58 @@ class TestRailClient(TestRail):
                 }
 
                 # Select specific columns (only if they exist)
-                existing_columns = [col for col in selected_columns.keys() if col in milestones_all.columns]  # noqa
+                existing_columns = [
+                    col for col in selected_columns.keys()
+                    if col in milestones_all.columns
+                ]
+                
                 df_selected = milestones_all[existing_columns].rename(
-                    columns={k: v for k, v in selected_columns.items() if k in milestones_all.columns})  # noqa
+                    columns={
+                        k: v for k, v in selected_columns.items()
+                        if k in milestones_all.columns
+                    }
+                )
 
                 # Convert valid timestamps, leave empty ones as NaT
                 if 'started_on' in df_selected.columns:
-                    df_selected['started_on'] = pd.to_datetime(df_selected['started_on'], unit='s',
-                                                               errors='coerce')  # noqa
-                    df_selected['started_on'] = df_selected['started_on'].replace({np.nan: None})  # noqa
-
+                    df_selected['started_on'] = pd.to_datetime(
+                        df_selected['started_on'], unit='s', errors='coerce'
+                    )
+                    df_selected['started_on'] = df_selected['started_on'].replace({np.nan: None})
+                
                 if 'completed_on' in df_selected.columns:
-                    df_selected['completed_on'] = pd.to_datetime(df_selected['completed_on'], unit='s',
-                                                                 errors='coerce')  # noqa
-                    df_selected['completed_on'] = df_selected['completed_on'].replace({np.nan: None})  # noqa
+                    df_selected['completed_on'] = pd.to_datetime(
+                        df_selected['completed_on'], unit='s', errors='coerce'
+                    )
+                    df_selected['completed_on'] = df_selected['completed_on'].replace({np.nan: None})
 
-                # Apply transformations only if description column exists
+                # Apply transformations only if description column exist                s
                 if 'description' in df_selected.columns:
-                    df_selected['testing_status'] = df_selected['description'].apply(pl.extract_testing_status)  # noqa
+                    df_selected['testing_status'] = df_selected['description'].apply(
+                        pl.extract_testing_status
+                    )
                     df_selected['testing_recommendation'] = df_selected['description'].apply(
-                        pl.extract_testing_recommendation)  # noqa
-
+                        pl.extract_testing_recommendation
+                    )
+                
                 # Apply transformations only if name column exists
                 if 'name' in df_selected.columns:
-                    df_selected['build_name'] = df_selected['name'].apply(pl.extract_build_name)  # noqa
-                    df_selected['build_version'] = df_selected['build_name'].apply(pl.extract_build_version)  # noqa
-
+                    df_selected['build_name'] = df_selected['name'].apply(
+                        pl.extract_build_name
+                    )
+                    df_selected['build_version'] = df_selected['build_name'].apply(
+                        pl.extract_build_version
+                    )
+                
                 # Insert into database only if there is data
                 if not df_selected.empty:
                     self.db.report_milestones_insert(projects_id, df_selected)
                 else:
-                    print(f"No milestones data to insert into database for project {testrail_project_id}.")  # noqa
+                    print(
+                        f"No milestones data to insert into database for project "
+                        f"{testrail_project_id}."
+                    )
+
 
     def testrail_users(self):
         # Step 1: Get all projects
@@ -302,13 +354,21 @@ class TestRailClient(TestRail):
                 users = user_response.get("users", [])
                 all_users.extend(users)
 
-                unique_emails = {user.get("email") for user in users if user.get("email")}  # noqa
+                unique_emails = {
+                    user.get("email")
+                    for user in users
+                    if user.get("email")
+                }
+                
                 project_user_counts[project_name] = len(unique_emails)
-
-                print(f"{project_name} (ID: {project_id}): {len(unique_emails)} unique users (by email)")  # noqa
+                
+                print(
+                    f"{project_name} (ID: {project_id}): "
+                    f"{len(unique_emails)} unique users (by email)"
+                )
 
             except Exception as e:
-                print(f"Error fetching users {project_id} ({project_name}): {e}")  # noqa
+                print(f"Error fetching users {project_id} ({project_name}): {e}")
 
         # Get unique users by email
         unique_by_email = {}
@@ -317,13 +377,19 @@ class TestRailClient(TestRail):
             if email:
                 unique_by_email[email] = user
 
-        print(f"\n Total unique users across all accessible projects (by email): {len(unique_by_email)}")  # noqa
+        print(
+            f"\n Total unique users across all accessible projects (by email): "
+            f"{len(unique_by_email)}"
+        )
 
         # Diagnostic
         print("\nSample of unique users:")
         for email, user in list(unique_by_email.items()):
             status = "active" if user.get("is_active") else "inactive"
-            print(f"- {user.get('name')} | {email} | {status} | role: {user.get('role')}")  # noqa
+            print(
+                f"- {user.get('name')} | {email} | {status} | "
+                f"role: {user.get('role')}"
+            )
 
         created_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -343,7 +409,8 @@ class TestRailClient(TestRail):
 
     def testrail_runs_update(self, num_days, project_plans):
         """
-            Update the test_runs table with the latest entries up until the specified number of days.
+            Update the test_runs table with the latest entries up until
+            the specified number of days.
 
             Args:
                 num_days (str): number of days to go back from.
@@ -358,7 +425,8 @@ class TestRailClient(TestRail):
 
     def testrail_plans_and_runs(self, project, num_days):
         """
-            Given a testrail project, update the test_plans and test_runs tables with the latest entries up until the specified number of days.
+            Given a testrail project, update the test_plans and test_runs
+            tables with the latest entries up until the specified number of days.
             Only take the 'Automated testing' plans.
 
             Args:
@@ -402,11 +470,13 @@ class DatabaseTestRail(Database):
         super().__init__()
         self.db = Database()
 
+
     def test_suites_delete(self):
         """ Wipe out all test suite data.
         NOTE: we'll renew this data from Testrail every session."""
         self.session.query(TestSuites).delete()
         self.session.commit()
+
 
     def test_suites_update(self, testrail_project_id,
                            testrail_test_suites_id, test_suite_name):
@@ -416,9 +486,11 @@ class DatabaseTestRail(Database):
         self.session.add(suites)
         self.session.commit()
 
+
     def testrail_milestons_delete(self):
         self.session.query(ReportTestRailMilestones).delete()
         self.session.commit()
+
 
     def report_test_runs_insert(self, db_plan_id, suite_id, runs):
         for run in runs:
@@ -437,12 +509,13 @@ class DatabaseTestRail(Database):
             self.session.add(report_run)
             self.session.commit()
 
+
     def report_milestones_insert(self, projects_id, payload):
         for index, row in payload.iterrows():
             print(row)
 
             report = ReportTestRailMilestones(
-                testrail_milestone_id=row['testrail_milestone_id'],  # noqa
+                testrail_milestone_id=row['testrail_milestone_id'],
                 projects_id=projects_id,
                 name=row['name'],
                 started_on=row['started_on'],
@@ -451,12 +524,13 @@ class DatabaseTestRail(Database):
                 description=row['description'],
                 url=row['url'],
                 testing_status=row['testing_status'],
-                testing_recommendation=row['testing_recommendation'],  # noqa
+                testing_recommendation=row['testing_recommendation'],
                 build_name=row['build_name'],
                 build_version=row['build_version']
             )
             self.session.add(report)
             self.session.commit()
+
 
     def report_test_coverage_payload(self, cases):
         """given testrail data (cases), calculate test case counts by type"""
@@ -470,7 +544,7 @@ class DatabaseTestRail(Database):
             subs = case.get("custom_sub_test_suites", [7])
 
             # TODO: diagnostic - delete
-            print('suite_id: {0}, case_id: {1}, subs: {2}'.format(suit, case['id'], subs))  # noqa
+            print(f"suite_id: {suit}, case_id: {case['id']}, subs: {subs}")
             stat = case['custom_automation_status']
             cov = case['custom_automation_coverage']
 
@@ -483,24 +557,34 @@ class DatabaseTestRail(Database):
 
         df = pd.DataFrame(data=payload,
                           columns=['suit', 'sub', 'status', 'cov', 'tally'])
-        return df.groupby(['suit', 'sub', 'status', 'cov'])['tally'].sum().reset_index()  # noqa
+        return (
+            df.groupby(['suit', 'sub', 'status', 'cov'])['tally']
+              .sum()
+              .reset_index()
+        )
+
 
     def report_test_coverage_insert(self, projects_id, payload):
         # TODO:  Error on insert
         # insert data from totals into report_test_coverage table
         for index, row in payload.iterrows():
             # TODO: diagnostic - delete
-            print('ROW - suit: {0}, asid: {1}, acid: {2}, ssid: {3}, tally: {4}'  # noqa
-                  .format(row['suit'], row['status'], row['cov'], row['sub'], row['tally']))  # noqa
+            print(
+                f"ROW - suit: {row['suit']}, asid: {row['status']}, "
+                f"acid: {row['cov']}, ssid: {row['sub']}, tally: {row['tally']}"
+            )
 
-            report = ReportTestCaseCoverage(projects_id=projects_id,
-                                            testrail_test_suites_id=row['suit'],  # noqa
-                                            test_automation_status_id=row['status'],  # noqa
-                                            test_automation_coverage_id=row['cov'],  # noqa
-                                            test_sub_suites_id=row['sub'],
-                                            test_count=row['tally'])
+            report = ReportTestCaseCoverage(
+                projects_id=projects_id,
+                testrail_test_suites_id=row['suit'],
+                test_automation_status_id=row['status'],
+                test_automation_coverage_id=row['cov'],
+                test_sub_suites_id=row['sub'],
+                test_count=row['tally']
+            )
             self.session.add(report)
             self.session.commit()
+
 
     def report_testrail_users_insert(self, payload):
         for index, row in payload.iterrows():
@@ -513,6 +597,7 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
+
 
     def report_test_run_payload(self, runs):
         """pack testrail data for 1 run in a data array
@@ -554,9 +639,14 @@ class DatabaseTestRail(Database):
     def report_test_plans_insert(self, project_id, payload):
         # insert data from payload into test_plans table
         for total in payload.values():
-            created_on = dt.convert_epoch_to_datetime(total['created_on'])  # noqa
-            completed_on = dt.convert_epoch_to_datetime(total['completed_on']) if total[
-                'completed_on'] else None  # noqa
+
+            created_on = dt.convert_epoch_to_datetime(total['created_on'])
+                
+            completed_on = (
+                dt.convert_epoch_to_datetime(total['completed_on'])
+                if total['completed_on']
+                else None
+            )
 
             report = ReportTestRailTestPlans(
                 projects_id=project_id,
