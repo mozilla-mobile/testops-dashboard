@@ -673,12 +673,12 @@ class DatabaseTestRail(Database):
     def report_test_plans_insert(self, project_id, payload):
         # insert data from payload into test_plans table
 
-		for total in payload.values():
-			created_on = dt.convert_epoch_to_datetime(total['created_on'])
-			completed_on = (
-				dt.convert_epoch_to_datetime(total['completed_on'])
-				if total['completed_on'] else None
-			)
+        for total in payload.values():
+            created_on = dt.convert_epoch_to_datetime(total['created_on'])
+            completed_on = (
+                dt.convert_epoch_to_datetime(total['completed_on'])
+                if total['completed_on'] else None
+            )
 
             report = ReportTestRailTestPlans(
                 projects_id=project_id,
@@ -705,12 +705,12 @@ class DatabaseTestRail(Database):
             if result["created_by"] != 976:
                 continue
 
-			created_on = dt.convert_epoch_to_datetime(result['created_on'])
+            created_on = dt.convert_epoch_to_datetime(result['created_on'])
 
-			completed_on = (
-				dt.convert_epoch_to_datetime(result['completed_on'])
-				if result.get('completed_on') else None
-			)
+            completed_on = (
+                dt.convert_epoch_to_datetime(result['completed_on'])
+                if result.get('completed_on') else None
+            )
 
             elapsed = result["elapsed"]
             if elapsed:
