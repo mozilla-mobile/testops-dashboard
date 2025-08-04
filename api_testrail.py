@@ -597,17 +597,18 @@ class DatabaseTestRail(Database):
         # TODO:  Error on insert
         # insert data from totals into report_test_coverage table
 
-		for index, row in payload.iterrows():
-			# TODO: diagnostic - delete
-			print(
-				'ROW - suit: {0}, asid: {1}, acid: {2}, ssid: {3}, tally: {4}'.format(
-					row['suit'],
-					row['status'],
-					row['cov'],
-					row['sub'],
-					row['tally']
-				)
-			)
+        for index, row in payload.iterrows():
+            # TODO: diagnostic - delete
+            print(
+                'ROW - suit: {0}, asid: {1}, acid: {2}, ssid: {3}, tally: {4}'.format(
+                    row['suit'],
+                    row['status'],
+                    row['cov'],
+                    row['sub'],
+                    row['tally']
+
+                )
+            )
 
             report = ReportTestCaseCoverage(
                 projects_id=projects_id,
