@@ -32,8 +32,8 @@ class PayloadUtils:
         return None
 
     def extract_plan_info(plan):
-        """Extracts and aggregates the counts and other info for a single plan."""
-        count_keys = ['passed_count', 'failed_count', 'untested_count', 'blocked_count', 'retest_count']
+        # Extracts and aggregates the counts and other info for a single plan.
+        count_keys = ['passed_count', 'failed_count', 'untested_count', 'blocked_count', 'retest_count'] # noqa
         other_keys = ['id',
                       'project_id',
                       'name',

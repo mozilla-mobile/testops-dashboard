@@ -1,15 +1,9 @@
-name: Desktop Testops Report DAILY - Staging Metrics
+name: Desktop Testops Report FORTNIGHTLY - Staging Metrics
 
-# Daily @4am UTC
+# Every other Sat. @4am UTC
 on:
   schedule:
-    - cron:  "0 4 * * *"
-  workflow_dispatch:
-    inputs:
-      branchName:
-        description: 'Default branch'
-        required: true
-        default: 'master'
+    - cron:  "0 4 * * 6/2" 
 
 jobs:
   deploy:
@@ -57,6 +51,5 @@ jobs:
             echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
             echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
 
-
-      - name: Query Test Plans and Runs
-        run: python ./__main__.py --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
+      - name: Query Test Results
+        run: python ./__main__.py --platform desktop --project firefox-desktop --report-type testrail-test-results

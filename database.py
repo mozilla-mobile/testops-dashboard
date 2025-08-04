@@ -37,11 +37,11 @@ class ReportTestCaseCoverage(Base):
 #    __table__ = Table('report_test_run_counts', Base.metadata, autoload=True)
 
 class ReportTestRailTestPlans(Base):
-    __table__ = Table('report_testrail_test_plans', Base.metadata, autoload=True)
+    __table__ = Table('report_testrail_test_plans', Base.metadata, autoload=True)  # noqa
 
 
 class ReportTestRailTestRuns(Base):
-    __table__ = Table('report_testrail_test_runs', Base.metadata, autoload=True)
+    __table__ = Table('report_testrail_test_runs', Base.metadata, autoload=True)  # noqa
 
 
 class ReportGithubIssues(Base):
@@ -96,12 +96,8 @@ class ReportBugzillaSoftvisionBugs(Base):
     __table__ = Table('report_bugzilla_softvision_bugs', Base.metadata, autoload=True)  # noqa
 
 
-class ReportTestResultsBeta(Base):
-    __table__ = Table('report_testrail_test_results_beta', Base.metadata, autoload=True)
-
-
-class ReportTestResultsL10N(Base):
-    __table__ = Table('report_testrail_test_results_l10n', Base.metadata, autoload=True)
+class ReportTestRailTestResults(Base):
+    __table__ = Table('report_testrail_test_results', Base.metadata, autoload=True)  # noqa
 
 
 class ReportBugzillaMetaBugs(Base):
