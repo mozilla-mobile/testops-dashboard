@@ -17,7 +17,13 @@ import api_confluence
 
 from api_bitrise import BitriseClient
 
-from constants import PROJECTS_MOBILE, PROJECTS_ECOSYSTEM, PROJECTS_DESKTOP, PLATFORMS, REPORT_TYPES # noqa
+from constants import (
+    PROJECTS_MOBILE,
+    PROJECTS_ECOSYSTEM,
+    PROJECTS_DESKTOP,
+    PLATFORMS,
+    REPORT_TYPES,
+)
 
 
 def parse_args(cmdln_args):
@@ -80,12 +86,9 @@ def validate_project(platform, project, report_type):
     elif platform == 'ecosystem' and project not in PROJECTS_ECOSYSTEM:
         print(f"Error: Invalid project '{project}' for ecosystem. Valid options are {PROJECTS_ECOSYSTEM}") # noqa
         sys.exit(1)
-    elif platform == 'desktop' and project not in PROJECTS_DESKTOP:
-        print(f"Error: Invalid project '{project}' for desktop. Valid options are {PROJECTS_DESKTOP}") # noqa
-        sys.exit(1)
 
 
-def args_to_list(platform, projects):
+def expand_project_args(platform, projects):
     projects_list = []
     platform = (platform or "").lower()
     projects = (projects or "").lower()
@@ -108,76 +111,118 @@ def args_to_list(platform, projects):
     return projects_list
 
 
+# === COMMAND HANDLERS ===
+
+def handle_bitrise_builds(args):
+    client = BitriseClient()
+    client.post_build_data(args.project_list)
+
+
+def handle_bugzilla_desktop_bugs(args):
+    client = BugzillaClient()
+    client.post_desktop_bugs()
+
+
+def handle_bugzilla_meta_bugs(args):
+    client = BugzillaClient()
+    client.post_meta_bugs(args.meta_bug_id)
+
+
+def handle_bugzilla_qe_verify(args):
+    client = BugzillaClient()
+    client.post_qe_verify_bugs()
+
+
+def handle_confluence_updates(args):
+    api_confluence.update_existing_page()
+
+
+def handle_confluence_new_page(args):
+    api_confluence.create_new_page()
+
+
+def handle_confluence_build_validation(args):
+    api_confluence.post_build_validation()
+
+
+def handle_github_issue_regression(args):
+    client = GithubClient()
+    client.post_regression_issues()
+
+
+def handle_jira_qa_needed(args):
+    client = JiraClient()
+    client.post_qa_needed()
+
+
+def handle_jira_qa_requests(args):
+    client = JiraClient()
+    client.post_qa_requests()
+
+
+def handle_jira_softvision_worklogs(args):
+    client = JiraClient()
+    client.post_softvision_worklogs()
+
+
+def handle_sentry_issues(args):
+    client = SentryClient()
+    client.post_sentry_issues()
+
+
+def handle_testrail_milestones(args):
+    client = TestRailClient()
+    client.post_milestone_report(args.project_list, args.platform)
+
+
+def handle_testrail_users(args):
+    client = TestRailClient()
+    client.post_user_report(args.project_list, args.platform)
+
+
+def handle_testrail_test_case_coverage(args):
+    client = TestRailClient()
+    client.post_test_case_coverage(args.project_list, args.platform)
+
+
+def handle_testrail_test_run_counts(args):
+    client = TestRailClient()
+    client.post_test_run_counts(args.project_list, args.platform)
+
+
+# === DISPATCH MAP ===
+COMMAND_MAP = {
+    'bitrise-builds': handle_bitrise_builds,
+    'bugzilla-desktop-bugs': handle_bugzilla_desktop_bugs,
+    'bugzilla-meta-bugs': handle_bugzilla_meta_bugs,
+    'bugzilla-qe-verify': handle_bugzilla_qe_verify,
+    'confluence-updates': handle_confluence_updates,
+    'confluence-new-page': handle_confluence_new_page,
+    'confluence-build-validation': handle_confluence_build_validation,
+    'github-issue-regression': handle_github_issue_regression,
+    'jira-qa-needed': handle_jira_qa_needed,
+    'jira-qa-requests': handle_jira_qa_requests,
+    'jira-softvision-worklogs': handle_jira_softvision_worklogs,
+    'sentry-issues': handle_sentry_issues,
+    'testrail-milestones': handle_testrail_milestones,
+    'testrail-users': handle_testrail_users,
+    'testrail-test-case-coverage': handle_testrail_test_case_coverage,
+    'testrail-test-run-counts': handle_testrail_test_run_counts
+}
+
+
 def main():
     args = parse_args(sys.argv[1:])
-    validate_project(args.platform, args.project, args.report_type)
-    arg_list = args_to_list(args.platform, args.project)
+    report_type = args.report_type
 
-    if args.report_type == 'bugzilla-meta-bugs' and not args.meta_bug_id:
-        print("--meta-bug-id is required for report-type bugzilla-meta-bugs")
-        sys.exit(1)
+    if report_type not in COMMAND_MAP:
+        sys.exit(f"Unknown or unsupported report type: {report_type}")
 
-    if args.report_type == 'confluence-updates':
-        api_confluence.main()
-    if args.report_type == 'testrail-test-case-coverage':
-        h = TestRailClient()
-        h.data_pump_report_test_case_coverage(arg_list)
-    if args.report_type == 'testrail-test-run-counts':
-        h = TestRailClient()
-        if args.num_days:
-            num_days = args.num_days
-        else:
-            num_days = ''
-        h.testrail_run_counts_update(args.project, num_days)
-    if args.report_type == 'testrail-test-plans-and-runs':
-        h = TestRailClient()
-        if args.num_days:
-            num_days = args.num_days
-        else:
-            num_days = '30'
-        h.testrail_plans_and_runs(args.project, num_days)
-    if args.report_type == 'testrail-test-results':
-        h = TestRailClient()
-        h.testrail_test_results()
-    if args.report_type == 'testrail-milestones':
-        h = TestRailClient()
-        h.testrail_milestones(arg_list)
-    if args.report_type == 'testrail-users':
-        h = TestRailClient()
-        h.testrail_users()
-    if args.report_type == 'github-issue-regression':
-        h = GithubClient()
-        h.github_issue_regression(args.project)
-        h = GithubClient()
-    if args.report_type == 'jira-qa-requests':
-        h = JiraClient()
-        h.jira_qa_requests()
-        h.jira_qa_requests_new_issue_types()
-    if args.report_type == 'jira-qa-needed':
-        h = JiraClient()
-        h.jira_qa_needed()
-    if args.report_type == 'bugzilla-qe-verify':
-        h = BugzillaClient()
-        h.bugzilla_qe_verify()
-    if args.report_type == 'bugzilla-meta-bugs':
-        h = BugzillaClient()
-        h.bugzilla_meta_bug(meta_bug_id=args.meta_bug_id)
-    if args.report_type == 'bugzilla-desktop-bugs':
-        h = BugzillaClient()
-        h.bugzilla_query_desktop_bugs()
-    if args.report_type == 'jira-softvision-worklogs':
-        h = JiraClient()
-        h.jira_softvision_worklogs()
-    if args.report_type == 'bitrise-builds':
-        h = BitriseClient()
-        h.bitrise_builds_detailed_info()
-    if args.report_type == 'sentry-issues':
-        h = SentryClient()
-        h.sentry_issues()
-    if args.report_type == 'sentry-rates':
-        h = SentryClient()
-        h.sentry_rates()
+    validate_project(args.platform, args.project, report_type)
+    args.project_list = expand_project_args(args.platform, args.project)
+
+    COMMAND_MAP[report_type](args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
