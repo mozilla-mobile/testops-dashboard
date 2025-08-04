@@ -55,7 +55,7 @@ class TestRail:
             'get_milestones/{0}'.format(testrail_milestone_id))
 
 
- API: Projects
+    API: Projects
     def projects(self):
         return self.client.send_get('get_projects')
 
