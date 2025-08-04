@@ -1,0 +1,82 @@
+name: Testops Report WEEKLY 
+
+# Sat. @4am UTC
+on:
+  schedule:
+    - cron:  "15 4 * * 6" 
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Utilities updates (WEEKLY)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - name: Setup python 
+        uses: actions/setup-python@v5
+
+      - name: Establish Cloud SQL Proxy
+        uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GCLOUD_AUTH }}
+          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+
+      - name: Install requirements 
+        run: pip install -r requirements.txt
+
+      - name: Set env vars 
+        run: |
+            echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=production" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
+            echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
+            echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
+            echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
+            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+
+      - name: Drop preflight database if exists
+        run: |
+          mysql -h 127.0.0.1 -P ${{ secrets.CLOUD_SQL_DATABASE_PORT }} -u "${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" -p"${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" \
+            -e "DROP DATABASE IF EXISTS preflight;"
+
+      - name: Create preflight database
+        run: |
+          mysql -h 127.0.0.1 -P ${{ secrets.CLOUD_SQL_DATABASE_PORT }} -u "${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" -p"${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" \
+            -e "CREATE DATABASE preflight;"
+
+      - name: Dump production database schema and data
+        run: |
+          mysqldump -h 127.0.0.1 -P ${{ secrets.CLOUD_SQL_DATABASE_PORT }} -u "${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" -p"${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" \
+            production > prod_dump.sql
+
+      - name: Import dump into preflight database
+        run: |
+          mysql -h 127.0.0.1 -P ${{ secrets.CLOUD_SQL_DATABASE_PORT }} -u "${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" -p"${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" \
+            preflight < prod_dump.sql
+
+        continue-on-error: true
+
+      - name: Set job log URL
+        if: always()
+        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+      - name: Send custom JSON data to Slack workflow
+        if: always()
+        id: slack
+        uses: slackapi/slack-github-action@v1.26.0
+        env:
+          WORKFLOW_NAME: ${{ github.workflow }}
+          JOB_STATUS: ${{ job.status == 'success' && ':white_check_mark:' || job.status == 'failure' && ':x:' }}
+          JOB_STATUS_COLOR: ${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#FF0000' }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+        with:
+          payload-file-path: "./config/payload-slack-content.json"
