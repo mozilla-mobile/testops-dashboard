@@ -41,6 +41,7 @@ REPORT_TYPES = [
     'github-issue-regression',
     'jira-qa-needed',
     'jira-qa-requests',
+    'jira-qa-requests-new-issue-types',
     'jira-softvision-worklogs',
     'testrail-milestones',
     'testrail-users',

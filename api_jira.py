@@ -54,8 +54,7 @@ class Jira:
         query = SEARCH + '?' + JQL_QUERY + FILTER_ID_ALL_REQUEST_ISSUE_TYPE \
                 + '&fields=' + DEFAULT_COLUMNS \
                 + COLUMNS_ISSUE_TYPE + ',' + STORY_POINTS + ',' \
-                + FIREFOX_RELEASE_TRAIN + ',' + TESTED_TRAINS + ',' \
-                + ENGINEERING_TEAM + '&' + MAX_RESULT
+                + TESTED_TRAINS + '&' + MAX_RESULT
 
         return self.client.get_search(query, data_type='issues')
 
@@ -275,8 +274,6 @@ class DatabaseJira(Database):
             'key': 'jira_key',
             'fields_summary': 'jira_summary',
             'fields_created': 'jira_created_at',
-            'fields_customfield_10155_value': 'jira_firefox_release_train',
-            'fields_customfield_10134_value': 'jira_engineering_team',
             'fields_customfield_10037': 'jira_story_points',
             'fields_status_name': 'jira_status',
             'fields_assignee_emailAddress': 'jira_assignee_username',
@@ -330,8 +327,6 @@ class DatabaseJira(Database):
             report = ReportJIraQARequestsNewIssueType(jira_key=row['jira_key'],
                                                       jira_created_at=row['jira_created_at'].date(), # noqa
                                                       jira_summary=row['jira_summary'], # noqa
-                                                      jira_firefox_release_train=row['jira_firefox_release_train'], # noqa
-                                                      jira_engineering_team=row['jira_engineering_team'], # noqa
                                                       jira_story_points=row['jira_story_points'], # noqa
                                                       jira_status=row['jira_status'], # noqa
                                                       jira_assignee_username=row['jira_assignee_username'], # noqa
