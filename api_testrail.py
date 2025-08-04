@@ -313,7 +313,9 @@ class TestRailClient(TestRail):
                     df_selected['testing_status'] = df_selected['description'].apply(
                         pl.extract_testing_status
                     )
-                    df_selected['testing_recommendation'] = df_selected['description'].apply(
+
+                    desc_series = df_selected['description']
+                    df_selected['testing_recommendation'] = desc_series.apply(
                         pl.extract_testing_recommendation
                     )
 
