@@ -30,7 +30,7 @@ class TestSubSuites(Base):
 
 
 class ReportTestCaseCoverage(Base):
-    __table__ = Table('report_test_case_coverage', Base.metadata, autoload=True)
+    __table__ = Table('report_test_case_coverage', Base.metadata, autoload=True)  # noqa
 
 
 # class ReportTestRunCounts(Base):
@@ -41,7 +41,7 @@ class ReportTestRailTestPlans(Base):
 
 
 class ReportTestRailTestRuns(Base):
-    __table__ = Table('report_testrail_test_runs', Base.metadata, autoload=True)
+    __table__ = Table('report_testrail_test_runs', Base.metadata, autoload=True)  # noqa
 
 
 class ReportGithubIssues(Base):

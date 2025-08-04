@@ -42,28 +42,23 @@ class TestRail:
             print("ERROR: Missing testrail env var")
             sys.exit(1)
 
-
     # API: Milestones
     # https://mozilla.testrail.io/index.php?/api/v2/get_milestones/59
     def milestones(self, testrail_project_id):
         return self.client.send_get(
             'get_milestones/{0}'.format(testrail_project_id), data_type='milestones')  # noqa
 
-
     def milestone(self, testrail_milestone_id):
         return self.client.send_get(
             'get_milestones/{0}'.format(testrail_milestone_id))
-
 
     API: Projects
     def projects(self):
         return self.client.send_get('get_projects')
 
-
     def project(self, testrail_project_id):
         return self.client.send_get(
             'get_project/{0}'.format(testrail_project_id))
-
 
     # API: Cases
     def test_cases(self, testrail_project_id, testrail_test_suite_id):
@@ -71,33 +66,27 @@ class TestRail:
             'get_cases/{0}&suite_id={1}'
             .format(testrail_project_id, testrail_test_suite_id), data_type='cases')  # noqa
 
-
     def test_case(self, testrail_test_case_id):
         return self.client.send_get(
             'get_case/{0}'.format(testrail_test_case_id))
-
 
     # API: Case Fields
     def test_case_fields(self):
         return self.client.send_get(
             'get_case_fields')
 
-
     # API: Suites
     def test_suites(self, testrail_project_id):
         return self.client \
             .send_get('get_suites/{0}'.format(testrail_project_id), data_type='suites')  # noqa
 
-
     def test_suite(self, testrail_test_suite_id):
         return self.client \
             .send_get('get_suite/{0}'.format(testrail_test_suite_id))
 
-
     # API: Runs
     def test_run(self, run_id):
         return self.client.send_get('get_run/{0}'.format(run_id))
-
 
     def test_runs(self, testrail_project_id, start_date='', end_date=''):
         date_range = ''
@@ -109,10 +98,8 @@ class TestRail:
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get('get_runs/{0}{1}'.format(testrail_project_id, date_range))  # noqa
 
-
     def test_results_for_run(self, run_id):
         return self.client.send_get('get_results_for_run/{0}'.format(run_id))
-
 
     # API: Plans
     def get_test_plans(self, testrail_project_id, start_date='', end_date=''):
@@ -126,7 +113,6 @@ class TestRail:
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get(f"/get_plans/{testrail_project_id}{date_range}")
 
-
     def get_test_plan(self, plan_id, start_date='', end_date=''):
         """Return a plan object by plan id"""
         date_range = ''
@@ -137,7 +123,6 @@ class TestRail:
             before = dt.convert_datetime_to_epoch(end_date)
             date_range += '&created_before={0}'.format(before)
         return self.client.send_get(f"/get_plan/{plan_id}{date_range}")
-
 
     # API: Users
     def users(self, testrail_project_id):
@@ -150,7 +135,6 @@ class TestRailClient(TestRail):
     def __init__(self):
         super().__init__()
         self.db = DatabaseTestRail()
-
 
     def data_pump_report_test_case_coverage(self, project='all', suite='all'):
         # call database for 'all' values
@@ -183,7 +167,6 @@ class TestRailClient(TestRail):
                 self.testrail_coverage_update(projects_id,
                                               testrail_project_id, suite['id'])
 
-
     def testrail_project_ids(self, project):
         """ Return the ids needed to be able to query the TestRail API for
         a specific test suite from a specific project
@@ -208,7 +191,6 @@ class TestRailClient(TestRail):
         print(project_ids_list)
         return project_ids_list
 
-
     def testrail_coverage_update(self, projects_id,
                                  testrail_project_id, test_suite_id):
 
@@ -221,7 +203,6 @@ class TestRailClient(TestRail):
 
         # Insert data in 'totals' array into DB
         self.db.report_test_coverage_insert(projects_id, payload)
-
 
     def testrail_run_counts_update(self, project, num_days):
         start_date = dt.start_date(num_days)
@@ -241,7 +222,6 @@ class TestRailClient(TestRail):
 
         # Insert data in the 'totals' array into DB
         self.db.report_test_runs_insert(projects_id, totals)
-
 
     def testrail_milestones(self, project):
         self.db.testrail_milestons_delete()
@@ -330,7 +310,6 @@ class TestRailClient(TestRail):
                         f"No milestones data to insert into database for project "
                         f"{testrail_project_id}."
                     )
-
 
     def testrail_users(self):
         # Step 1: Get all projects
@@ -470,13 +449,11 @@ class DatabaseTestRail(Database):
         super().__init__()
         self.db = Database()
 
-
     def test_suites_delete(self):
         """ Wipe out all test suite data.
         NOTE: we'll renew this data from Testrail every session."""
         self.session.query(TestSuites).delete()
         self.session.commit()
-
 
     def test_suites_update(self, testrail_project_id,
                            testrail_test_suites_id, test_suite_name):
@@ -486,29 +463,30 @@ class DatabaseTestRail(Database):
         self.session.add(suites)
         self.session.commit()
 
-
     def testrail_milestons_delete(self):
         self.session.query(ReportTestRailMilestones).delete()
         self.session.commit()
-
 
     def report_test_runs_insert(self, db_plan_id, suite_id, runs):
         for run in runs:
             created_on = dt.convert_epoch_to_datetime(run['created_on'])  # noqa
             completed_on = dt.convert_epoch_to_datetime(run['completed_on']) if run['completed_on'] else None
 
-            report_run = ReportTestRailTestRuns(testrail_run_id=run['id'], plan_id=db_plan_id, suite_id=suite_id,
-                                                name=run['name'],
-                                                config=run['config'],
-                                                test_case_passed_count=run['passed_count'],
-                                                test_case_retest_count=run['retest_count'],
-                                                test_case_failed_count=run['failed_count'],
-                                                test_case_blocked_count=run['blocked_count'],
-                                                testrail_created_on=created_on,
-                                                testrail_completed_on=completed_on)
+            report_run = ReportTestRailTestRuns(
+                testrail_run_id=run['id'],
+                plan_id=db_plan_id,
+                suite_id=suite_id,
+                name=run['name'],
+                config=run['config'],
+                test_case_passed_count=run['passed_count'],
+                test_case_retest_count=run['retest_count'],
+                test_case_failed_count=run['failed_count'],
+                test_case_blocked_count=run['blocked_count'],
+                testrail_created_on=created_on,
+                testrail_completed_on=completed_on
+            )
             self.session.add(report_run)
             self.session.commit()
-
 
     def report_milestones_insert(self, projects_id, payload):
         for index, row in payload.iterrows():
@@ -530,7 +508,6 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
-
 
     def report_test_coverage_payload(self, cases):
         """given testrail data (cases), calculate test case counts by type"""
@@ -563,7 +540,6 @@ class DatabaseTestRail(Database):
               .reset_index()
         )
 
-
     def report_test_coverage_insert(self, projects_id, payload):
         # TODO:  Error on insert
         # insert data from totals into report_test_coverage table
@@ -585,7 +561,6 @@ class DatabaseTestRail(Database):
             self.session.add(report)
             self.session.commit()
 
-
     def report_testrail_users_insert(self, payload):
         for index, row in payload.iterrows():
             report = ReportTestRailUsers(
@@ -597,7 +572,6 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
-
 
     def report_test_run_payload(self, runs):
         """pack testrail data for 1 run in a data array
