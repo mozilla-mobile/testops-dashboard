@@ -52,7 +52,7 @@ class TestRail:
         return self.client.send_get(
             'get_milestones/{0}'.format(testrail_milestone_id))
 
-    API: Projects
+    # API: Projects
     def projects(self):
         return self.client.send_get('get_projects')
 
@@ -96,7 +96,7 @@ class TestRail:
         if end_date:
             before = dt.convert_datetime_to_epoch(end_date)
             date_range += '&created_before={0}'.format(before)
-        return self.client.send_get('get_runs/{0}{1}'.format(testrail_project_id, date_range))  # noqa
+        return self.client.send_get(f'get_runs/{testrail_project_id}{date_range}')
 
     def test_results_for_run(self, run_id):
         return self.client.send_get('get_results_for_run/{0}'.format(run_id))
@@ -111,7 +111,8 @@ class TestRail:
         if end_date:
             before = dt.convert_datetime_to_epoch(end_date)
             date_range += '&created_before={0}'.format(before)
-        return self.client.send_get(f"/get_plans/{testrail_project_id}{date_range}")
+        endpoint = f"/get_plans/{testrail_project_id}{date_range}"
+        return self.client.send_get(endpoint)
 
     def get_test_plan(self, plan_id, start_date='', end_date=''):
         """Return a plan object by plan id"""
@@ -263,7 +264,7 @@ class TestRailClient(TestRail):
                     col for col in selected_columns.keys()
                     if col in milestones_all.columns
                 ]
-                
+
                 df_selected = milestones_all[existing_columns].rename(
                     columns={
                         k: v for k, v in selected_columns.items()
@@ -274,15 +275,23 @@ class TestRailClient(TestRail):
                 # Convert valid timestamps, leave empty ones as NaT
                 if 'started_on' in df_selected.columns:
                     df_selected['started_on'] = pd.to_datetime(
-                        df_selected['started_on'], unit='s', errors='coerce'
+                        df_selected['started_on'],
+                        unit='s',
+                        errors='coerce',
                     )
-                    df_selected['started_on'] = df_selected['started_on'].replace({np.nan: None})
+                    df_selected['started_on'] = df_selected['started_on'].replace(
+                        {np.nan: None}
+                    )
                 
                 if 'completed_on' in df_selected.columns:
                     df_selected['completed_on'] = pd.to_datetime(
-                        df_selected['completed_on'], unit='s', errors='coerce'
+                        df_selected['completed_on'],
+                        unit='s',
+                        errors='coerce',
                     )
-                    df_selected['completed_on'] = df_selected['completed_on'].replace({np.nan: None})
+                    df_selected['completed_on'] = df_selected['completed_on'].replace(
+                        {np.nan: None}
+                    )
 
                 # Apply transformations only if description column exist                s
                 if 'description' in df_selected.columns:
@@ -469,8 +478,15 @@ class DatabaseTestRail(Database):
 
     def report_test_runs_insert(self, db_plan_id, suite_id, runs):
         for run in runs:
-            created_on = dt.convert_epoch_to_datetime(run['created_on'])  # noqa
-            completed_on = dt.convert_epoch_to_datetime(run['completed_on']) if run['completed_on'] else None
+
+            created_on = dt.convert_epoch_to_datetime(
+                run['created_on']
+            )  # noqa
+            completed_on = (
+                dt.convert_epoch_to_datetime(run['completed_on'])
+                if run['completed_on']
+                else None
+            )
 
             report_run = ReportTestRailTestRuns(
                 testrail_run_id=run['id'],
