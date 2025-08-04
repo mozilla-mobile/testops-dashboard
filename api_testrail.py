@@ -77,8 +77,10 @@ class TestRail:
 
     # API: Suites
     def test_suites(self, testrail_project_id):
-        return self.client \
-            .send_get('get_suites/{0}'.format(testrail_project_id), data_type='suites')  # noqa
+        return self.client.send_get(
+            f'get_suites/{testrail_project_id}',
+            data_type='suites',
+        )  # noqa
 
     def test_suite(self, testrail_test_suite_id):
         return self.client \
@@ -236,8 +238,11 @@ class TestRailClient(TestRail):
 
             payload = self.milestones(testrail_project_id)
             if not payload:
-                print(f"No milestones found for project {testrail_project_id}. Skipping...")  # noqa
-                milestones_all = pd.DataFrame()  # Empty DataFrame to avoid errors # noqa
+                print(
+                    f"No milestones found for project "
+                    f"{testrail_project_id}. Skipping..."
+                )
+                milestones_all = pd.DataFrame()  # Empty DataFrame to avoid errors
 
             else:
                 # Convert JSON to DataFrame
@@ -245,7 +250,10 @@ class TestRailClient(TestRail):
 
             # Ensure DataFrame is not empty before processing
             if milestones_all.empty:
-                print(f"Milestones DataFrame is empty for project {testrail_project_id}. Skipping...")  # noqa
+                print(
+                    f"Milestones DataFrame is empty for project "
+                    f"{testrail_project_id}. Skipping..."
+                )
                 # Continue to next project (if inside a loop)
             else:
                 # Define selected columns
@@ -282,7 +290,7 @@ class TestRailClient(TestRail):
                     df_selected['started_on'] = df_selected['started_on'].replace(
                         {np.nan: None}
                     )
-                
+
                 if 'completed_on' in df_selected.columns:
                     df_selected['completed_on'] = pd.to_datetime(
                         df_selected['completed_on'],
@@ -293,15 +301,17 @@ class TestRailClient(TestRail):
                         {np.nan: None}
                     )
 
-                # Apply transformations only if description column exist                s
+                # Apply transformations only if description column exists
                 if 'description' in df_selected.columns:
-                    df_selected['testing_status'] = df_selected['description'].apply(
-                        pl.extract_testing_status
+                    df_selected['testing_status'] = (
+                        df_selected['description']
+                        .apply(pl.extract_testing_status)
                     )
-                    df_selected['testing_recommendation'] = df_selected['description'].apply(
-                        pl.extract_testing_recommendation
+                    df_selected['testing_recommendation'] = (
+                        df_selected['description']
+                        .apply(pl.extract_testing_recommendation)
                     )
-                
+
                 # Apply transformations only if name column exists
                 if 'name' in df_selected.columns:
                     df_selected['build_name'] = df_selected['name'].apply(
