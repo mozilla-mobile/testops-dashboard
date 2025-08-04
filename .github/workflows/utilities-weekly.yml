@@ -1,4 +1,4 @@
-name: Testops Report WEEKLY 
+name: TestOps Utilities Updates WEEKLY 
 
 # Sat. @4am UTC
 on:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    name: Utilities updates (WEEKLY)
+    name: Refresh PREFLIGHT database 
     runs-on: ubuntu-latest
 
     steps:
