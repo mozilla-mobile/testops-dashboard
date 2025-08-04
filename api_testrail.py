@@ -98,7 +98,9 @@ class TestRail:
         if end_date:
             before = dt.convert_datetime_to_epoch(end_date)
             date_range += '&created_before={0}'.format(before)
-        return self.client.send_get(f'get_runs/{testrail_project_id}{date_range}')
+        return self.client.send_get(
+            f'get_runs/{testrail_project_id}{date_range}'
+            )
 
     def test_results_for_run(self, run_id):
         return self.client.send_get('get_results_for_run/{0}'.format(run_id))
@@ -242,7 +244,9 @@ class TestRailClient(TestRail):
                     f"No milestones found for project "
                     f"{testrail_project_id}. Skipping..."
                 )
-                milestones_all = pd.DataFrame()  # Empty DataFrame to avoid errors
+
+                # Empty DataFrame to avoid errors
+                milestones_all = pd.DataFrame()  
 
             else:
                 # Convert JSON to DataFrame
@@ -287,8 +291,10 @@ class TestRailClient(TestRail):
                         unit='s',
                         errors='coerce',
                     )
-                    df_selected['started_on'] = df_selected['started_on'].replace(
-                        {np.nan: None}
+
+                    df_selected['started_on'] = (
+                        df_selected['started_on']
+                        .replace({np.nan: None})
                     )
 
                 if 'completed_on' in df_selected.columns:
@@ -297,8 +303,10 @@ class TestRailClient(TestRail):
                         unit='s',
                         errors='coerce',
                     )
-                    df_selected['completed_on'] = df_selected['completed_on'].replace(
-                        {np.nan: None}
+
+                    df_selected['completed_on'] = (
+                        df_selected['completed_on']
+                        .replace({np.nan: None})
                     )
 
                 # Apply transformations only if description column exists
@@ -357,9 +365,9 @@ class TestRailClient(TestRail):
                     for user in users
                     if user.get("email")
                 }
-                
+              
                 project_user_counts[project_name] = len(unique_emails)
-                
+              
                 print(
                     f"{project_name} (ID: {project_id}): "
                     f"{len(unique_emails)} unique users (by email)"
