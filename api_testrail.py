@@ -246,7 +246,7 @@ class TestRailClient(TestRail):
                 )
 
                 # Empty DataFrame to avoid errors
-                milestones_all = pd.DataFrame()  
+                milestones_all = pd.DataFrame()
 
             else:
                 # Convert JSON to DataFrame
@@ -325,10 +325,10 @@ class TestRailClient(TestRail):
                     df_selected['build_name'] = df_selected['name'].apply(
                         pl.extract_build_name
                     )
-                    df_selected['build_version'] = df_selected['build_name'].apply(
-                        pl.extract_build_version
+                    df_selected['build_version'] = (
+                        df_selected['build_name'].apply(pl.extract_build_version)
                     )
-                
+
                 # Insert into database only if there is data
                 if not df_selected.empty:
                     self.db.report_milestones_insert(projects_id, df_selected)
@@ -365,18 +365,24 @@ class TestRailClient(TestRail):
                     for user in users
                     if user.get("email")
                 }
-              
+
                 project_user_counts[project_name] = len(unique_emails)
-              
+       
                 print(
                     f"{project_name} (ID: {project_id}): "
                     f"{len(unique_emails)} unique users (by email)"
                 )
 
             except Exception as e:
-                print(f"Error fetching users {project_id} ({project_name}): {e}")
+                print(
+                    f"Error fetching users {project_id} ({project_name}): {e}"
+                )
 
-        # Get unique users by email
+
+
+        # Get i               print(
+                    f"Error fetching users {project_id} ({project_name}): {e}"
+                )unique users by email
         unique_by_email = {}
         for user in all_users:
             email = user.get("email")
@@ -427,7 +433,13 @@ class TestRailClient(TestRail):
         for plan in project_plans.values():
             plan_info = self.get_test_plan(plan['plan_id'], start_date)
             for entry in plan_info['entries']:
-                self.db.report_test_runs_insert(plan['id'], entry['suite_id'], entry['runs'])
+                self.db.report_test_runs_insert(
+                    plan['id'],
+                    entry['suite_id'],
+                    entry['runs'],
+                )
+
+
 
     def testrail_plans_and_runs(self, project, num_days):
         """
@@ -649,7 +661,7 @@ class DatabaseTestRail(Database):
         for total in payload.values():
 
             created_on = dt.convert_epoch_to_datetime(total['created_on'])
-                
+
             completed_on = (
                 dt.convert_epoch_to_datetime(total['completed_on'])
                 if total['completed_on']
