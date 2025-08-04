@@ -329,6 +329,8 @@ class TestRailClient(TestRail):
                         df_selected['build_name'].apply(pl.extract_build_version)
                     )
 
+
+
                 # Insert into database only if there is data
                 if not df_selected.empty:
                     self.db.report_milestones_insert(projects_id, df_selected)
