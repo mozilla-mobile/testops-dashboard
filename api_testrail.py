@@ -425,7 +425,7 @@ class TestRailClient(TestRail):
                         ReportTestRailTestRuns).filter_by(
                             testrail_run_id=config["id"]).first().id
                     run_results = self.test_results_for_run(config["id"])["results"]    # noqa
-                    self.db.report_test_results_insert(
+                    self.db.report_testrail_test_result_insert(
                         db_run_id, run_results, type)  
             print(f"Added all test results from table {type}")
 
