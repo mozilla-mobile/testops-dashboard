@@ -78,16 +78,22 @@ def validate_project(platform, project, report_type):
             print("--platform is required for the report selected")
 
     if platform == 'mobile' and project not in PROJECTS_MOBILE:
-        print(f"Error: Invalid project '{project}' for mobile. Valid options are
-            {PROJECTS_MOBILE}") # noqa
+        print(
+            f"Error: Invalid project '{project}' for mobile. "
+            f"Valid options are {PROJECTS_MOBILE}"
+        ) 
         sys.exit(1)
     elif platform == 'desktop' and project not in PROJECTS_DESKTOP:
-        print(f"Error: Invalid project '{project}' for desktop. Valid options are
-            {PROJECTS_DESKTOP}") # noqa
+        print(
+            f"Error: Invalid project '{project}' for desktop. "
+            f"Valid options are {PROJECTS_DESKTOP}"
+        )
         sys.exit(1)
     elif platform == 'ecosystem' and project not in PROJECTS_ECOSYSTEM:
-        print(f"Error: Invalid project '{project}' for ecosystem. Valid options are
-            {PROJECTS_ECOSYSTEM}") # noqa
+        print(
+            f"Error: Invalid project '{project}' for ecosystem. "
+            f"Valid options are {PROJECTS_ECOSYSTEM}"
+        )
         sys.exit(1)
 
 
