@@ -78,13 +78,16 @@ def validate_project(platform, project, report_type):
             print("--platform is required for the report selected")
 
     if platform == 'mobile' and project not in PROJECTS_MOBILE:
-        print(f"Error: Invalid project '{project}' for mobile. Valid options are {PROJECTS_MOBILE}") # noqa 
+        print(f"Error: Invalid project '{project}' for mobile. Valid options are
+            {PROJECTS_MOBILE}") # noqa
         sys.exit(1)
     elif platform == 'desktop' and project not in PROJECTS_DESKTOP:
-        print(f"Error: Invalid project '{project}' for desktop. Valid options are {PROJECTS_DESKTOP}") # noqa
+        print(f"Error: Invalid project '{project}' for desktop. Valid options are
+            {PROJECTS_DESKTOP}") # noqa
         sys.exit(1)
     elif platform == 'ecosystem' and project not in PROJECTS_ECOSYSTEM:
-        print(f"Error: Invalid project '{project}' for ecosystem. Valid options are {PROJECTS_ECOSYSTEM}") # noqa
+        print(f"Error: Invalid project '{project}' for ecosystem. Valid options are
+            {PROJECTS_ECOSYSTEM}") # noqa
         sys.exit(1)
 
 
@@ -115,83 +118,91 @@ def expand_project_args(platform, projects):
 
 def handle_bitrise_builds(args):
     client = BitriseClient()
-    client.post_build_data(args.project_list)
+    client.bitrise_builds_detailed_info()
 
 
 def handle_bugzilla_desktop_bugs(args):
     client = BugzillaClient()
-    client.post_desktop_bugs()
+    client.bugzilla_query_desktop_bugs()
 
 
 def handle_bugzilla_meta_bugs(args):
     client = BugzillaClient()
-    client.post_meta_bugs(args.meta_bug_id)
+    client.bugzilla_meta_bug(meta_bug_id=args.meta_bug_id)
 
 
 def handle_bugzilla_qe_verify(args):
     client = BugzillaClient()
-    client.post_qe_verify_bugs()
+    client.bugzilla_qe_verify()
 
 
 def handle_confluence_updates(args):
-    api_confluence.update_existing_page()
-
-
-def handle_confluence_new_page(args):
-    api_confluence.create_new_page()
-
-
-def handle_confluence_build_validation(args):
-    api_confluence.post_build_validation()
+    import api_confluence
+    api_confluence.main()
 
 
 def handle_github_issue_regression(args):
     client = GithubClient()
-    client.post_regression_issues()
-
-
-def handle_jira_qa_needed(args):
-    client = JiraClient()
-    client.post_qa_needed()
+    client.github_issue_regression(args.project)
 
 
 def handle_jira_qa_requests(args):
     client = JiraClient()
-    client.post_qa_requests()
+    client.jira_qa_requests()
+
+
+def handle_jira_qa_needed(args):
+    client = JiraClient()
+    client.jira_qa_needed()
 
 
 def handle_jira_softvision_worklogs(args):
     client = JiraClient()
-    client.post_softvision_worklogs()
+    client.jira_softvision_worklogs()
 
 
 def handle_sentry_issues(args):
     client = SentryClient()
-    client.post_sentry_issues()
+    client.sentry_issues()
+
+
+def handle_sentry_rates(args):
+    client = SentryClient()
+    client.sentry_rates()
+
+
+def handle_testrail_test_plans_and_runs(args):
+    client = TestRailClient()
+    client.testrail_plans_and_runs(args.project, args.num_days or '30')
+
+
+def handle_testrail_test_results(args):
+    client = TestRailClient()
+    client.testrail_test_results()
 
 
 def handle_testrail_milestones(args):
     client = TestRailClient()
-    client.post_milestone_report(args.project_list, args.platform)
+    client.testrail_milestones(arg_list)
 
 
 def handle_testrail_users(args):
     client = TestRailClient()
-    client.post_user_report(args.project_list, args.platform)
+    client.testrail_users()
 
 
 def handle_testrail_test_case_coverage(args):
     client = TestRailClient()
-    client.post_test_case_coverage(args.project_list, args.platform)
+    client.data_pump_report_test_case_coverage(arg_list)
 
 
-def handle_testrail_test_run_counts(args):
+def handle_testrail_test_run_counts_update(args):
     client = TestRailClient()
-    client.post_test_run_counts(args.project_list, args.platform)
+    client.testrail_run_counts_update(args.project, args.num_days or '')
 
 
 # === DISPATCH MAP ===
-COMMAND_MAP = {
+COMMAND_MAP = { 
     'bitrise-builds': handle_bitrise_builds,
     'bugzilla-desktop-bugs': handle_bugzilla_desktop_bugs,
     'bugzilla-meta-bugs': handle_bugzilla_meta_bugs,
@@ -204,10 +215,13 @@ COMMAND_MAP = {
     'jira-qa-requests': handle_jira_qa_requests,
     'jira-softvision-worklogs': handle_jira_softvision_worklogs,
     'sentry-issues': handle_sentry_issues,
+    'sentry-rates': handle_sentry_rates,
     'testrail-milestones': handle_testrail_milestones,
     'testrail-users': handle_testrail_users,
     'testrail-test-case-coverage': handle_testrail_test_case_coverage,
-    'testrail-test-run-counts': handle_testrail_test_run_counts
+    'testrail-test-run-counts': handle_testrail_test_run_counts_update,
+    'testrail-test-plans-and-runs': handle_testrail_test_plans_and_runs,
+    'testrail-test-results': handle_testrail_test_results,
 }
 
 
