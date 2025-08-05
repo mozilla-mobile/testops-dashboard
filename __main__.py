@@ -81,7 +81,7 @@ def validate_project(platform, project, report_type):
         print(
             f"Error: Invalid project '{project}' for mobile. "
             f"Valid options are {PROJECTS_MOBILE}"
-        ) 
+        )
         sys.exit(1)
     elif platform == 'desktop' and project not in PROJECTS_DESKTOP:
         print(
@@ -192,7 +192,7 @@ def handle_testrail_test_results(args):
 
 def handle_testrail_milestones(args):
     client = TestRailClient()
-    client.testrail_milestones(arg_list)
+    client.testrail_milestones(args.arg_list)
 
 
 def handle_testrail_users(args):
@@ -202,7 +202,7 @@ def handle_testrail_users(args):
 
 def handle_testrail_test_case_coverage(args):
     client = TestRailClient()
-    client.data_pump_report_test_case_coverage(arg_list)
+    client.data_pump_report_test_case_coverage(args.arg_list)
 
 
 def handle_testrail_test_run_counts_update(args):
@@ -235,6 +235,8 @@ COMMAND_MAP = {
 
 def main():
     args = parse_args(sys.argv[1:])
+    args.arg_list = expand_project_args(args.platform, args.project)
+
     report_type = args.report_type
 
     if report_type not in COMMAND_MAP:
@@ -242,7 +244,6 @@ def main():
 
     validate_project(args.platform, args.project, report_type)
     # args.project_list = expand_project_args(args.platform, args.project)
-    arg_list = expand_project_args(args.platform, args.project)
 
     COMMAND_MAP[report_type](args)
 
