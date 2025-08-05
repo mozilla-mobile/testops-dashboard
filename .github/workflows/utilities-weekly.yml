@@ -1,14 +1,14 @@
-name: Testops Report WEEKLY 
+name: TestOps Utilities Updates WEEKLY 
 
-# Sat. @4am UTC
+# Sun. @4am UTC
 on:
   schedule:
-    - cron:  "0 4 * * 6" 
+    - cron:  "0 4 * * 0" 
   workflow_dispatch:
 
 jobs:
   deploy:
-    name: TestOps Report (WEEKLY)
+    name: Refresh PREFLIGHT database 
     runs-on: ubuntu-latest
 
     steps:
@@ -44,16 +44,25 @@ jobs:
             echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
             echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
 
-      #- name: Update DB - test runs 
-      #  run: python ./__main__.py --report-type test-run-counts --project ALL --num-days 7
+      - name: Drop preflight database if exists
+        run: |
+          mysql -h 127.0.0.1 -P ${{ secrets.CLOUD_SQL_DATABASE_PORT }} -u "${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" -p"${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" \
+            -e "DROP DATABASE IF EXISTS preflight;"
 
-      - name: Update DB - test coverage 
-        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL 
+      - name: Create preflight database
+        run: |
+          mysql -h 127.0.0.1 -P ${{ secrets.CLOUD_SQL_DATABASE_PORT }} -u "${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" -p"${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" \
+            -e "CREATE DATABASE preflight;"
 
-        continue-on-error: true
+      - name: Dump production database schema and data
+        run: |
+          mysqldump -h 127.0.0.1 -P ${{ secrets.CLOUD_SQL_DATABASE_PORT }} -u "${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" -p"${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" \
+            production > prod_dump.sql
 
-      - name: Testrail Users
-        run: python ./__main__.py --report-type testrail-users
+      - name: Import dump into preflight database
+        run: |
+          mysql -h 127.0.0.1 -P ${{ secrets.CLOUD_SQL_DATABASE_PORT }} -u "${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" -p"${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" \
+            preflight < prod_dump.sql
 
         continue-on-error: true
 
