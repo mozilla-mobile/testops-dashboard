@@ -1,6 +1,6 @@
 name: TestOps Utilities Updates WEEKLY 
 
-# Sat. @4am UTC
+# Sun. @4am UTC
 on:
   schedule:
     - cron:  "0 4 * * 0" 
