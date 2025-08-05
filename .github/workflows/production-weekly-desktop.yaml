@@ -1,4 +1,4 @@
-name: Testops Report WEEKLY 
+name: Desktop Testops Report WEEKLY - Production
 
 # Sat. @4am UTC
 on:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    name: TestOps Report (WEEKLY)
+    name: Desktop TestOps Report (WEEKLY) - Production
     runs-on: ubuntu-latest
 
     steps:
