@@ -142,8 +142,11 @@ def handle_bugzilla_qe_verify(args):
     client.bugzilla_qe_verify()
 
 
+def handle_confluence_build_validation(args):
+    api_confluence.page_report_build_validation()
+
+
 def handle_confluence_updates(args):
-    import api_confluence
     api_confluence.main()
 
 
@@ -208,13 +211,12 @@ def handle_testrail_test_run_counts_update(args):
 
 
 # === DISPATCH MAP ===
-COMMAND_MAP = { 
+COMMAND_MAP = {
     'bitrise-builds': handle_bitrise_builds,
     'bugzilla-desktop-bugs': handle_bugzilla_desktop_bugs,
     'bugzilla-meta-bugs': handle_bugzilla_meta_bugs,
     'bugzilla-qe-verify': handle_bugzilla_qe_verify,
     'confluence-updates': handle_confluence_updates,
-    'confluence-new-page': handle_confluence_new_page,
     'confluence-build-validation': handle_confluence_build_validation,
     'github-issue-regression': handle_github_issue_regression,
     'jira-qa-needed': handle_jira_qa_needed,
@@ -239,7 +241,8 @@ def main():
         sys.exit(f"Unknown or unsupported report type: {report_type}")
 
     validate_project(args.platform, args.project, report_type)
-    args.project_list = expand_project_args(args.platform, args.project)
+    # args.project_list = expand_project_args(args.platform, args.project)
+    arg_list = expand_project_args(args.platform, args.project)
 
     COMMAND_MAP[report_type](args)
 
