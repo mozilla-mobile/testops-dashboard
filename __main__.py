@@ -121,7 +121,7 @@ def main():
         api_confluence.main()
     if args.report_type == 'testrail-test-case-coverage':
         h = TestRailClient()
-        h.data_pump(arg_list)
+        h.data_pump_report_test_case_coverage(arg_list)
     if args.report_type == 'testrail-test-run-counts':
         h = TestRailClient()
         if args.num_days:
