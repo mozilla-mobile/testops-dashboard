@@ -1,6 +1,6 @@
-from api_bitrise import BitriseClient
+from api_github import GithubClient
 
 
-def handle_bitrise_builds(args):
-    client = BitriseClient()
-    client.bitrise_builds_detailed_info()
+def handle_github_issue_regression(args):
+    client = GithubClient()
+    client.github_issue_regression(args.project)
