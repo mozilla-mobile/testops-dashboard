@@ -619,7 +619,7 @@ class DatabaseTestRail(Database):
 
         for index, row in payload.iterrows():
             """
-            # Diagnostic 
+            # Diagnostic
 
             print(
                 'ROW - suit: {0}, asid: {1}, acid: {2}, ssid: {3}, tally: {4}'.format(
