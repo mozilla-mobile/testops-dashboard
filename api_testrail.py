@@ -364,10 +364,12 @@ class TestRailClient(TestRail):
                 unique_emails = {u.get("email") for u in users if u.get("email")}
                 project_user_counts[project_name] = len(unique_emails)
 
+                """
                 print(
                     f"{project_name} (ID: {project_id}): "
                     f"{len(unique_emails)} unique users (by email)"
                 )
+                """
 
             except Exception as e:
                 print(f"Error fetching users {project_id} ({project_name}): {e}")
