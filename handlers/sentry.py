@@ -1,4 +1,4 @@
-from api_sentry import SentryClient
+from api.sentry.api_sentry import SentryClient
 
 
 def handle_sentry_issues(args):

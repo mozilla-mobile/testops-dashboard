@@ -1,4 +1,4 @@
-import api_confluence
+import api.confluence.api_confluence
 
 
 def handle_confluence_build_validation(args):

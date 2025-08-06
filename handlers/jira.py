@@ -1,4 +1,4 @@
-from api_jira import JiraClient
+from api.jira.api_jira import JiraClient
 
 
 def handle_jira_qa_requests(args):
