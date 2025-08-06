@@ -381,18 +381,21 @@ class TestRailClient(TestRail):
             if email:
                 unique_by_email[email] = user
 
+        """
+        # Diagnostic
+
         print(
             "\nTotal unique users across all accessible projects (by email): "
             f"{len(unique_by_email)}"
         )
 
-        # Diagnostic
         print("\nSample of unique users:")
         for email, user in list(unique_by_email.items()):
             status = "active" if user.get("is_active") else "inactive"
             print(
                 f"- {user.get('name')} | {email} | {status} | role: {user.get('role')}"
             )
+        """
 
         created_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -480,7 +483,8 @@ class TestRailClient(TestRail):
                     tp_ids[1] = tp.testrail_plan_id
                 if tp_ids[0] and tp_ids[1]:
                     break
-        print(f"beta: {tp_ids[0]}, l10n: {tp_ids[1]}")
+
+        # print(f"beta: {tp_ids[0]}, l10n: {tp_ids[1]}")
 
         # Insert data for beta and refer back to test run table
         self.db.clean_table(ReportTestRailTestResults)
@@ -556,7 +560,7 @@ class DatabaseTestRail(Database):
 
     def report_milestones_insert(self, projects_id, payload):
         for index, row in payload.iterrows():
-            print(row)
+            # print(row)
 
             report = ReportTestRailMilestones(
                 testrail_milestone_id=row['testrail_milestone_id'],
@@ -586,8 +590,9 @@ class DatabaseTestRail(Database):
             suit = case['suite_id']
             subs = case.get("custom_sub_test_suites", [7])
 
-            # TODO: diagnostic - delete
-            print(f'suite_id: {suit}, case_id: {case["id"]}, subs: {subs}')
+            # Diagnostic
+            # print(f'suite_id: {suit}, case_id: {case["id"]}, subs: {subs}')
+
             stat = case['custom_automation_status']
             cov = case['custom_automation_coverage']
 
@@ -613,7 +618,9 @@ class DatabaseTestRail(Database):
         # insert data from totals into report_test_coverage table
 
         for index, row in payload.iterrows():
-            # TODO: diagnostic - delete
+            """
+            # Diagnostic 
+
             print(
                 'ROW - suit: {0}, asid: {1}, acid: {2}, ssid: {3}, tally: {4}'.format(
                     row['suit'],
@@ -624,6 +631,7 @@ class DatabaseTestRail(Database):
 
                 )
             )
+            """
 
             report = ReportTestCaseCoverage(
                 projects_id=projects_id,
