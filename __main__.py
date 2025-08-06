@@ -8,15 +8,6 @@ import argparse
 import sys
 
 
-from api_bitrise import BitriseClient
-from api_bugzilla import BugzillaClient
-import api_confluence
-from api_github import GithubClient
-from api_jira import JiraClient
-from api_sentry import SentryClient
-from api_testrail import TestRailClient
-
-
 from constants import (
     PROJECTS_MOBILE,
     PROJECTS_ECOSYSTEM,

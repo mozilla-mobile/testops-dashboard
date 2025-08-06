@@ -1,4 +1,4 @@
-from api_bitrise import BitriseClient 
+from api_bitrise import BitriseClient
 
 
 def handle_bitrise_builds(args):
