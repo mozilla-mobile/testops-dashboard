@@ -47,9 +47,9 @@ REPORT_TYPES = [
     'testrail-users',
     'testrail-test-case-coverage',
     'testrail-test-run-counts',
-    'sentry-issues',
     'testrail-test-plans-and-runs',
     'testrail-test-results',
+    'sentry-issues',
     'sentry-rates'
 ]
 
