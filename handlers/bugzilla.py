@@ -1,4 +1,4 @@
-from api_bugzilla import BugzillaClient 
+from api_bugzilla import BugzillaClient
 
 
 def handle_bugzilla_desktop_bugs(args):
