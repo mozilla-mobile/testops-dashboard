@@ -61,4 +61,4 @@ jobs:
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
         with:
-          payload-file-path: "./confiapi/confluence/g/payload-slack-content.json"
+          payload-file-path: "./config/payload-slack-content.json"
