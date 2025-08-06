@@ -8,14 +8,14 @@ import argparse
 import sys
 
 
+from api_bitrise import BitriseClient
 from api_bugzilla import BugzillaClient
+import api_confluence
 from api_github import GithubClient
 from api_jira import JiraClient
-from api_testrail import TestRailClient
 from api_sentry import SentryClient
-import api_confluence
+from api_testrail import TestRailClient
 
-from api_bitrise import BitriseClient
 
 from constants import (
     PROJECTS_MOBILE,
@@ -23,6 +23,45 @@ from constants import (
     PROJECTS_DESKTOP,
     PLATFORMS,
     REPORT_TYPES,
+)
+
+from handlers.bitrise import (
+    handle_bitrise_builds,
+)
+
+from handlers.bugzilla import (
+    handle_bugzilla_desktop_bugs,
+    handle_bugzilla_meta_bugs,
+    handle_bugzilla_qe_verify,
+)
+
+from handlers.confluence import (
+    handle_confluence_build_validation,
+    handle_confluence_updates,
+)
+
+from handlers.github import (
+    handle_github_issue_regression,
+)
+
+from handlers.jira import (
+    handle_jira_qa_requests,
+    handle_jira_qa_needed,
+    handle_jira_softvision_worklogs,
+)
+
+from handlers.sentry import (
+    handle_sentry_issues,
+    handle_sentry_rates,
+)
+
+from handlers.testrail import (
+    handle_testrail_test_plans_and_runs,
+    handle_testrail_test_results,
+    handle_testrail_milestones,
+    handle_testrail_users,
+    handle_testrail_test_case_coverage,
+    handle_testrail_test_run_counts_update,
 )
 
 
@@ -118,97 +157,6 @@ def expand_project_args(platform, projects):
         else:
             projects_list = [projects]
     return projects_list
-
-
-# === COMMAND HANDLERS ===
-
-def handle_bitrise_builds(args):
-    client = BitriseClient()
-    client.bitrise_builds_detailed_info()
-
-
-def handle_bugzilla_desktop_bugs(args):
-    client = BugzillaClient()
-    client.bugzilla_query_desktop_bugs()
-
-
-def handle_bugzilla_meta_bugs(args):
-    client = BugzillaClient()
-    client.bugzilla_meta_bug(meta_bug_id=args.meta_bug_id)
-
-
-def handle_bugzilla_qe_verify(args):
-    client = BugzillaClient()
-    client.bugzilla_qe_verify()
-
-
-def handle_confluence_build_validation(args):
-    api_confluence.page_report_build_validation()
-
-
-def handle_confluence_updates(args):
-    api_confluence.main()
-
-
-def handle_github_issue_regression(args):
-    client = GithubClient()
-    client.github_issue_regression(args.project)
-
-
-def handle_jira_qa_requests(args):
-    client = JiraClient()
-    client.jira_qa_requests()
-    client.jira_qa_requests_new_issue_types()
-
-
-def handle_jira_qa_needed(args):
-    client = JiraClient()
-    client.jira_qa_needed()
-
-
-def handle_jira_softvision_worklogs(args):
-    client = JiraClient()
-    client.jira_softvision_worklogs()
-
-
-def handle_sentry_issues(args):
-    client = SentryClient()
-    client.sentry_issues()
-
-
-def handle_sentry_rates(args):
-    client = SentryClient()
-    client.sentry_rates()
-
-
-def handle_testrail_test_plans_and_runs(args):
-    client = TestRailClient()
-    client.testrail_plans_and_runs(args.project, args.num_days or '30')
-
-
-def handle_testrail_test_results(args):
-    client = TestRailClient()
-    client.testrail_test_results()
-
-
-def handle_testrail_milestones(args):
-    client = TestRailClient()
-    client.testrail_milestones(args.arg_list)
-
-
-def handle_testrail_users(args):
-    client = TestRailClient()
-    client.testrail_users()
-
-
-def handle_testrail_test_case_coverage(args):
-    client = TestRailClient()
-    client.data_pump_report_test_case_coverage(args.arg_list)
-
-
-def handle_testrail_test_run_counts_update(args):
-    client = TestRailClient()
-    client.testrail_run_counts_update(args.project, args.num_days or '')
 
 
 # === DISPATCH MAP ===
