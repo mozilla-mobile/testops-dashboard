@@ -45,6 +45,7 @@ jobs:
 
       - name: Update Confluence Page
         run: python3 ./api/confluence/api_confluence.py
+        run: python3 ./__main__.py --report-type confluence-updates 
 
       - name: Set job log URL
         if: always()
