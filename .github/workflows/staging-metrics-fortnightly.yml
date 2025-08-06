@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
 
       - name: Establish Cloud SQL Proxy
         uses: mattes/gce-cloudsql-proxy-action@v1
