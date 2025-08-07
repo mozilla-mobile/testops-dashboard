@@ -31,13 +31,14 @@ Usage: __main__.py [-h] --project {fenix,focus-android,reference-browser,firefox
 
 ## Connected APIs
 
-- Testrail
+- Bitrise.io
 - Bugzilla
 - Confluence
-- Looker
-- Bitrise.io
 - GitHub (TBD)
-- Taskcluster (TBD)
+- Jira
+- Looker
+- Sentry 
+- Testrail
 
 ## Database
 
