@@ -29,10 +29,19 @@ confluence = Confluence(
     password=ATLASSIAN_API_TOKEN
 )
 
+"""
+# TODO: we should employ pathlib instead for all path declarations
 PATH_CONFIG = "config/confluence"
 PATH_IMAGES = f"{PATH_CONFIG}/images"
 PATH_YAML_FILES = f"{PATH_CONFIG}/yaml"
 PATH_XML_FILES = f"{PATH_CONFIG}/xml"
+"""
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
+PATH_CONFIG = os.path.join(ROOT_DIR, 'config/confluence')
+PATH_IMAGES = os.path.join(PATH_CONFIG, 'images')
+PATH_YAML_FILES = os.path.join(PATH_CONFIG, 'yaml')
+PATH_XML_FILES = os.path.join(PATH_CONFIG, 'xml')
 
 
 # ------------------------------------------------------------------
