@@ -1,4 +1,4 @@
-name: Testops Report WEEKLY 
+name: Mobile Testops Report WEEKLY 
 
 # Sat. @4am UTC
 on:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    name: TestOps Report (WEEKLY)
+    name: Mobile TestOps Report (WEEKLY)
     runs-on: ubuntu-latest
 
     steps:
