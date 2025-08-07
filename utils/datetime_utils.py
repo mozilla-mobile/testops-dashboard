@@ -50,5 +50,11 @@ class DatetimeUtils:
     def delta_days(n):
         return timedelta(days=n)
 
+    def delta_hours(n):
+        return timedelta(hours=n)
+
+    def delta_seconds(n):
+        return timedelta(seconds=n)
+
     def create_date(year, month, day):
         return datetime(year, month, day)

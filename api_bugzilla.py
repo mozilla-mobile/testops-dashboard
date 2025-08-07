@@ -83,11 +83,12 @@ class BugzillaClient(Bugz):
 
     def bugzilla_query_desktop_bugs(self):
         # Get latest entry in database to update bugs
+        now_utc = datetime.utcnow()
         last_creation_time = self.db.session.query(func.max(ReportBugzillaSoftvisionBugs.bugzilla_bug_created_at)).scalar() # noqa
-        next_day = (last_creation_time + DatetimeUtils.delta_days(1)).replace(hour=0, minute=0, second=0, microsecond=0) # noqa
-        creation_time = next_day.strftime("%Y-%m-%dT%H:%M:%SZ")
+        creation_time = (last_creation_time + DatetimeUtils.delta_seconds(1)).strftime("%Y-%m-%dT%H:%M:%SZ") # noqa
         print(f"Last fetched bug created_at: {last_creation_time}")
-        print(f"Fetch new bugs up until : {creation_time}")
+        print(f"Fetch new bugs after : {creation_time}")
+        print(f"Fetch new bugs up until : {now_utc.strftime('%Y-%m-%dT%H:%M:%SZ')}")
 
         # Query new bugs
         query = {
@@ -137,8 +138,7 @@ class BugzillaClient(Bugz):
         # Query bugzilla with these fields where updated is > fecha query
 
         # Calculate start of yesterday in UTC
-        yesterday = datetime.utcnow().date() - DatetimeUtils.delta_days(1)
-        last_change_time = f"{yesterday}T00:00:00Z"
+        last_change_time = (datetime.utcnow() - DatetimeUtils.delta_hours(24)).strftime("%Y-%m-%dT%H:%M:%SZ") # noqa
         print(f"Update bugs if any after yesterday {last_change_time}")
 
         query = {
