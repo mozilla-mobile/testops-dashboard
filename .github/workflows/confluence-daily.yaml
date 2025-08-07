@@ -39,12 +39,12 @@ jobs:
 
       - name: Generate Looker Thumbnails
         run: |
-            python3 ./api_looker.py
+            python3 ./api/looker/api_looker.py
             ls
             ls config/confluence/images/
 
       - name: Update Confluence Page
-        run: python3 ./api_confluence.py
+        run: python3 ./api/confluence/api_confluence.py
 
       - name: Set job log URL
         if: always()

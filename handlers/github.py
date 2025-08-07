@@ -1,4 +1,4 @@
-from api_github import GithubClient
+from api.github.api_github import GithubClient
 
 
 def handle_github_issue_regression(args):
