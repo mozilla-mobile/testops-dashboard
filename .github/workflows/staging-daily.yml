@@ -1,4 +1,4 @@
-name: Testops Report DAILY - Staging
+name: Mobile Testops Report DAILY - Staging
 
 # Daily @4am UTC
 on:
@@ -14,7 +14,7 @@ on:
 
 jobs:
   deploy:
-    name: TestOps Report (DAILY) 
+    name: Mobile TestOps Report (DAILY) 
     runs-on: ubuntu-latest
 
     steps:
@@ -66,17 +66,8 @@ jobs:
       - name: Jira query
         run: python ./__main__.py --report-type jira-softvision-worklogs
 
-      - name: Jira query
-        run: python ./__main__.py --platform desktop --project ALL --report-type testrail-test-case-coverage
-
       - name: Bugzilla Desktop Bugs
         run: python ./__main__.py --report-type bugzilla-desktop-bugs
 
       - name: Bugzilla Metabug Android Memory Leaks
         run: python  ./__main__.py --report-type bugzilla-meta-bugs --meta-bug-id 1935100
-
-      #- name: Update DB - test runs 
-      #  run: python ./__main__.py --report-type testrail-test-run-counts --project fenix --start-date 2021-08-15 --end-date 2021-10-01 
-
-      #- name: Update DB - test coverage 
-      #  run: python ./__main__.py --report-type testrail-test-case-coverage --project ALL 
