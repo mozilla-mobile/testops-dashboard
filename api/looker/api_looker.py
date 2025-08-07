@@ -8,13 +8,16 @@ import requests
 import time
 import re
 import os
+from pathlib import Path
 
 LOOKER_HOST = os.environ['LOOKER_HOST']
 LOOKER_CLIENT_ID = os.environ['LOOKER_CLIENT_ID']
 LOOKER_SECRET = os.environ['LOOKER_SECRET']
 
 FOLDER_ID = 1820
-IMAGES_DIR = "config/confluence/images"
+
+project_root = Path.cwd()
+IMAGES_DIR = project_root / "config" / "confluence" / "images"
 
 
 # Authenticate and Get Access Token
