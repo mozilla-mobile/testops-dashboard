@@ -37,11 +37,35 @@ PATH_YAML_FILES = f"{PATH_CONFIG}/yaml"
 PATH_XML_FILES = f"{PATH_CONFIG}/xml"
 """
 
+"""
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..'))
 PATH_CONFIG = os.path.join(ROOT_DIR, 'config/confluence')
 PATH_IMAGES = os.path.join(PATH_CONFIG, 'images')
 PATH_YAML_FILES = os.path.join(PATH_CONFIG, 'yaml')
 PATH_XML_FILES = os.path.join(PATH_CONFIG, 'xml')
+"""
+
+from pathlib import Path
+
+# Calculate project root (3 levels up from this file)
+ROOT_DIR = Path(__file__).resolve().parents[2]
+
+# Define paths
+PATH_CONFIG = ROOT_DIR / 'config' / 'confluence'
+PATH_IMAGES = PATH_CONFIG / 'images'
+PATH_YAML_FILES = PATH_CONFIG / 'yaml'
+PATH_XML_FILES = PATH_CONFIG / 'xml'
+
+# Diagnostic: Debug printouts to confirm paths
+print(f"ROOT_DIR: {ROOT_DIR}")
+print(f"PATH_CONFIG: {PATH_CONFIG} {'✅ Exists' if PATH_CONFIG.exists() else '❌ NOT FOUND'}")
+print(f"PATH_IMAGES: {PATH_IMAGES} {'✅ Exists' if PATH_IMAGES.exists() else '❌ NOT FOUND'}")
+print(f"PATH_YAML_FILES: {PATH_YAML_FILES} {'✅ Exists' if PATH_YAML_FILES.exists() else '❌ NOT FOUND'}")
+print(f"PATH_XML_FILES: {PATH_XML_FILES} {'✅ Exists' if PATH_XML_FILES.exists() else '❌ NOT FOUND'}")
+
+# Diagnostic: Fail fast if config folder is missing
+if not PATH_CONFIG.exists():
+    raise FileNotFoundError(f"Config path does not exist: {PATH_CONFIG}")
 
 
 # ------------------------------------------------------------------
