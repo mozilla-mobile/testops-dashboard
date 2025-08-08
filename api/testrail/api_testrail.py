@@ -499,6 +499,7 @@ class TestRailClient(TestRail):
                     run_results = (
                         self.test_results_for_run(config["id"])["results"]
                     )
+                    print(f"Adding all results from run {config['id']}")
                     self.db.report_testrail_test_result_insert(
                         db_run_id, run_results, type)
             print(f"Added all test results from table {type}")
