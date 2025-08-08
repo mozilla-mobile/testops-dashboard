@@ -22,7 +22,7 @@ wiki_page:
         - report-title: "Feature Requests per half year cycle"
           report-description: "Number of Feature Requests each half of the year and per Platform"
           attachment-filename: "feature-requests-half-year.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2730"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2799"
           
         - report-title: "Feature Requests per Release Train"
           report-description: "Number of Feature Requests for each release train"
