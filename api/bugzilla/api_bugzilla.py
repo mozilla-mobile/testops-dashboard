@@ -210,7 +210,7 @@ class BugzillaClient(Bugz):
                 "id": b.id,
                 "status": b.status,
                 "summary": b.summary,
-                "creation_time": pd.to_datetime(str(bug.creation_time)),
+                "creation_time": pd.to_datetime(str(b.creation_time)),
                 "resolution": b.resolution,
                 "severity": b.severity,
                 "priority": b.priority,
