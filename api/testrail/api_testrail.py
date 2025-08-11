@@ -4,14 +4,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import os
-import sys
 from datetime import datetime
 
 import pandas as pd
 import numpy as np
 
-from lib.testrail_conn import APIClient
 from .client import TestRail
 
 from database import (
@@ -28,8 +25,6 @@ from database import (
 
 from utils.datetime_utils import DatetimeUtils as dt
 from utils.payload_utils import PayloadUtils as pl
-
-
 
 
 class TestRailClient(TestRail):

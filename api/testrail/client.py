@@ -5,6 +5,7 @@ import sys
 from lib.testrail_conn import APIClient
 from utils.datetime_utils import DatetimeUtils as dt
 
+
 class TestRail:
 
     def __init__(self):
@@ -105,4 +106,3 @@ class TestRail:
         return self.client.send_get(
             f'get_users/{testrail_project_id}'
         )
-
