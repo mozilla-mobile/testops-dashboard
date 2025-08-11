@@ -9,7 +9,8 @@ Agreed naming:
   4) testrail_runs_update(...)     -> orchestrator
 
 NOTE: This version *delegates* to the existing class method so behavior is unchanged.
-Once you confirm structure, we can inline the real logic here and remove the class method.
+Once you confirm structure, we can inline the real logic here and
+remove the class method.
 """
 
 from .service_client import TestRailClient
