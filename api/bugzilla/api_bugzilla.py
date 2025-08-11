@@ -128,7 +128,7 @@ class BugzillaClient(Bugz):
         print(f"Saved {len(df_new)} new bugs. Total now: {len(df_new)}")
 
         # Insert data
-        self.db.report_bugzilla_desktop_bugs(df_new)
+        self.db.report_bugzilla_desktop_bugs_update_insert(df_new)
 
         # Update data
         self.bugzilla_query_desktop_bugs_update()
@@ -138,8 +138,8 @@ class BugzillaClient(Bugz):
         # Query bugzilla with these fields where updated is > fecha query
 
         # Calculate start of yesterday in UTC
-        last_change_time = (datetime.utcnow() - DatetimeUtils.delta_hours(24)).strftime("%Y-%m-%dT%H:%M:%SZ") # noqa
-        print(f"Update bugs if any after yesterday {last_change_time}")
+        last_change_time = (datetime.utcnow() - DatetimeUtils.delta_hours(48)).strftime("%Y-%m-%dT%H:%M:%SZ") # noqa
+        print(f"Update bugs if any after {last_change_time}")
 
         query = {
             **BUGZILLA_QA_WHITEBOARD_FILTER,
@@ -175,7 +175,7 @@ class BugzillaClient(Bugz):
         df_update = pd.DataFrame(rows)
         print(f"Updated {len(df_update)} bugs")
 
-        self.db.bugzilla_desktop_bugs_update_insert(df_update)
+        self.db.report_bugzilla_desktop_bugs_update_insert(df_update)
 
     def bugzilla_query(self):
         all_bugs = []
@@ -296,6 +296,37 @@ class BugzillaClient(Bugz):
             qe_needed_count = self.db.report_bugzilla_qa_needed_count(data_frame) # noqa
             self.db.report_bugzilla_qa_needed_count_insert(qe_needed_count)
 
+    def bugzilla_helper_refresh_bugs(self, bug_ids: list[int]):
+        print(f"Refreshing {len(bug_ids)} bugs: {bug_ids}")
+        bugs = BugzillaHelper().get_bugs(bug_ids)  # .get_bugs() fetches by ID list
+
+        rows = []
+        for bug in bugs:
+            resolved_raw = getattr(bug, "cf_last_resolved", None)
+            resolved_at = pd.to_datetime(str(resolved_raw)) if resolved_raw else None
+
+            rows.append({
+                "bug_id": bug.id,
+                "summary": bug.summary,
+                "product": bug.product,
+                "qa_whiteboard": getattr(bug, "cf_qa_whiteboard", ""),
+                "severity": bug.severity,
+                "priority": bug.priority,
+                "status": bug.status,
+                "resolution": bug.resolution,
+                "created_at": pd.to_datetime(str(bug.creation_time)),
+                "last_change_time": pd.to_datetime(str(bug.last_change_time)),
+                "whiteboard": bug.whiteboard,
+                "keyword": bug.keywords,
+                "resolved_at": resolved_at
+            })
+
+        df_update = pd.DataFrame(rows)
+
+        # This method does an UPDATE on conflict (not INSERT)
+        self.db.bugzilla_desktop_bugs_update_insert(df_update)
+        print(f"Updated {len(df_update)} bugs in database.")
+
 
 class DatabaseBugzilla(Database):
 
@@ -308,67 +339,6 @@ class DatabaseBugzilla(Database):
         NOTE: we'll print daily bugs data from Bugzilla every day."""
         print("Delete entries from db first")
         self.clean_table(ReportBugzillaQENeeded)
-
-    def bugzilla_desktop_bugs_update_insert(self, payload):
-        for index, row in payload.iterrows():
-            try:
-                kw = row.get('keyword', [])
-                bugzilla_bug_keyword = ", ".join(kw) if isinstance(kw, list) and kw else None # noqa
-
-                bug_id = row['bug_id']
-
-                # Check if the bug already exists
-                existing = self.session.query(ReportBugzillaSoftvisionBugs).filter_by( # noqa
-                    bugzilla_key=bug_id
-                ).one_or_none()
-                if existing:
-                    print(f"Updating bug {bug_id}")
-                    # Compare last_change_time to update
-                    last_change_remote = pd.to_datetime(row['last_change_time']) # noqa
-                    if last_change_remote > existing.bugzilla_bug_last_change_time: # noqa
-                        existing.bugzilla_summary = row['summary']
-                        existing.bugzilla_product = row['product']
-                        existing.bugzilla_qa_whiteboard = row['qa_whiteboard']
-                        existing.bugzilla_bug_severity = row['severity']
-                        existing.bugzilla_bug_priority = row['priority']
-                        existing.bugzilla_bug_status = row['status']
-                        existing.bugzilla_bug_resolution = None if pd.isna(row['resolution']) else row['resolution'] # noqa
-                        existing.bugzilla_bug_created_at = row['created_at']
-                        existing.bugzilla_bug_last_change_time = row['last_change_time'] # noqa
-                        existing.bugzilla_bug_whiteboard = None if pd.isna(row['whiteboard']) else row['whiteboard'] # noqa
-
-                        existing.bugzilla_bug_keyword = bugzilla_bug_keyword,
-                        existing.bugzilla_bug_resolved_at = None if pd.isna(row['resolved_at']) else row['resolved_at'] # noqa
-            except KeyError as e:
-                print(f"Missing key: {e} in row {index}")
-
-        self.session.commit()
-
-    def report_bugzilla_desktop_bugs(self, payload):
-        for index, row in payload.iterrows():
-            try:
-                kw = row.get('keyword', [])
-                bugzilla_bug_keyword = ", ".join(kw) if isinstance(kw, list) and kw else None # noqa
-
-                report = ReportBugzillaSoftvisionBugs(
-                            bugzilla_key=row['bug_id'],
-                            bugzilla_summary=row['summary'],
-                            bugzilla_product=row['product'],
-                            bugzilla_qa_whiteboard=row['qa_whiteboard'],
-                            bugzilla_bug_severity=row['severity'],
-                            bugzilla_bug_priority=row['priority'],
-                            bugzilla_bug_status=row['status'],
-                            bugzilla_bug_resolution=None if pd.isna(row['resolution']) else row['resolution'], # noqa
-                            bugzilla_bug_created_at=row['created_at'],
-                            bugzilla_bug_last_change_time=row['last_change_time'], # noqa
-                            bugzilla_bug_whiteboard=None if pd.isna(row['whiteboard']) else row['whiteboard'], # noqa
-                            bugzilla_bug_keyword=bugzilla_bug_keyword,
-                            bugzilla_bug_resolved_at=None if pd.isna(row['resolved_at']) else row['resolved_at'] # noqa
-                            )
-            except KeyError as e:
-                print(f"Missing key: {e} in row {index}")
-            self.session.add(report)
-        self.session.commit()
 
     def report_bugzilla_qa_needed(self, payload):
 
@@ -448,4 +418,58 @@ class DatabaseBugzilla(Database):
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")
             self.session.add(report)
+        self.session.commit()
+
+    def report_bugzilla_desktop_bugs_update_insert(self, payload):
+        for index, row in payload.iterrows():
+            try:
+                kw = row.get('keyword', [])
+                bugzilla_bug_keyword = ", ".join(kw) if isinstance(kw, list) and kw else None # noqa
+
+                bug_id = row['bug_id']
+
+                # Check if the bug already exists
+                existing = self.session.query(ReportBugzillaSoftvisionBugs).filter_by(
+                    bugzilla_key=bug_id
+                ).one_or_none()
+
+                if existing:
+                    print(f"Updating bug {bug_id}")
+                    # Compare last_change_time to update
+                    last_change_remote = pd.to_datetime(row['last_change_time'])
+                    if last_change_remote > existing.bugzilla_bug_last_change_time:
+                        existing.bugzilla_summary = row['summary']
+                        existing.bugzilla_product = row['product']
+                        existing.bugzilla_qa_whiteboard = row['qa_whiteboard']
+                        existing.bugzilla_bug_severity = row['severity']
+                        existing.bugzilla_bug_priority = row['priority']
+                        existing.bugzilla_bug_status = row['status']
+                        existing.bugzilla_bug_resolution = None if pd.isna(row['resolution']) else row['resolution'] # noqa
+                        existing.bugzilla_bug_created_at = row['created_at']
+                        existing.bugzilla_bug_last_change_time = row['last_change_time']
+                        existing.bugzilla_bug_whiteboard = None if pd.isna(row['whiteboard']) else row['whiteboard'] # noqa
+                        existing.bugzilla_bug_keyword = bugzilla_bug_keyword
+                        existing.bugzilla_bug_resolved_at = None if pd.isna(row['resolved_at']) else row['resolved_at'] # noqa
+                else:
+                    print(f"Inserting new bug {bug_id}")
+                    new_bug = ReportBugzillaSoftvisionBugs(
+                        bugzilla_key=bug_id,
+                        bugzilla_summary=row['summary'],
+                        bugzilla_product=row['product'],
+                        bugzilla_qa_whiteboard=row['qa_whiteboard'],
+                        bugzilla_bug_severity=row['severity'],
+                        bugzilla_bug_priority=row['priority'],
+                        bugzilla_bug_status=row['status'],
+                        bugzilla_bug_resolution=None if pd.isna(row['resolution']) else row['resolution'], # noqa
+                        bugzilla_bug_created_at=row['created_at'],
+                        bugzilla_bug_last_change_time=row['last_change_time'],
+                        bugzilla_bug_whiteboard=None if pd.isna(row['whiteboard']) else row['whiteboard'], # noqa
+                        bugzilla_bug_keyword=bugzilla_bug_keyword,
+                        bugzilla_bug_resolved_at=None if pd.isna(row['resolved_at']) else row['resolved_at'] # noqa
+                    )
+                    self.session.add(new_bug)
+
+            except KeyError as e:
+                print(f"Missing key: {e} in row {index}")
+
         self.session.commit()
