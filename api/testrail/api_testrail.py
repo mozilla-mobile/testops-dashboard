@@ -1,4 +1,4 @@
-"""TestRail shim: temporary re-exports during refactor."""
+"""TestRail shim: re-exports during refactor (runs-only drop-in)."""
 
 from .report_testrail_runs import (
     fetch_testrail_runs,
