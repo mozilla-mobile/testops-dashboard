@@ -4,12 +4,6 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 from database import (
-    Database,
-    Projects,
-    TestSuites,
-    ReportTestCaseCoverage,
-    ReportTestRailMilestones,
-    ReportTestRailUsers,
     ReportTestRailTestPlans,
     ReportTestRailTestRuns,
     ReportTestRailTestResults,

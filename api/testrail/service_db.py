@@ -1,7 +1,6 @@
 import pandas as pd
 from database import (
     Database,
-    Projects,
     TestSuites,
     ReportTestCaseCoverage,
     ReportTestRailMilestones,
