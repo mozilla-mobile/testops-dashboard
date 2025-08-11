@@ -1,5 +1,6 @@
 # report_testrail_coverage.py
-# Thin wrapper that preserves signature by delegating to TestRailClient.testrail_coverage_update
+# Thin wrapper that preserves signature by
+# delegating to TestRailClient.testrail_coverage_update
 from .service_client import TestRailClient
 
 

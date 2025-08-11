@@ -1,5 +1,6 @@
 # report_test_suites.py
-# Thin wrapper that preserves signature by delegating to DatabaseTestRail.test_suites_update
+# Thin wrapper that preserves signature by delegating
+# to DatabaseTestRail.test_suites_update
 from .service_db import DatabaseTestRail
 
 

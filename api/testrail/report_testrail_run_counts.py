@@ -1,5 +1,6 @@
 # report_testrail_run_counts.py
-# Thin wrapper that preserves signature by delegating to TestRailClient.testrail_run_counts_update
+# Thin wrapper that preserves signature by
+# delegating to TestRailClient.testrail_run_counts_update
 from .service_client import TestRailClient
 
 
