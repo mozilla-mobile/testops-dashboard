@@ -1,6 +1,5 @@
-# service_client.py
-# Extracted TestRailClient with its direct imports and constants
-
+from .client import TestRail
+from .service_db import DatabaseTestRail
 from datetime import datetime
 import pandas as pd
 import numpy as np
@@ -17,6 +16,7 @@ from database import (
 )
 from utils.datetime_utils import DatetimeUtils as dt
 from utils.payload_utils import PayloadUtils as pl
+
 
 class TestRailClient(TestRail):
 

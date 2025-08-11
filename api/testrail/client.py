@@ -1,5 +1,3 @@
-# client.py
-
 import os
 import sys
 from lib.testrail_conn import APIClient

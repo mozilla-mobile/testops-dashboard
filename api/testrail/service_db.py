@@ -1,6 +1,3 @@
-# service_db.py
-# Extracted DatabaseTestRail with its direct imports and constants
-
 import pandas as pd
 from database import (
     Database,
@@ -14,6 +11,7 @@ from database import (
     ReportTestRailTestResults,
 )
 from utils.datetime_utils import DatetimeUtils as dt
+
 
 class DatabaseTestRail(Database):
 
