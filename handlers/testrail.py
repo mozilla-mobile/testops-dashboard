@@ -1,4 +1,4 @@
-from api.testrail.api_testrail import TestRailClient
+from api.testrail.service_client import TestRailClient
 
 
 def handle_testrail_test_plans_and_runs(args):
