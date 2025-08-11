@@ -1,0 +1,10 @@
+wiki_page:
+  page_id: 1695154291
+  page_title: "Android Health Monitor Report"
+  sections:
+    - name: "Bugzilla"
+      reports:
+        - report-title: "Memory Leaks"
+          report-description: "Number of Memory Leaks Bugs"
+          attachment-filename: "android-memory-leak-bugzilla-number-of-bugs.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3012"
