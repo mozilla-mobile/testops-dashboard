@@ -1,9 +1,9 @@
-# service_client.py (PR4 cutover adapters)
+# service_client.py (PR4a hotfix)
 """Thin adapter methods forwarding to functional report modules.
 
-This keeps legacy handlers working while making the functional modules the
-single source of truth. After handlers are updated to import report modules
-directly, this file can be removed.
+Adds the missing `data_pump_report_test_case_coverage(...)` so existing handlers
+keep working during cutover. Once handlers point directly to report modules,
+this file can be removed.
 """
 
 
@@ -11,12 +11,15 @@ class TestRailClient:
     """Legacy facade kept temporarily for handler compatibility.
 
     Each method simply forwards to the corresponding functional orchestrator.
-
-    TODO(PR5): delete this class after handlers are switched.
     """
 
     # ---- Coverage ----
     def testrail_coverage_update(self, *args, **kwargs):
+        from .report_testrail_coverage import testrail_coverage_update as _run
+        return _run(*args, **kwargs)
+
+    # Handler compatibility (old entry point name)
+    def data_pump_report_test_case_coverage(self, *args, **kwargs):
         from .report_testrail_coverage import testrail_coverage_update as _run
         return _run(*args, **kwargs)
 
