@@ -1,39 +1,46 @@
 # report_testrail_runs.py
 """
-Functional API for the TestRail "runs" report.
+Functional conversion of the TestRail runs report.
 
-Functions:
-- fetch_testrail_runs(...): fetch raw JSON from TestRail (delegates for now)
-- prepare_testrail_runs(raw): JSON -> DataFrame payload (placeholder)
-- insert_testrail_runs(df, ...): insert into DB (delegates for now)
-- testrail_runs_update(...): orchestrator (delegates for now)
-
-Once we have the full class method body, we will inline the real logic into these
-functions and deprecate the class method.
+Steps:
+- fetch_testrail_runs(num_days, project_plans) -> dict[plan_id, list[entry]]
+- prepare_testrail_runs(raw) -> passthrough (no transform needed)
+- insert_testrail_runs(data) -> writes entries to DB
+- testrail_runs_update(num_days, project_plans) -> orchestrator
 """
 
 from .service_client import TestRailClient
+from .service_db import DatabaseTestRail
+from utils.datetime_utils import DatetimeUtils as dt
 
 
-def fetch_testrail_runs(*args, **kwargs):
-    """Fetch raw runs JSON (delegates to existing class method for now)."""
-    svc = TestRailClient()
-    return svc.testrail_runs_update(*args, **kwargs)
+def fetch_testrail_runs(num_days, project_plans):
+    """Fetch plan entries for each plan within the date window."""
+    start_date = dt.start_date(num_days)
+    tr = TestRailClient()
+    plan_entries = {}
+    for plan in project_plans.values():
+        plan_info = tr.get_test_plan(plan['plan_id'], start_date)
+        plan_entries[plan['id']] = plan_info.get('entries', [])
+    return plan_entries
 
 
-def prepare_testrail_runs(raw):
-    """Transform raw JSON to a DataFrame payload (placeholder)."""
-    # TODO: move the real transform here when we inline
-    return raw
+def prepare_testrail_runs(raw_plan_entries):
+    """No additional shaping required for DB insert; passthrough."""
+    return raw_plan_entries
 
 
-def insert_testrail_runs(df, *args, **kwargs):
-    """Insert the payload DataFrame into the database (delegates for now)."""
-    svc = TestRailClient()
-    return svc.testrail_runs_update(*args, **kwargs)
+def insert_testrail_runs(plan_entries):
+    """Insert each run entry into the database."""
+    db = DatabaseTestRail()
+    for plan_id, entries in plan_entries.items():
+        for entry in entries:
+            db.report_test_runs_insert(plan_id, entry.get('suite_id'), entry.get('runs'))
 
 
-def testrail_runs_update(*args, **kwargs):
-    """Orchestrator: fetch -> prepare -> insert (delegates for now)."""
-    svc = TestRailClient()
-    return svc.testrail_runs_update(*args, **kwargs)
+def testrail_runs_update(num_days, project_plans):
+    """Orchestrate fetch -> prepare -> insert for runs."""
+    data = fetch_testrail_runs(num_days, project_plans)
+    payload = prepare_testrail_runs(data)
+    insert_testrail_runs(payload)
+    return True

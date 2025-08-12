@@ -84,37 +84,43 @@ class TestRailClient(TestRail):
         print(project_ids_list)
         return project_ids_list
 
-    def testrail_coverage_update(self, projects_id,
-                                 testrail_project_id, test_suite_id):
+    
+# TODO: deprecated after functional migration; kept for rollback
+# def testrail_coverage_update(self, projects_id,
+#                                  testrail_project_id, test_suite_id):
 
-        # Pull JSON blob from Testrail
-        cases = self.test_cases(testrail_project_id, test_suite_id)
+#         # Pull JSON blob from Testrail
+#         cases = self.test_cases(testrail_project_id, test_suite_id)
 
-        # Format and store data in a data payload array
-        payload = self.db.report_test_coverage_payload(cases)
-        print(payload)
+#         # Format and store data in a data payload array
+#         payload = self.db.report_test_coverage_payload(cases)
+#         print(payload)
 
-        # Insert data in 'totals' array into DB
-        self.db.report_test_coverage_insert(projects_id, payload)
+#         # Insert data in 'totals' array into DB
+#         self.db.report_test_coverage_insert(projects_id, payload)
 
-    def testrail_run_counts_update(self, project, num_days):
-        start_date = dt.start_date(num_days)
 
-        # Get reference IDs from DB
-        (
-            projects_id,
-            testrail_project_id,
-            functional_test_suite_id,
-        ) = self.db.testrail_identity_ids(project)
+    
+# TODO: deprecated after functional migration; kept for rollback
+# def testrail_run_counts_update(self, project, num_days):
+#         start_date = dt.start_date(num_days)
 
-        # Pull JSON blob from Testrail
-        runs = self.test_runs(testrail_project_id, start_date)
+#         # Get reference IDs from DB
+#         (
+#             projects_id,
+#             testrail_project_id,
+#             functional_test_suite_id,
+#         ) = self.db.testrail_identity_ids(project)
 
-        # Format and store data in a 'totals' array
-        totals = self.db.report_test_run_payload(runs)
+#         # Pull JSON blob from Testrail
+#         runs = self.test_runs(testrail_project_id, start_date)
 
-        # Insert data in the 'totals' array into DB
-        self.db.report_test_runs_insert(projects_id, totals)
+#         # Format and store data in a 'totals' array
+#         totals = self.db.report_test_run_payload(runs)
+
+#         # Insert data in the 'totals' array into DB
+#         self.db.report_test_runs_insert(projects_id, totals)
+
 
     def testrail_milestones(self, project):
         self.db.testrail_milestons_delete()
@@ -295,22 +301,25 @@ class TestRailClient(TestRail):
         df = pd.DataFrame(user_data)
         self.db.report_testrail_users_insert(df)
 
-    def testrail_runs_update(self, num_days, project_plans):
-        """
-            Update the test_runs table with the latest entries up until
-            the specified number of days.
+    
+# TODO: deprecated after functional migration; kept for rollback
+# def testrail_runs_update(self, num_days, project_plans):
+#         """
+#             Update the test_runs table with the latest entries up until
+#             the specified number of days.
 
-            Args:
-                num_days (str): number of days to go back from.
-                project_plans (dict): the queried and filtered testrail plans.
-        """
-        start_date = dt.start_date(num_days)
-        # querying each test plan individually returns the associated runs
-        for plan in project_plans.values():
-            plan_info = self.get_test_plan(plan['plan_id'], start_date)
-            for entry in plan_info['entries']:
-                self.db.report_test_runs_insert(
-                    plan['id'], entry['suite_id'], entry['runs'])
+#             Args:
+#                 num_days (str): number of days to go back from.
+#                 project_plans (dict): the queried and filtered testrail plans.
+#         """
+#         start_date = dt.start_date(num_days)
+#         # querying each test plan individually returns the associated runs
+#         for plan in project_plans.values():
+#             plan_info = self.get_test_plan(plan['plan_id'], start_date)
+#             for entry in plan_info['entries']:
+#                 self.db.report_test_runs_insert(
+#                     plan['id'], entry['suite_id'], entry['runs'])
+
 
     def testrail_plans_and_runs(self, project, num_days):
         """
