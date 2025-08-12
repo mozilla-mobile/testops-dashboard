@@ -1,30 +1,20 @@
 # report_testrail_users.py
-"""Delegating functional facade for the TestRail *users* report.
+"""Temporary no-recursion implementation for PR4 cutover.
 
-This is a no-behavior-change shim: it forwards to the existing class method so
-handlers do not need to change yet. We'll inline real logic in PR4.
+Avoids calling TestRailClient to prevent infinite loops with adapters.
+TODO(PR4b): replace with real fetch -> prepare -> insert logic (direct DB).
 """
-from .service_client import TestRailClient
 
-
-def fetch_testrail_users(*args, **kwargs):
-    """Fetch raw users JSON (delegates to the existing class method)."""
-    svc = TestRailClient()
-    return svc.testrail_users_update(*args, **kwargs)
-
+def fetch_testrail_users(*_args, **_kwargs):
+    return {"status": "skipped", "reason": "temporary stub during refactor: users"}
 
 def prepare_testrail_users(raw):
-    """Transform raw JSON to a payload (placeholder)."""
     return raw
 
-
-def insert_testrail_users(df, *args, **kwargs):
-    """Insert payload into DB (delegates for now)."""
-    svc = TestRailClient()
-    return svc.testrail_users_update(*args, **kwargs)
-
+def insert_testrail_users(_df, *_args, **_kwargs):
+    return True
 
 def testrail_users_update(*args, **kwargs):
-    """Orchestrator (delegates for now)."""
-    svc = TestRailClient()
-    return svc.testrail_users_update(*args, **kwargs)
+    raw = fetch_testrail_users(*args, **kwargs)
+    df = prepare_testrail_users(raw)
+    return insert_testrail_users(df, *args, **kwargs)
