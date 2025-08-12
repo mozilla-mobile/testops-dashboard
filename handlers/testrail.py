@@ -1,42 +1,43 @@
-from api.testrail.api_testrail import TestRailClient
+# Minimal TestRail handlers: call report modules directly.
+
+from api.testrail.report_testrail_coverage import testrail_coverage_update
+from api.testrail.report_testrail_milestones import testrail_milestones_update
+from api.testrail.report_testrail_users import testrail_users_update
+from api.testrail.report_testrail_testplans import testrail_testplans_update
+from api.testrail.report_testrail_runs import testrail_runs_update
+from api.testrail.report_testrail_run_counts import testrail_run_counts_update
 
 
-def handle_testrail_test_plans_and_runs(args) -> None:
-    """Run the combined TestRail test plans + runs flow."""
-    client = TestRailClient()
-    client.testrail_plans_and_runs(args.project, args.num_days or '30')
+def handle_testrail_test_plans_and_runs(args):
+    project = getattr(args, "project", None)
+    num_days = getattr(args, "num_days", None) or "30"
+    testrail_testplans_update(project, num_days)
+    testrail_runs_update(project, num_days)
 
 
-def handle_testrail_test_results(args) -> None:
-    """Update TestRail test results report."""
-    client = TestRailClient()
-    client.testrail_test_results()
+def handle_testrail_test_results(args):
+    project = getattr(args, "project", None)
+    num_days = getattr(args, "num_days", None) or "30"
+    testrail_runs_update(project, num_days)
 
 
-def handle_testrail_milestones(args) -> None:
-    """Update TestRail milestones report."""
-    client = TestRailClient()
-    client.testrail_milestones(args.arg_list)
+def handle_testrail_milestones(args):
+    testrail_milestones_update(getattr(args, "arg_list", None))
 
 
-def handle_testrail_users(args) -> None:
-    """Update TestRail users report."""
-    client = TestRailClient()
-    client.testrail_users()
+def handle_testrail_users(args):
+    testrail_users_update()
 
 
-def handle_testrail_test_case_coverage(args) -> None:
-    """Update the TestRail test case coverage report."""
-    client = TestRailClient()
-    client.data_pump_report_test_case_coverage(args.arg_list)
+def handle_testrail_test_case_coverage(args):
+    testrail_coverage_update(getattr(args, "arg_list", None))
 
 
-def handle_testrail_test_run_counts_update(args) -> None:
-    """Legacy name kept for compatibility. Prefer handle_testrail_run_counts."""
-    client = TestRailClient()
-    client.testrail_run_counts_update(args.project, args.num_days or '')
+def handle_testrail_run_counts(args):
+    project = getattr(args, "project", None)
+    num_days = getattr(args, "num_days", None) or ""
+    testrail_run_counts_update(project, num_days)
 
 
-def handle_testrail_run_counts(args) -> None:
-    """Update TestRail test run counts report (canonical handler)."""
-    handle_testrail_test_run_counts_update(args)
+# Legacy alias for compatibility with older COMMAND_MAP keys
+handle_testrail_test_run_counts_update = handle_testrail_run_counts
