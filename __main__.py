@@ -46,13 +46,15 @@ from handlers.sentry import (
     handle_sentry_rates,
 )
 
-from handlers.testrail import (
-    handle_testrail_test_plans_and_runs,
-    handle_testrail_test_results,
+from handlers._testrail_imports import (
+    handle_testrail_test_case_coverage,
     handle_testrail_milestones,
     handle_testrail_users,
-    handle_testrail_test_case_coverage,
-    handle_testrail_test_run_counts_update,
+    handle_testrail_test_plans_and_runs,
+    handle_testrail_testplans,
+    handle_testrail_runs,
+    handle_testrail_run_counts,
+    handle_testrail_test_results,
 )
 
 
