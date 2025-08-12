@@ -2,41 +2,38 @@
 """
 Functional API for the TestRail "runs" report.
 
-Agreed naming:
-  1) fetch_testrail_runs(...)      -> raw JSON
-  2) prepare_testrail_runs(raw)    -> pandas.DataFrame payload
-  3) insert_testrail_runs(df, ...) -> inserts into DB
-  4) testrail_runs_update(...)     -> orchestrator
+Functions:
+- fetch_testrail_runs(...): fetch raw JSON from TestRail (delegates for now)
+- prepare_testrail_runs(raw): JSON -> DataFrame payload (placeholder)
+- insert_testrail_runs(df, ...): insert into DB (delegates for now)
+- testrail_runs_update(...): orchestrator (delegates for now)
 
-NOTE: This version *delegates* to the existing class method so behavior is unchanged.
-Once you confirm structure, we can inline the real logic here and
-remove the class method.
+Once we have the full class method body, we will inline the real logic into these
+functions and deprecate the class method.
 """
 
 from .service_client import TestRailClient
 
 
 def fetch_testrail_runs(*args, **kwargs):
-    """Fetch raw TestRail runs JSON (delegates for now)."""
+    """Fetch raw runs JSON (delegates to existing class method for now)."""
     svc = TestRailClient()
-    # TODO: replace with a direct TestRail client call (self.tr.get_runs or similar)
     return svc.testrail_runs_update(*args, **kwargs)
 
 
 def prepare_testrail_runs(raw):
-    """Transform raw JSON -> pandas.DataFrame payload (placeholder for now)."""
-    # TODO: pull the transform logic out of the class method into this function
+    """Transform raw JSON to a DataFrame payload (placeholder)."""
+    # TODO: move the real transform here when we inline
     return raw
 
 
 def insert_testrail_runs(df, *args, **kwargs):
-    """Insert DataFrame into the database (delegates for now)."""
+    """Insert the payload DataFrame into the database (delegates for now)."""
     svc = TestRailClient()
-    # TODO: call into the DB service directly once extracted
     return svc.testrail_runs_update(*args, **kwargs)
 
 
 def testrail_runs_update(*args, **kwargs):
-    """Orchestrator (fetch -> prepare -> insert), delegates for now."""
+    """Orchestrator: fetch -> prepare -> insert (delegates for now)."""
     svc = TestRailClient()
     return svc.testrail_runs_update(*args, **kwargs)
