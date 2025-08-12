@@ -1,25 +1,24 @@
 # report_testrail_milestones.py
-"""Delegating functional facade for the TestRail *milestones* report.
+"""Temporary no-recursion implementation for PR4 cutover.
 
-No behavior change; forwards to the existing class method.
+Avoids calling TestRailClient to prevent infinite loops with adapters.
+TODO(PR4b): replace with real fetch -> prepare -> insert logic (direct DB).
 """
-from .service_client import TestRailClient
 
 
-def fetch_testrail_milestones(*args, **kwargs):
-    svc = TestRailClient()
-    return svc.testrail_milestones_update(*args, **kwargs)
+def fetch_testrail_milestones(*_args, **_kwargs):
+    return {"status": "skipped", "reason": "temporary stub during refactor: milestones"}
 
 
 def prepare_testrail_milestones(raw):
     return raw
 
 
-def insert_testrail_milestones(df, *args, **kwargs):
-    svc = TestRailClient()
-    return svc.testrail_milestones_update(*args, **kwargs)
+def insert_testrail_milestones(_df, *_args, **_kwargs):
+    return True
 
 
 def testrail_milestones_update(*args, **kwargs):
-    svc = TestRailClient()
-    return svc.testrail_milestones_update(*args, **kwargs)
+    raw = fetch_testrail_milestones(*args, **kwargs)
+    df = prepare_testrail_milestones(raw)
+    return insert_testrail_milestones(df, *args, **kwargs)
