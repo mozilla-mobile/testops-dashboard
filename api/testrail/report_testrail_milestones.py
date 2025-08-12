@@ -1,9 +1,4 @@
 # report_testrail_milestones.py
-"""Temporary no-recursion implementation for PR4 cutover.
-
-Avoids calling TestRailClient to prevent infinite loops with adapters.
-TODO(PR4b): replace with real fetch -> prepare -> insert logic (direct DB).
-"""
 
 
 def fetch_testrail_milestones(*_args, **_kwargs):

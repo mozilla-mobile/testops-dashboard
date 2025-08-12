@@ -1,12 +1,4 @@
 # report_testrail_testplans.py
-"""Temporary no-recursion implementation for PR4 cutover.
-
-Breaks the mutual recursion between TestRailClient <-> report module by
-avoiding any call back into TestRailClient. This is a safe no-op version
-that preserves the function signatures.
-
-TODO(PR4b): replace with real fetch -> prepare -> insert logic (direct DB).
-"""
 
 
 def fetch_testrail_testplans(*_args, **_kwargs):

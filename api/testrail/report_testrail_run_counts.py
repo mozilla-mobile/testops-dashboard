@@ -1,5 +1,5 @@
 # report_testrail_run_counts.py
-"""Functional API for TestRail run counts (delegates for now)."""
+
 
 from .client import TestRail as TestRailClient
 

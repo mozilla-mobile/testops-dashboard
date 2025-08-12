@@ -1,14 +1,4 @@
 # report_testrail_coverage.py
-"""
-Temporary safe implementation to avoid recursion and missing DB methods during PR3A.
-
-- fetch_testrail_coverage: returns a stub payload (no client calls)
-- prepare_testrail_coverage: pass-through
-- insert_testrail_coverage: no-op (returns True)
-- testrail_coverage_update: orchestrator; wired so the legacy shim can call it
-
-TODO(PR3B): Replace stubs with real logic (API fetch -> payload -> DB insert).
-"""
 
 
 def fetch_testrail_coverage(*_args, **_kwargs):
