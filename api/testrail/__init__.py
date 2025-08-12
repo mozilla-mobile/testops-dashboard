@@ -1,20 +1,21 @@
 """
-Package init shim for TestRail coverage during migration.
+Package init: temporary shim to keep legacy handler paths working during refactor.
 
-If TestRailClient.testrail_coverage_update is missing (commented out),
-attach a shim that forwards DIRECTLY to DatabaseTestRail.testrail_coverage_update.
-This avoids recursion through the functional layer.
+We attach a coverage method to TestRailClient that forwards to the *functional*
+orchestrator function. The functional module itself must *not* call back into
+TestRailClient to avoid recursion.
 
-Remove this shim in PR4 once handlers are updated.
+TODO(PR4): remove this file once handlers call report modules directly.
 """
-from .service_client import TestRailClient
-from .service_db import DatabaseTestRail
+from .service_client import TestRailClient  # local import; class exists here
 
 
 def _testrail_coverage_update_shim(self, *args, **kwargs):
-    db = DatabaseTestRail()
-    return db.testrail_coverage_update(*args, **kwargs)
+    # Import inside to avoid import cycles.
+    from .report_testrail_coverage import testrail_coverage_update as _run
+    return _run(*args, **kwargs)
 
 
+# Only attach if it's missing (i.e., the method was commented out during migration)
 if not hasattr(TestRailClient, "testrail_coverage_update"):
     setattr(TestRailClient, "testrail_coverage_update", _testrail_coverage_update_shim)
