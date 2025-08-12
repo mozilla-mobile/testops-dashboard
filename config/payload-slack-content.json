@@ -18,7 +18,7 @@
                     "type": "section",
                     "text": {
                         "type": "mrkdwn",
-                        "text": "Status: ${{ env.JOB_STATUS }}\n Logs: <${{ env.JOB_LOG_URL }}|Build Logs>"
+                        "text": "Status: ${{ env.JOB_STATUS }}\n Logs: <${{ env.JOB_LOG_URL }}|Build Logs>\n Branch: ${{ env.BRANCH }}"
                     }
                 },
                 {
