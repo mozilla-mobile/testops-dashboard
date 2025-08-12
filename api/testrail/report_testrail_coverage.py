@@ -1,43 +1,33 @@
 # report_testrail_coverage.py
-"""
-Coverage report functions with a safe fallback that does NOT depend on
-TestRailClient having `testrail_coverage_update`. For now we delegate
-directly to DatabaseTestRail so AttributeError can't occur.
-"""
+"""Functional API for TestRail test case coverage (delegates/fallback)."""
 
+from .service_client import TestRailClient
 from .service_db import DatabaseTestRail
 
 
 def fetch_testrail_coverage(*args, **kwargs):
-    """
-    TEMP: delegate to the DB service's coverage update, which already
-    performs the end-to-end operation in your current codebase.
-    """
+    """Fetch coverage; prefer client method, fall back to DB method if missing."""
+    svc = TestRailClient()
+    if hasattr(svc, "testrail_coverage_update"):
+        return svc.testrail_coverage_update(*args, **kwargs)
     db = DatabaseTestRail()
     return db.testrail_coverage_update(*args, **kwargs)
 
 
 def prepare_testrail_coverage(raw):
-    """
-    Placeholder for JSON -> DataFrame shaping once we inline logic.
-    Currently just passes through.
-    """
+    """Transform raw JSON to a DataFrame payload (placeholder)."""
     return raw
 
 
 def insert_testrail_coverage(df, *args, **kwargs):
-    """
-    TEMP: delegate to the DB service's coverage update to perform the
-    insert. When we inline, this will take a DataFrame and write rows.
-    """
+    """Insert payload; prefer client method, fall back to DB if missing."""
+    svc = TestRailClient()
+    if hasattr(svc, "testrail_coverage_update"):
+        return svc.testrail_coverage_update(*args, **kwargs)
     db = DatabaseTestRail()
     return db.testrail_coverage_update(*args, **kwargs)
 
 
 def testrail_coverage_update(*args, **kwargs):
-    """
-    Orchestrator. For now, call the DB service directly so we don't
-    depend on TestRailClient having this method defined.
-    """
-    db = DatabaseTestRail()
-    return db.testrail_coverage_update(*args, **kwargs)
+    """Orchestrator: fetch -> prepare -> insert (delegates/fallback)."""
+    return fetch_testrail_coverage(*args, **kwargs)
