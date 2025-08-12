@@ -1,7 +1,7 @@
 # report_testrail_run_counts.py
 """Functional API for TestRail run counts (delegates for now)."""
 
-from .service_client import TestRailClient
+from .client import TestRail as TestRailClient
 
 
 def fetch_testrail_run_counts(*args, **kwargs):
