@@ -57,6 +57,17 @@ from handlers._testrail_imports import (
     handle_testrail_test_results,
 )
 
+# --- Legacy handler name aliases (temporary) -------------------------------
+# Map old *_update names used in COMMAND_MAP to the canonical handlers.
+handle_testrail_test_case_coverage_update = handle_testrail_test_case_coverage
+handle_testrail_milestones_update = handle_testrail_milestones
+handle_testrail_users_update = handle_testrail_users
+handle_testrail_testplans_update = handle_testrail_test_plans_and_runs  # if you only run combined; else -> handle_testrail_testplans
+handle_testrail_runs_update = handle_testrail_runs
+handle_testrail_test_run_counts_update = handle_testrail_run_counts
+handle_testrail_test_results_update = handle_testrail_test_results
+# --------------------------------------------------------------------------
+
 
 def parse_args(cmdln_args):
     parser = argparse.ArgumentParser(
