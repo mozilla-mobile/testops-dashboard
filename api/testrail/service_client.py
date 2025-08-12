@@ -1,9 +1,11 @@
-# service_client.py (PR4a hotfix)
+# service_client.py (PR4a hotfix2)
 """Thin adapter methods forwarding to functional report modules.
 
-Adds the missing `data_pump_report_test_case_coverage(...)` so existing handlers
-keep working during cutover. Once handlers point directly to report modules,
-this file can be removed.
+Adds missing legacy entry points used by handlers:
+- data_pump_report_test_case_coverage(...)
+- testrail_plans_and_runs(project, num_days)
+
+Once handlers call report modules directly, this file can be removed.
 """
 
 
@@ -38,12 +40,20 @@ class TestRailClient:
         from .report_testrail_testplans import testrail_testplans_update as _run
         return _run(*args, **kwargs)
 
-    # ---- Runs (if used) ----
+    # ---- Runs ----
     def testrail_runs_update(self, *args, **kwargs):
         from .report_testrail_runs import testrail_runs_update as _run
         return _run(*args, **kwargs)
 
-    # ---- Run Counts (if used) ----
+    # ---- Run Counts ----
     def testrail_run_counts_update(self, *args, **kwargs):
         from .report_testrail_run_counts import testrail_run_counts_update as _run
         return _run(*args, **kwargs)
+
+    # ---- Combined: Plans + Runs (legacy handler entry) ----
+    def testrail_plans_and_runs(self, project, num_days):
+        from .report_testrail_testplans import testrail_testplans_update as _plans
+        from .report_testrail_runs import testrail_runs_update as _runs
+        _plans(project, num_days)
+        _runs(project, num_days)
+        return True
