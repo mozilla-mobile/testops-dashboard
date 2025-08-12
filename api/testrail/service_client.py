@@ -1,9 +1,31 @@
-# service_client.py (PR4a hotfix3)
-"""Thin adapter methods forwarding to functional report modules.
+# service_client.py (PR4a dynamic adapter)
+"""Temporary compatibility layer for legacy handler calls.
 
-Adds legacy alias methods used by handlers (e.g., `testrail_users`).
-Once handlers call report modules directly, this file can be deleted.
+- Keeps explicit adapter methods we've already used.
+- Adds a *dynamic* fallback via __getattr__ for legacy names like:
+    * testrail_<report>(...)
+    * testrail_<report>_update(...)
+    * data_pump_report_<report>(...)
+  These are routed to the functional orchestrators in:
+    api/testrail/report_testrail_<report>.py -> testrail_<report>_update(...)
+
+IMPORTANT: This does **not** rename any functions in your codebase.
+It only provides a runtime bridge so CI doesn't fail while we migrate.
+It also prints a one-line notice when a dynamic fallback is used so
+you can grep logs and tidy the handlers in PR4b.
 """
+from importlib import import_module
+import sys
+
+
+_ALLOWED_REPORTS = {
+    "coverage",
+    "users",
+    "milestones",
+    "testplans",
+    "runs",
+    "run_counts",
+}
 
 
 class TestRailClient:
@@ -52,7 +74,7 @@ class TestRailClient:
         from .report_testrail_testplans import testrail_testplans_update as _run
         return _run(*args, **kwargs)
 
-    # ---- Runs (if used) ----
+    # ---- Runs ----
     def testrail_runs_update(self, *args, **kwargs):
         from .report_testrail_runs import testrail_runs_update as _run
         return _run(*args, **kwargs)
@@ -62,7 +84,7 @@ class TestRailClient:
         from .report_testrail_runs import testrail_runs_update as _run
         return _run(*args, **kwargs)
 
-    # ---- Run Counts (if used) ----
+    # ---- Run Counts ----
     def testrail_run_counts_update(self, *args, **kwargs):
         from .report_testrail_run_counts import testrail_run_counts_update as _run
         return _run(*args, **kwargs)
@@ -73,3 +95,29 @@ class TestRailClient:
         from .report_testrail_runs import testrail_runs_update as _runs
         _plans(project, num_days)
         return _runs(project, num_days)
+
+    # -------- Dynamic fallback for any other legacy names --------
+    def __getattr__(self, name: str):
+        # Only handle specific legacy prefixes to keep behavior predictable.
+        prefix_map = (
+            ("testrail_", ""),
+            ("data_pump_report_", ""),
+        )
+        for prefix, strip in prefix_map:
+            if name.startswith(prefix):
+                remainder = name[len(prefix):]
+                # Normalize optional trailing '_update'
+                if remainder.endswith("_update"):
+                    remainder = remainder[:-7]
+                report = remainder
+                if report in _ALLOWED_REPORTS:
+                    def _dynamic_forward(*args, **kwargs):
+                        # Log once to stderr so we can find & clean these up in PR4b
+                        print(f"[testrail adapter] dynamic fallback: '{name}' -> report '{report}'",
+                              file=sys.stderr)
+                        mod = import_module(f"{__package__}.report_testrail_{report}")
+                        run = getattr(mod, f"testrail_{report}_update")
+                        return run(*args, **kwargs)
+                    return _dynamic_forward
+        # Default behavior: normal AttributeError for unknowns.
+        raise AttributeError(f"{self.__class__.__name__!s} object has no attribute {name!r}")
