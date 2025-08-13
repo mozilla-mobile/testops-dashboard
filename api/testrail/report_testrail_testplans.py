@@ -86,9 +86,12 @@ def testrail_test_plans_and_runs(
     print(f"[plans] projects: {pairs}")
 
     for projects_id, tr_project_id in pairs:
+
         date_range = f"&created_after={after}" if after else ""
-        payload = client.send_get(f"/get_plans/{tr_project_id}{date_range}")
-        plans = (payload or {}).get("plans", [])
+        plans = client.send_get(
+            f"get_plans/{tr_project_id}{date_range}",
+            data_type="plans",
+        ) or []
 
         full_plans = {
             plan["name"]: pl.extract_plan_info(plan)

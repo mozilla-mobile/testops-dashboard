@@ -81,8 +81,11 @@ def testrail_coverage_update(project: Iterable[str] | str) -> int:
     print(f"[coverage] projects: {pairs}")
 
     for projects_id, tr_project_id in pairs:
-        payload = client.send_get(f"/get_cases/{tr_project_id}")
-        cases = payload or []
+
+        cases = client.send_get(
+            f"get_cases/{tr_project_id}",
+            data_type="cases",
+        ) or []
         df = _coverage_payload(cases)
         print(
             f"[coverage] project_id={projects_id} grouped rows="

@@ -101,8 +101,12 @@ def testrail_test_results_update(project: Iterable[str] | str) -> int:
     total = 0
     pairs = _project_id_pairs(db, project)
     for _projects_id, tr_project_id in pairs:
-        plans_payload = client.send_get(f"/get_plans/{tr_project_id}")
-        plans = (plans_payload or {}).get("plans", [])
+
+        plans = client.send_get(
+            f"get_plans/{tr_project_id}",
+            data_type="plans",
+        ) or []
+
 
         beta_plan_id = None
         l10n_plan_id = None
