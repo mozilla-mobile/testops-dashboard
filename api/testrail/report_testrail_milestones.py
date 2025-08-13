@@ -1,4 +1,4 @@
-"""Functional TestRail milestones report (restored; flake8-compliant)."""
+"""TestRail milestones report (functional, flake8-clean, with diagnostics)."""
 import os
 from typing import Iterable, List, Tuple
 
@@ -43,14 +43,26 @@ def _project_id_pairs(
 # ---- original-style names for fetch/prepare/insert ---------------------
 def fetch_testrail_milestones(client: APIClient, testrail_project_id: int) -> list:
     path = f"get_milestones/{testrail_project_id}"
-    return client.send_get(path)
+    payload = client.send_get(path)
+    print(
+        "[milestones] fetched {} items for tr_project_id={}".format(
+            len(payload or []), testrail_project_id
+        )
+    )
+    return payload
 
 
 def prepare_testrail_milestones(payload: list) -> pd.DataFrame:
     if not payload:
+        print("[milestones] prepare: empty payload -> empty DataFrame")
         return pd.DataFrame()
 
     df_all = pd.json_normalize(payload)
+    print(
+        "[milestones] prepare: normalized {} rows, {} columns".format(
+            len(df_all.index), len(df_all.columns)
+        )
+    )
 
     # Keep only known columns if present and rename to DB schema names
     colmap = {
@@ -63,11 +75,8 @@ def prepare_testrail_milestones(payload: list) -> pd.DataFrame:
         'url': 'url',
     }
     existing = [k for k in colmap.keys() if k in df_all.columns]
-
-    # Diagnostic only
-    print(existing)
-
     if not existing:
+        print("[milestones] prepare: expected columns missing -> empty DataFrame")
         return pd.DataFrame()
 
     rename_map = {k: v for k, v in colmap.items() if k in existing}
@@ -98,6 +107,11 @@ def prepare_testrail_milestones(payload: list) -> pd.DataFrame:
         df['build_name'] = df['name'].apply(pl.extract_build_name)
         df['build_version'] = df['build_name'].apply(pl.extract_build_version)
 
+    print(
+        "[milestones] prepare: final df rows={}, cols={}".format(
+            len(df.index), len(df.columns)
+        )
+    )
     return df
 
 
@@ -105,10 +119,17 @@ def insert_testrail_milestones(
     db: Database,
     projects_id: int,
     df: pd.DataFrame,
-) -> None:
+) -> int:
     if df.empty:
-        return
+        print(
+            "[milestones] insert: 0 rows for projects_id={}".format(
+                projects_id
+            )
+        )
+        return 0
+
     session = db.session
+    count = 0
     for _, row in df.iterrows():
         rec = ReportTestRailMilestones(
             testrail_milestone_id=row.get('testrail_milestone_id'),
@@ -125,7 +146,14 @@ def insert_testrail_milestones(
             build_version=row.get('build_version'),
         )
         session.add(rec)
+        count += 1
     session.commit()
+    print(
+        "[milestones] insert: committed {} rows for projects_id={}".format(
+            count, projects_id
+        )
+    )
+    return count
 
 
 # ---- public orchestrator (original name kept) --------------------------
@@ -134,17 +162,19 @@ def testrail_milestones_update(project: Iterable[str] | str) -> None:
     db = Database()
     client = _api_client()
 
-    # Special-case 'ALL' by passing through without filter (DB has all projects)
+    # Special-case 'ALL': expand to all project abbrevs from DB
     proj_filter = project
     if isinstance(project, str) and project.upper() == 'ALL':
-        # Build list from DB (no hard-coded list)
         all_abbrevs = [
             p.project_name_abbrev for p in db.session.query(Projects).all()
         ]
         proj_filter = all_abbrevs
 
+    total = 0
     pairs = _project_id_pairs(db, proj_filter)
+    print("[milestones] projects: {}".format(pairs))
     for projects_id, testrail_project_id in pairs:
         payload = fetch_testrail_milestones(client, testrail_project_id)
         df = prepare_testrail_milestones(payload)
-        insert_testrail_milestones(db, projects_id, df)
+        total += insert_testrail_milestones(db, projects_id, df)
+    print("[milestones] finished; total inserted={}".format(total))
