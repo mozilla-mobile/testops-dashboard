@@ -47,12 +47,12 @@ from handlers.sentry import (
 )
 
 from handlers.testrail import (
-    handle_testrail_test_plans_and_runs,
-    handle_testrail_test_results,
+    handle_testrail_test_case_coverage,
     handle_testrail_milestones,
     handle_testrail_users,
-    handle_testrail_test_case_coverage,
-    handle_testrail_test_run_counts_update,
+    handle_testrail_test_plans_and_runs,  # :white_tick: combined handler
+    handle_testrail_run_counts,
+    handle_testrail_test_results,
 )
 
 
@@ -167,7 +167,7 @@ COMMAND_MAP = {
     'testrail-milestones': handle_testrail_milestones,
     'testrail-users': handle_testrail_users,
     'testrail-test-case-coverage': handle_testrail_test_case_coverage,
-    'testrail-test-run-counts': handle_testrail_test_run_counts_update,
+    'testrail-test-run-counts': handle_testrail_run_counts,
     'testrail-test-plans-and-runs': handle_testrail_test_plans_and_runs,
     'testrail-test-results': handle_testrail_test_results,
 }
