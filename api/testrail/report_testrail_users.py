@@ -1,4 +1,4 @@
-"""TestRail users report (real inserts + diagnostics, flake8-clean)."""
+"""TestRail users report (non-null created_at; diagnostics; flake8-clean)."""
 import os
 from typing import Dict, List
 
@@ -56,7 +56,7 @@ def _users_to_dataframe(unique_email_map: Dict[str, dict]) -> pd.DataFrame:
         created_on = user.get('created_on')
         created_at = (
             pd.to_datetime(created_on, unit='s', errors='coerce')
-            if created_on else None
+            if created_on else pd.NaT
         )
         rows.append({
             'name': user.get('name'),
@@ -66,9 +66,16 @@ def _users_to_dataframe(unique_email_map: Dict[str, dict]) -> pd.DataFrame:
             'created_at': created_at,
         })
     df = pd.DataFrame(rows)
+
+    # Ensure created_at is NEVER NULL to satisfy DB NOT NULL constraint.
+    # Fill NaT with "now" in UTC; then convert to Python datetime.
+    missing = df['created_at'].isna().sum()
+    if missing:
+        print(f"[users] prepare: {missing} rows missing created_at -> filling NOW")
+        df['created_at'] = df['created_at'].fillna(pd.Timestamp.utcnow())
+
     print(
-        f"[users] prepare: df rows={len(df.index)} "
-        f"cols={len(df.columns)}"
+        f"[users] prepare: df rows={len(df.index)} cols={len(df.columns)}"
     )
     return df
 
@@ -82,12 +89,16 @@ def _insert_users(db: Database, df: pd.DataFrame) -> int:
     session = db.session
     count = 0
     for _, row in df.iterrows():
+        created_at = row.get('created_at')
+        # Convert pandas Timestamp to Python datetime for SQLAlchemy, if needed.
+        if hasattr(created_at, 'to_pydatetime'):
+            created_at = created_at.to_pydatetime()
         rec = ReportTestRailUsers(
             name=row.get('name'),
             email=row.get('email'),
             status=row.get('status'),
             role=row.get('role'),
-            created_at=row.get('created_at'),
+            created_at=created_at,
         )
         session.add(rec)
         count += 1
@@ -98,7 +109,6 @@ def _insert_users(db: Database, df: pd.DataFrame) -> int:
 
 # ---- Public orchestrator (original handler name) ------------------------
 def testrail_users_update() -> None:
-    """Fetch all TestRail users across projects and insert unique by email."""
     client = _api_client()
     db = Database()
 
