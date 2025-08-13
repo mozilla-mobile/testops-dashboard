@@ -63,6 +63,10 @@ def prepare_testrail_milestones(payload: list) -> pd.DataFrame:
         'url': 'url',
     }
     existing = [k for k in colmap.keys() if k in df_all.columns]
+
+    # Diagnostic only
+    print(existing)
+
     if not existing:
         return pd.DataFrame()
 
