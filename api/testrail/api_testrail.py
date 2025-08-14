@@ -32,13 +32,13 @@ _TR = None
 _DB = None
 
 
-def _tr() -> Testrail():
+def _tr() -> TestRail():
     global _TR
     if _TR is None:
         _TR = TestRail()
     return _TR
 
-def _db() -> Testrail():
+def _db() -> TestRail():
     global _DB
     if _DB is None:
         _DB = Database()
