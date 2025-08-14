@@ -53,9 +53,6 @@ class TestRailClient(TestRail):
         super().__init__()
         # self.db = DatabaseTestRail()
 
-    def _tr(self) -> TestRail:
-        return TestRail
-
     def data_pump_report_test_case_coverage(self, project='all', suite='all'):
         # call database for 'all' values
         # convert inputs to a list so we can easily
@@ -91,6 +88,7 @@ class TestRailClient(TestRail):
                                               testrail_project_id, suite['id'])
 
     def testrail_project_ids(self, project):
+        db = _db()
         """ Return the ids needed to be able to query the TestRail API for
         a specific test suite from a specific project
 
@@ -106,12 +104,12 @@ class TestRailClient(TestRail):
         # Query with filtering
         if isinstance(project, list):
             q = (
-                self.db.session.query(Projects)
+                db.session.query(Projects)
                 .filter(Projects.project_name_abbrev.in_(project))
             )
         else:
             q = (
-                self.db.session.query(Projects)
+                db.session.query(Projects)
                 .filter(Projects.project_name_abbrev == project)
             )
 
@@ -128,7 +126,7 @@ class TestRailClient(TestRail):
                                  testrail_project_id, test_suite_id):
 
         # Pull JSON blob from Testrail
-        tr = self._tr()
+        tr = _tr()
         # cases = self.test_cases(testrail_project_id, test_suite_id)
         cases = tr.test_cases(testrail_project_id, test_suite_id)
 
@@ -144,6 +142,7 @@ class TestRailClient(TestRail):
         db.report_test_coverage_insert(projects_id, payload)
 
     def testrail_run_counts_update(self, project, num_days):
+        db = _db()
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
@@ -159,10 +158,12 @@ class TestRailClient(TestRail):
         runs = tr.test_runs(testrail_project_id, start_date)
 
         # Format and store data in a 'totals' array
-        totals = self.db.report_test_run_payload(runs)
+        # totals = self.db.report_test_run_payload(runs)
+        totals = db.report_test_run_payload(runs)
 
         # Insert data in the 'totals' array into DB
-        self.db.report_test_runs_insert(projects_id, totals)
+        #self.db.report_test_runs_insert(projects_id, totals)
+        db.report_test_runs_insert(projects_id, totals)
 
     def testrail_milestones(self, project):
         db = _db()
@@ -264,7 +265,8 @@ class TestRailClient(TestRail):
 
                 # Insert into database only if there is data
                 if not df_selected.empty:
-                    self.db.report_milestones_insert(projects_id, df_selected)
+                    #self.db.report_milestones_insert(projects_id, df_selected)
+                    db.report_milestones_insert(projects_id, df_selected)
                 else:
                     print(
                         f"No milestones data to insert into database for project "
@@ -272,6 +274,8 @@ class TestRailClient(TestRail):
                     )
 
     def testrail_users(self):
+        db = _db()
+
         # Step 1: Get all projects
         projects_response = self.projects()
         all_projects = projects_response.get("projects", [])
@@ -343,7 +347,8 @@ class TestRailClient(TestRail):
         ]
 
         df = pd.DataFrame(user_data)
-        self.db.report_testrail_users_insert(df)
+        #self.db.report_testrail_users_insert(df)
+        db.report_testrail_users_insert(df)
 
     def testrail_runs_update(self, num_days, project_plans):
         """
@@ -354,12 +359,15 @@ class TestRailClient(TestRail):
                 num_days (str): number of days to go back from.
                 project_plans (dict): the queried and filtered testrail plans.
         """
+
+        db = _db()
+
         start_date = dt.start_date(num_days)
         # querying each test plan individually returns the associated runs
         for plan in project_plans.values():
             plan_info = self.get_test_plan(plan['plan_id'], start_date)
             for entry in plan_info['entries']:
-                self.db.report_test_runs_insert(
+                db.report_test_runs_insert(
                     plan['id'], entry['suite_id'], entry['runs'])
 
     def testrail_plans_and_runs(self, project, num_days):
@@ -439,7 +447,7 @@ class TestRailClient(TestRail):
             runs = tr.get_test_plan(tp_ids[i])["entries"]
             for run in runs:
                 for config in run["runs"]:
-                    db_run_id = self.db.session.query(
+                    db_run_id = db.session.query(
                         ReportTestRailTestRuns).filter_by(
                             testrail_run_id=config["id"]).first().id
                     run_results = (
