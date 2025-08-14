@@ -11,8 +11,7 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 
-from lib.testrail_conn import APIClient
-
+from api.testrail.client import TestRail
 from database import (
     Database,
     Projects,
@@ -24,111 +23,9 @@ from database import (
     ReportTestRailTestRuns,
     ReportTestRailTestResults,
 )
-
+from lib.testrail_conn import APIClient
 from utils.datetime_utils import DatetimeUtils as dt
 from utils.payload_utils import PayloadUtils as pl
-
-
-class TestRail:
-
-    def __init__(self):
-        try:
-            TESTRAIL_HOST = os.environ['TESTRAIL_HOST']
-            self.client = APIClient(TESTRAIL_HOST)
-            self.client.user = os.environ['TESTRAIL_USERNAME']
-            self.client.password = os.environ['TESTRAIL_PASSWORD']
-        except KeyError:
-            print("ERROR: Missing testrail env var")
-            sys.exit(1)
-
-    # API: Milestones
-    def milestones(self, testrail_project_id):
-        return self.client.send_get(
-            f"get_milestones/{testrail_project_id}",
-            data_type='milestones'
-        )
-
-    def milestone(self, testrail_milestone_id):
-        return self.client.send_get(f"get_milestone/{testrail_milestone_id}")
-
-    # API: Projects
-    def projects(self):
-        return self.client.send_get("get_projects")
-
-    def project(self, testrail_project_id):
-        return self.client.send_get(f"get_project/{testrail_project_id}")
-
-    # API: Cases
-    def test_cases(self, testrail_project_id, testrail_test_suite_id):
-        return self.client.send_get(
-            f"get_cases/{testrail_project_id}&suite_id={testrail_test_suite_id}",
-            data_type="cases"
-        )
-
-    def test_case(self, testrail_test_case_id):
-        return self.client.send_get(f"get_case/{testrail_test_case_id}")
-
-    # API: Case Fields
-    def test_case_fields(self):
-        return self.client.send_get("get_case_fields")
-
-    # API: Suites
-    def test_suites(self, testrail_project_id):
-        return self.client.send_get(
-            f"get_suites/{testrail_project_id}",
-            data_type="suites"
-        )
-
-    def test_suite(self, testrail_test_suite_id):
-        return self.client.send_get(f"get_suite/{testrail_test_suite_id}")
-
-    # API: Runs
-    def test_run(self, run_id):
-        return self.client.send_get(f"get_run/{run_id}")
-
-    def test_runs(self, testrail_project_id, start_date='', end_date=''):
-        date_range = ''
-        if start_date:
-            after = dt.convert_datetime_to_epoch(start_date)
-            date_range += f"&created_after={after}"
-        if end_date:
-            before = dt.convert_datetime_to_epoch(end_date)
-            date_range += f"&created_before={before}"
-        return self.client.send_get(f"get_runs/{testrail_project_id}{date_range}")
-
-    def test_results_for_run(self, run_id):
-        return self.client.send_get(f'get_results_for_run/{run_id}')
-
-    # API: Plans
-    def get_test_plans(self, testrail_project_id, start_date='', end_date=''):
-        """Return all plans related to a project id"""
-        date_range = ''
-        if start_date:
-            after = dt.convert_datetime_to_epoch(start_date)
-            date_range += f'&created_after={after}'
-        if end_date:
-            before = dt.convert_datetime_to_epoch(end_date)
-            date_range += f'&created_before={before}'
-        return self.client.send_get(
-            f"/get_plans/{testrail_project_id}{date_range}"
-        )
-
-    def get_test_plan(self, plan_id, start_date='', end_date=''):
-        """Return a plan object by plan id"""
-        date_range = ''
-        if start_date:
-            after = dt.convert_datetime_to_epoch(start_date)
-            date_range += f'&created_after={after}'
-        if end_date:
-            before = dt.convert_datetime_to_epoch(end_date)
-            date_range += f'&created_before={before}'
-        return self.client.send_get(f"/get_plan/{plan_id}{date_range}")
-
-    # API: Users
-    def users(self, testrail_project_id):
-        return self.client.send_get(
-            f'get_users/{testrail_project_id}'
-        )
 
 
 class TestRailClient(TestRail):
@@ -136,6 +33,9 @@ class TestRailClient(TestRail):
     def __init__(self):
         super().__init__()
         self.db = DatabaseTestRail()
+
+    def _tr() -> TestRail:
+        return TestRail
 
     def data_pump_report_test_case_coverage(self, project='all', suite='all'):
         # call database for 'all' values
@@ -206,7 +106,10 @@ class TestRailClient(TestRail):
                                  testrail_project_id, test_suite_id):
 
         # Pull JSON blob from Testrail
-        cases = self.test_cases(testrail_project_id, test_suite_id)
+        tr = self._tr()
+        # cases = self.test_cases(testrail_project_id, test_suite_id)
+        cases = tr.test_cases(testrail_project_id, test_suite_id)
+
 
         # Format and store data in a data payload array
         payload = self.db.report_test_coverage_payload(cases)
@@ -226,7 +129,9 @@ class TestRailClient(TestRail):
         ) = self.db.testrail_identity_ids(project)
 
         # Pull JSON blob from Testrail
-        runs = self.test_runs(testrail_project_id, start_date)
+        tr = self._tr()
+        #runs = self.test_runs(testrail_project_id, start_date)
+        runs = tr.test_runs(testrail_project_id, start_date)
 
         # Format and store data in a 'totals' array
         totals = self.db.report_test_run_payload(runs)
@@ -449,8 +354,11 @@ class TestRailClient(TestRail):
             projects_id = project_ids[0]
 
             testrail_project_id = project_ids[1]
+
             # get the test plans from the start_date for the test rails project
-            result = self.get_test_plans(testrail_project_id, start_date)  # noqa
+            tr = self._tr()
+            # result = self.get_test_plans(testrail_project_id, start_date)  # noqa
+            result = tr.get_test_plans(testrail_project_id, start_date)  # noqa
             # filter out the Automated testing Plans.
             full_plans = {
                 plan['name']: pl.extract_plan_info(plan)
@@ -489,8 +397,11 @@ class TestRailClient(TestRail):
         # Insert data for beta and refer back to test run table
         self.db.clean_table(ReportTestRailTestResults)
         types = ("beta", "l10n")
+        tr = self._tr()
         for i, type in enumerate(types):
-            runs = self.get_test_plan(tp_ids[i])["entries"]
+
+            # runs = self.get_test_plan(tp_ids[i])["entries"]
+            runs = tr.get_test_plan(tp_ids[i])["entries"]
             for run in runs:
                 for config in run["runs"]:
                     db_run_id = self.db.session.query(
