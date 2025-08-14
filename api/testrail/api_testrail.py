@@ -38,7 +38,7 @@ def _tr() -> TestRail():
         _TR = TestRail()
     return _TR
 
-def _db() -> TestRail():
+def _db() -> Database():
     global _DB
     if _DB is None:
         _DB = Database()
