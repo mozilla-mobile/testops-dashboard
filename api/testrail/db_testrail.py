@@ -14,8 +14,8 @@ from database import (
     ReportTestRailMilestones,
     ReportTestRailUsers,
     ReportTestRailTestPlans,
-    ReportTestRailRuns,
-    ReportTestRailResults,
+    ReportTestRailTestRuns,
+    ReportTestRailTestResults,
 )
 
 
