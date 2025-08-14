@@ -6,8 +6,17 @@
 
 import pandas as pd
 
-from database import Database
-
+from database import (
+    Database,
+    Projects,
+    TestSuites,
+    ReportTestCaseCoverage,
+    ReportTestRailMilestones,
+    ReportTestRailUsers,
+    ReportTestRailTestPlans,
+    ReportTestRailRuns,
+    ReportTestRailResults,
+)
 
 
 class DatabaseTestRail(Database):
