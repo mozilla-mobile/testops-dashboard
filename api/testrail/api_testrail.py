@@ -13,17 +13,6 @@ import numpy as np
 
 from api.testrail.client import TestRail
 from api.testrail.db_testrail import DatabaseTestRail
-from database import (
-    Database,
-    Projects,
-    TestSuites,
-    ReportTestCaseCoverage,
-    ReportTestRailMilestones,
-    ReportTestRailUsers,
-    ReportTestRailTestPlans,
-    ReportTestRailTestRuns,
-    ReportTestRailTestResults,
-)
 from lib.testrail_conn import APIClient
 from utils.datetime_utils import DatetimeUtils as dt
 from utils.payload_utils import PayloadUtils as pl
