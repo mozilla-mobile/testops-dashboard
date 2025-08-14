@@ -28,13 +28,32 @@ from utils.datetime_utils import DatetimeUtils as dt
 from utils.payload_utils import PayloadUtils as pl
 
 
+_TR = None
+_DB = None
+
+
+def _tr() -> Testrail():
+    global _TR
+    if _TR is None:
+        _TR = TestRail()
+    return _TR
+
+def _db() -> Testrail():
+    global _DB
+    if _DB is None:
+        _DB = Database()
+    return _DB
+
+
+
+
 class TestRailClient(TestRail):
 
     def __init__(self):
         super().__init__()
-        self.db = DatabaseTestRail()
+        # self.db = DatabaseTestRail()
 
-    def _tr() -> TestRail:
+    def _tr(self) -> TestRail:
         return TestRail
 
     def data_pump_report_test_case_coverage(self, project='all', suite='all'):
@@ -49,7 +68,9 @@ class TestRailClient(TestRail):
 
         # Test suite data is dynamic. Wipe out old test suite data
         # in database before updating.
-        self.db.test_suites_delete()
+        # self.db.test_suites_delete()
+        db = _db()
+        db.test_suites_delete()
 
         for project_ids in project_ids_list:
             projects_id = project_ids[0]
@@ -63,7 +84,8 @@ class TestRailClient(TestRail):
                 print("suite_id: {0}".format(suite['id']))
                 print("suite_name: {0}".format(suite['name']))
                 """
-                self.db.test_suites_update(testrail_project_id,
+                #self.db.test_suites_update(testrail_project_id,
+                db.test_suites_update(testrail_project_id,
                                            suite['id'], suite['name'])
                 self.testrail_coverage_update(projects_id,
                                               testrail_project_id, suite['id'])
@@ -112,11 +134,14 @@ class TestRailClient(TestRail):
 
 
         # Format and store data in a data payload array
-        payload = self.db.report_test_coverage_payload(cases)
+        db = _db()
+        #payload = self.db.report_test_coverage_payload(cases)
+        payload = db.report_test_coverage_payload(cases)
         print(payload)
 
         # Insert data in 'totals' array into DB
-        self.db.report_test_coverage_insert(projects_id, payload)
+        #self.db.report_test_coverage_insert(projects_id, payload)
+        db.report_test_coverage_insert(projects_id, payload)
 
     def testrail_run_counts_update(self, project, num_days):
         start_date = dt.start_date(num_days)
@@ -126,10 +151,10 @@ class TestRailClient(TestRail):
             projects_id,
             testrail_project_id,
             functional_test_suite_id,
-        ) = self.db.testrail_identity_ids(project)
+        ) = db.testrail_identity_ids(project)
 
         # Pull JSON blob from Testrail
-        tr = self._tr()
+        tr = _tr()
         #runs = self.test_runs(testrail_project_id, start_date)
         runs = tr.test_runs(testrail_project_id, start_date)
 
@@ -140,7 +165,9 @@ class TestRailClient(TestRail):
         self.db.report_test_runs_insert(projects_id, totals)
 
     def testrail_milestones(self, project):
-        self.db.testrail_milestons_delete()
+        db = _db()
+        #self.db.testrail_milestons_delete()
+        db.testrail_milestons_delete()
 
         project_ids_list = self.testrail_project_ids(project)
         milestones_all = pd.DataFrame()
@@ -345,6 +372,7 @@ class TestRailClient(TestRail):
             project (str): the name of the testrail project
             num_days (str): number of days to go back from.
         """
+        db = _db()
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
@@ -356,7 +384,7 @@ class TestRailClient(TestRail):
             testrail_project_id = project_ids[1]
 
             # get the test plans from the start_date for the test rails project
-            tr = self._tr()
+            tr = _tr()
             # result = self.get_test_plans(testrail_project_id, start_date)  # noqa
             result = tr.get_test_plans(testrail_project_id, start_date)  # noqa
             # filter out the Automated testing Plans.
@@ -367,12 +395,15 @@ class TestRailClient(TestRail):
             }
 
             # delete test plans and runs
-            self.db.clean_table(ReportTestRailTestRuns)
-            self.db.clean_table(ReportTestRailTestPlans)
+            #self.db.clean_table(ReportTestRailTestRuns)
+            db.clean_table(ReportTestRailTestRuns)
+            #self.db.clean_table(ReportTestRailTestPlans)
+            db.clean_table(ReportTestRailTestPlans)
 
             # Insert data in the formated plan info array into DB
             # get table ids for the plans
-            self.db.report_test_plans_insert(projects_id, full_plans)
+            #self.db.report_test_plans_insert(projects_id, full_plans)
+            db.report_test_plans_insert(projects_id, full_plans)
             # add the test runs for the queried test plans
             self.testrail_runs_update(num_days, full_plans)
 
@@ -380,9 +411,13 @@ class TestRailClient(TestRail):
         """Gets all the test result duration for the latest test plans
         Precondition: testrail_plans_and_runs have been run prior"""
 
+        db = _db()
+        tr = _tr()
+
         # Get the most recent test plan ids for beta and l10n
         tp_ids = [None, None]
-        for tp in self.db.session.query(ReportTestRailTestPlans).order_by(
+        #for tp in self.db.session.query(ReportTestRailTestPlans).order_by(
+        for tp in db.session.query(ReportTestRailTestPlans).order_by(
                 ReportTestRailTestPlans.testrail_plan_id.desc()).all():
             if "Beta" in tp.name:
                 if not tp_ids[0] and "L10N" not in tp.name:
@@ -395,9 +430,9 @@ class TestRailClient(TestRail):
         # print(f"beta: {tp_ids[0]}, l10n: {tp_ids[1]}")
 
         # Insert data for beta and refer back to test run table
-        self.db.clean_table(ReportTestRailTestResults)
+        #self.db.clean_table(ReportTestRailTestResults)
+        db.clean_table(ReportTestRailTestResults)
         types = ("beta", "l10n")
-        tr = self._tr()
         for i, type in enumerate(types):
 
             # runs = self.get_test_plan(tp_ids[i])["entries"]
@@ -411,7 +446,8 @@ class TestRailClient(TestRail):
                         self.test_results_for_run(config["id"])["results"]
                     )
                     print(f"Adding all results from run {config['id']}")
-                    self.db.report_testrail_test_result_insert(
+                    #self.db.report_testrail_test_result_insert(
+                    db.report_testrail_test_result_insert(
                         db_run_id, run_results, type)
             print(f"Added all test results from table {type}")
 
@@ -420,7 +456,7 @@ class DatabaseTestRail(Database):
 
     def __init__(self):
         super().__init__()
-        self.db = Database()
+        #self.db = Database()
 
     def test_suites_delete(self):
         """ Wipe out all test suite data.
