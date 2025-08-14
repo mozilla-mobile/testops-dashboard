@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 
 from api.testrail.client import TestRail
+from database import Projects 
 from api.testrail.db_testrail import DatabaseTestRail
 from lib.testrail_conn import APIClient
 from utils.datetime_utils import DatetimeUtils as dt
