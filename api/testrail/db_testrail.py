@@ -44,6 +44,7 @@ class DatabaseTestRail(Database):
         self.session.commit()
 
     def report_test_runs_insert(self, db_plan_id, suite_id, runs):
+        print("DIAGNOSTIC: NEW MOD report_test_runs_insert ... dt used here")
         for run in runs:
             created_on = dt.convert_epoch_to_datetime(run['created_on'])
             completed_on = (
@@ -209,6 +210,8 @@ class DatabaseTestRail(Database):
         return payload
 
     def report_test_plans_insert(self, project_id, payload):
+        print("DIAGNOSTIC: NEW MOD report_test_plans_insert ... dt used here")
+
         # insert data from payload into test_plans table
 
         for total in payload.values():

@@ -134,6 +134,8 @@ class TestRailClient(TestRail):
 
     def testrail_run_counts_update(self, project, num_days):
         db = _db()
+
+        PRINT("DIAGNOSTIC: OLD MOD testrail_run_counts_update")
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
@@ -353,6 +355,7 @@ class TestRailClient(TestRail):
 
         db = _db()
 
+        PRINT("DIAGNOSTIC: OLD MOD testrail_run_update... calls db.report_test_runs_insert")
         start_date = dt.start_date(num_days)
         # querying each test plan individually returns the associated runs
         for plan in project_plans.values():
