@@ -52,8 +52,8 @@ class TestRailClient(TestRail):
 
     def __init__(self):
         super().__init__()
-        #self.db = DatabaseTestRail()
-        self.db = _db()
+        self.db = DatabaseTestRail()
+        #self.db = _db()
 
     def data_pump_report_test_case_coverage(self, project='all', suite='all'):
         # call database for 'all' values
