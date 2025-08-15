@@ -39,11 +39,13 @@ def _tr() -> TestRail():
         _TR = TestRail()
     return _TR 
 
+"""
 def _db() -> DatabaseTestRail():
     global _DB 
     if _DB is None:
         _DB = DatabaseTestRail()
     return _DB
+"""
 
 
 class TestRailClient(TestRail):
