@@ -27,7 +27,7 @@ from database import (
 
 from utils.datetime_utils import DatetimeUtils as dt
 from utils.payload_utils import PayloadUtils as pl
-from api.testrail.client import Testrail
+from api.testrail.client import TestRail
 
 
 _TR = None
