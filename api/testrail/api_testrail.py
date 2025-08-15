@@ -39,12 +39,19 @@ def _tr() -> TestRail():
         _TR = TestRail()
     return _TR 
 
+def _db() -> DatabaseTestRail():
+    global _DB 
+    if _DB is None:
+        _DB = DatabaseTestRail()
+    return _DB
+
 
 class TestRailClient(TestRail):
 
     def __init__(self):
         super().__init__()
-        self.db = DatabaseTestRail()
+        #self.db = DatabaseTestRail()
+        self.db = _db()
 
     def data_pump_report_test_case_coverage(self, project='all', suite='all'):
         # call database for 'all' values

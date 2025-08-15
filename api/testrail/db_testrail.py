@@ -4,7 +4,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import os
+import sys
+from datetime import datetime
+
 import pandas as pd
+import numpy as np
 
 from database import (
     Database,
@@ -18,15 +23,16 @@ from database import (
     ReportTestRailTestResults,
 )
 
+from utils.datetime_utils import DatetimeUtils as dt
+from utils.payload_utils import PayloadUtils as pl
+
+
 
 class DatabaseTestRail(Database):
 
     def __init__(self):
         super().__init__()
-
-        # DIAGNOSTIC
-        print("DIAGNOSTIC: [adapter] DatabaseTestRail ready; session ok =", self.session is not None)
-        #self.db = Database()
+        self.db = Database()
 
     def test_suites_delete(self):
         """ Wipe out all test suite data.
@@ -42,12 +48,11 @@ class DatabaseTestRail(Database):
         self.session.add(suites)
         self.session.commit()
 
-    def testrail_milestones_delete(self):
+    def testrail_milestons_delete(self):
         self.session.query(ReportTestRailMilestones).delete()
         self.session.commit()
 
     def report_test_runs_insert(self, db_plan_id, suite_id, runs):
-        print("DIAGNOSTIC: NEW MOD report_test_runs_insert ... dt used here")
         for run in runs:
             created_on = dt.convert_epoch_to_datetime(run['created_on'])
             completed_on = (
@@ -136,10 +141,6 @@ class DatabaseTestRail(Database):
         # TODO:  Error on insert
         # insert data from totals into report_test_coverage table
 
-        # DIAGNOSTIC
-        print(f"DIAGNOSTIC: [adapter] report_test_coverage_insert(projects_id={projects_id}, rows={len(df)})")
-
-
         for index, row in payload.iterrows():
             """
             # Diagnostic
@@ -178,7 +179,6 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
-            print("DIAGNOSTIC: [adapter] commit ok")
 
     def report_test_run_payload(self, runs):
         """pack testrail data for 1 run in a data array
@@ -218,8 +218,6 @@ class DatabaseTestRail(Database):
         return payload
 
     def report_test_plans_insert(self, project_id, payload):
-        print("DIAGNOSTIC: NEW MOD report_test_plans_insert ... dt used here")
-
         # insert data from payload into test_plans table
 
         for total in payload.values():
