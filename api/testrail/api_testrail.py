@@ -280,7 +280,8 @@ class TestRailClient(TestRail):
 
                 # Insert into database only if there is data
                 if not df_selected.empty:
-                    self.db.report_milestones_insert(projects_id, df_selected)
+                    #self.db.report_milestones_insert(projects_id, df_selected)
+                    db.report_milestones_insert(projects_id, df_selected)
                 else:
                     print(
                         f"No milestones data to insert into database for project "
@@ -420,7 +421,10 @@ class TestRailClient(TestRail):
 
             # Insert data in the formated plan info array into DB
             # get table ids for the plans
-            self.db.report_test_plans_insert(projects_id, full_plans)
+
+            #self.db.report_test_plans_insert(projects_id, full_plans)
+            db.report_test_plans_insert(projects_id, full_plans)
+
             # add the test runs for the queried test plans
             self.testrail_runs_update(num_days, full_plans)
 
