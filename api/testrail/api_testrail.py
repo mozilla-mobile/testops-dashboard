@@ -105,9 +105,11 @@ class TestRailClient(TestRail):
            from each respective project
         """
 
+        db = _db()
+
         # Query with filtering
+
         if isinstance(project, list):
-            db = _db()
             q = (
                 db.session.query(Projects)
                 .filter(Projects.project_name_abbrev.in_(project))
