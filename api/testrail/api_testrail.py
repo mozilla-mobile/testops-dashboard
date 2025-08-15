@@ -126,6 +126,10 @@ class TestRailClient(TestRail):
 
         # Format and store data in a data payload array
         payload = self.db.report_test_coverage_payload(cases)
+
+        print("-------------------------")
+        print("DIAGNOSTIC")
+        print("-------------------------")
         print(payload)
 
         # Insert data in 'totals' array into DB
@@ -147,11 +151,16 @@ class TestRailClient(TestRail):
         # Format and store data in a 'totals' array
         totals = self.db.report_test_run_payload(runs)
 
+        print("-------------------------")
+        print("DIAGNOSTIC")
+        print("-------------------------")
+        print(totals)
+
         # Insert data in the 'totals' array into DB
         self.db.report_test_runs_insert(projects_id, totals)
 
     def testrail_milestones(self, project):
-        self.db.testrail_milestons_delete()
+        self.db.testrail_milestones_delete()
 
         project_ids_list = self.testrail_project_ids(project)
         milestones_all = pd.DataFrame()
@@ -280,12 +289,11 @@ class TestRailClient(TestRail):
                 unique_emails = {u.get("email") for u in users if u.get("email")}
                 project_user_counts[project_name] = len(unique_emails)
 
-                """
+                # DIAGNOSTIC
                 print(
                     f"{project_name} (ID: {project_id}): "
                     f"{len(unique_emails)} unique users (by email)"
                 )
-                """
 
             except Exception as e:
                 print(f"Error fetching users {project_id} ({project_name}): {e}")
@@ -297,8 +305,7 @@ class TestRailClient(TestRail):
             if email:
                 unique_by_email[email] = user
 
-        """
-        # Diagnostic
+        # DIAGNOSTIC
 
         print(
             "\nTotal unique users across all accessible projects (by email): "
@@ -311,7 +318,6 @@ class TestRailClient(TestRail):
             print(
                 f"- {user.get('name')} | {email} | {status} | role: {user.get('role')}"
             )
-        """
 
         created_at = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -427,25 +433,49 @@ class DatabaseTestRail(Database):
         super().__init__()
         self.db = Database()
 
+        # DIAGNOSTIC
+        print("Initiating: DatabaseTestRail")
+        print(inspect.currentframe().f_code.co_name)
+
     def test_suites_delete(self):
         """ Wipe out all test suite data.
         NOTE: we'll renew this data from Testrail every session."""
+
+        # DIAGNOSTIC
+        print("Running: DatabaseTestRail")
+        print(inspect.currentframe().f_code.co_name)
+
         self.session.query(TestSuites).delete()
         self.session.commit()
 
     def test_suites_update(self, testrail_project_id,
                            testrail_test_suites_id, test_suite_name):
+
+        # DIAGNOSTIC
+        print("Running: DatabaseTestRail")
+        print(inspect.currentframe().f_code.co_name)
+
         suites = TestSuites(testrail_project_id=testrail_project_id,
                             testrail_test_suites_id=testrail_test_suites_id,
                             test_suite_name=test_suite_name)
         self.session.add(suites)
         self.session.commit()
 
-    def testrail_milestons_delete(self):
+    def testrail_milestones_delete(self):
+        # DIAGNOSTIC
+        print("Running: DatabaseTestRail")
+        print(inspect.currentframe().f_code.co_name)
+
+
         self.session.query(ReportTestRailMilestones).delete()
         self.session.commit()
 
     def report_test_runs_insert(self, db_plan_id, suite_id, runs):
+
+        # DIAGNOSTIC
+        print("Running: DatabaseTestRail")
+        print(inspect.currentframe().f_code.co_name)
+
         for run in runs:
             created_on = dt.convert_epoch_to_datetime(run['created_on'])
             completed_on = (
@@ -476,6 +506,11 @@ class DatabaseTestRail(Database):
             self.session.commit()
 
     def report_milestones_insert(self, projects_id, payload):
+
+        # DIAGNOSTIC
+        print("Running: DatabaseTestRail")
+        print(inspect.currentframe().f_code.co_name)
+
         for index, row in payload.iterrows():
             # print(row)
 
@@ -498,6 +533,10 @@ class DatabaseTestRail(Database):
 
     def report_test_coverage_payload(self, cases):
         """given testrail data (cases), calculate test case counts by type"""
+
+        # DIAGNOSTIC
+        print("Running: DatabaseTestRail")
+        print(inspect.currentframe().f_code.co_name)
 
         payload = []
 
@@ -531,6 +570,11 @@ class DatabaseTestRail(Database):
         )
 
     def report_test_coverage_insert(self, projects_id, payload):
+
+        # DIAGNOSTIC
+        print("Running: DatabaseTestRail")
+        print(inspect.currentframe().f_code.co_name)
+
         # TODO:  Error on insert
         # insert data from totals into report_test_coverage table
 
@@ -562,6 +606,11 @@ class DatabaseTestRail(Database):
             self.session.commit()
 
     def report_testrail_users_insert(self, payload):
+
+        # DIAGNOSTIC
+        print("Running: DatabaseTestRail")
+        print(inspect.currentframe().f_code.co_name)
+
         for index, row in payload.iterrows():
             report = ReportTestRailUsers(
                 name=row['name'],  # noqa
@@ -588,6 +637,11 @@ class DatabaseTestRail(Database):
         We will pass along the proj_name_abbrev to the db.
         For suite_id, we will always default to Full Functional.
         """
+
+        # DIAGNOSTIC
+        print("Running: DatabaseTestRail")
+        print(inspect.currentframe().f_code.co_name)
+
         # create array to store values to insert in database
         payload = []
 
