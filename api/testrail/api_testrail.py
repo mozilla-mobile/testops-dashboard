@@ -54,7 +54,7 @@ class TestRailClient(TestRail):
     def __init__(self):
         super().__init__()
         #self.db = DatabaseTestRail()
-        self.db = _db()
+        #self.db = _db()
 
     def data_pump_report_test_case_coverage(self, project='all', suite='all'):
         # call database for 'all' values
@@ -68,7 +68,9 @@ class TestRailClient(TestRail):
 
         # Test suite data is dynamic. Wipe out old test suite data
         # in database before updating.
-        self.db.test_suites_delete()
+        db = _db()
+        #self.db.test_suites_delete()
+        db.test_suites_delete()
 
         for project_ids in project_ids_list:
             projects_id = project_ids[0]
@@ -82,8 +84,11 @@ class TestRailClient(TestRail):
                 print("suite_id: {0}".format(suite['id']))
                 print("suite_name: {0}".format(suite['name']))
                 """
-                self.db.test_suites_update(testrail_project_id,
-                                           suite['id'], suite['name'])
+                db = _db()
+                #self.db.test_suites_update(testrail_project_id,
+                #                           suite['id'], suite['name'])
+                db.test_suites_update(testrail_project_id,
+                                      suite['id'], suite['name'])
                 self.testrail_coverage_update(projects_id,
                                               testrail_project_id, suite['id'])
 
@@ -102,13 +107,14 @@ class TestRailClient(TestRail):
 
         # Query with filtering
         if isinstance(project, list):
+            db = _db()
             q = (
-                self.db.session.query(Projects)
+                db.session.query(Projects)
                 .filter(Projects.project_name_abbrev.in_(project))
             )
         else:
             q = (
-                self.db.session.query(Projects)
+                db.session.query(Projects)
                 .filter(Projects.project_name_abbrev == project)
             )
 
@@ -124,11 +130,14 @@ class TestRailClient(TestRail):
     def testrail_coverage_update(self, projects_id,
                                  testrail_project_id, test_suite_id):
 
+        db = _db()
+
         # Pull JSON blob from Testrail
         cases = self.test_cases(testrail_project_id, test_suite_id)
 
         # Format and store data in a data payload array
-        payload = self.db.report_test_coverage_payload(cases)
+        #payload = self.db.report_test_coverage_payload(cases)
+        payload = db.report_test_coverage_payload(cases)
 
         print("-------------------------")
         print("DIAGNOSTIC")
@@ -136,9 +145,12 @@ class TestRailClient(TestRail):
         print(payload)
 
         # Insert data in 'totals' array into DB
-        self.db.report_test_coverage_insert(projects_id, payload)
+        #self.db.report_test_coverage_insert(projects_id, payload)
+        db.report_test_coverage_insert(projects_id, payload)
 
     def testrail_run_counts_update(self, project, num_days):
+
+        db = _db()
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
@@ -146,13 +158,14 @@ class TestRailClient(TestRail):
             projects_id,
             testrail_project_id,
             functional_test_suite_id,
-        ) = self.db.testrail_identity_ids(project)
+        ) = db.testrail_identity_ids(project)
 
         # Pull JSON blob from Testrail
         runs = self.test_runs(testrail_project_id, start_date)
 
         # Format and store data in a 'totals' array
-        totals = self.db.report_test_run_payload(runs)
+        #totals = self.db.report_test_run_payload(runs)
+        totals = db.report_test_run_payload(runs)
 
         print("-------------------------")
         print("DIAGNOSTIC")
@@ -160,10 +173,15 @@ class TestRailClient(TestRail):
         print(totals)
 
         # Insert data in the 'totals' array into DB
-        self.db.report_test_runs_insert(projects_id, totals)
+        #self.db.report_test_runs_insert(projects_id, totals)
+        db.report_test_runs_insert(projects_id, totals)
 
     def testrail_milestones(self, project):
-        self.db.testrail_milestones_delete()
+
+        db = _db()
+
+        #self.db.testrail_milestones_delete()
+        db.testrail_milestones_delete()
 
         project_ids_list = self.testrail_project_ids(project)
         milestones_all = pd.DataFrame()
@@ -336,7 +354,10 @@ class TestRailClient(TestRail):
         ]
 
         df = pd.DataFrame(user_data)
-        self.db.report_testrail_users_insert(df)
+
+        db = _db()
+        #self.db.report_testrail_users_insert(df)
+        db.report_testrail_users_insert(df)
 
     def testrail_runs_update(self, num_days, project_plans):
         """
@@ -347,12 +368,15 @@ class TestRailClient(TestRail):
                 num_days (str): number of days to go back from.
                 project_plans (dict): the queried and filtered testrail plans.
         """
+
+        db = _db()
+
         start_date = dt.start_date(num_days)
         # querying each test plan individually returns the associated runs
         for plan in project_plans.values():
             plan_info = self.get_test_plan(plan['plan_id'], start_date)
             for entry in plan_info['entries']:
-                self.db.report_test_runs_insert(
+                db.report_test_runs_insert(
                     plan['id'], entry['suite_id'], entry['runs'])
 
     def testrail_plans_and_runs(self, project, num_days):
@@ -365,6 +389,9 @@ class TestRailClient(TestRail):
             project (str): the name of the testrail project
             num_days (str): number of days to go back from.
         """
+
+        db = _db()
+
         start_date = dt.start_date(num_days)
 
         # Get reference IDs from DB
@@ -384,8 +411,10 @@ class TestRailClient(TestRail):
             }
 
             # delete test plans and runs
-            self.db.clean_table(ReportTestRailTestRuns)
-            self.db.clean_table(ReportTestRailTestPlans)
+            #self.db.clean_table(ReportTestRailTestRuns)
+            db.clean_table(ReportTestRailTestRuns)
+            #self.db.clean_table(ReportTestRailTestPlans)
+            db.clean_table(ReportTestRailTestPlans)
 
             # Insert data in the formated plan info array into DB
             # get table ids for the plans
@@ -397,9 +426,11 @@ class TestRailClient(TestRail):
         """Gets all the test result duration for the latest test plans
         Precondition: testrail_plans_and_runs have been run prior"""
 
+        db = _db()
+
         # Get the most recent test plan ids for beta and l10n
         tp_ids = [None, None]
-        for tp in self.db.session.query(ReportTestRailTestPlans).order_by(
+        for tp in db.session.query(ReportTestRailTestPlans).order_by(
                 ReportTestRailTestPlans.testrail_plan_id.desc()).all():
             if "Beta" in tp.name:
                 if not tp_ids[0] and "L10N" not in tp.name:
@@ -412,19 +443,20 @@ class TestRailClient(TestRail):
         # print(f"beta: {tp_ids[0]}, l10n: {tp_ids[1]}")
 
         # Insert data for beta and refer back to test run table
-        self.db.clean_table(ReportTestRailTestResults)
+        #self.db.clean_table(ReportTestRailTestResults)
+        db.clean_table(ReportTestRailTestResults)
         types = ("beta", "l10n")
         for i, type in enumerate(types):
             runs = self.get_test_plan(tp_ids[i])["entries"]
             for run in runs:
                 for config in run["runs"]:
-                    db_run_id = self.db.session.query(
+                    db_run_id = db.session.query(
                         ReportTestRailTestRuns).filter_by(
                             testrail_run_id=config["id"]).first().id
                     run_results = (
                         self.test_results_for_run(config["id"])["results"]
                     )
                     print(f"Adding all results from run {config['id']}")
-                    self.db.report_testrail_test_result_insert(
+                    db.report_testrail_test_result_insert(
                         db_run_id, run_results, type)
             print(f"Added all test results from table {type}")
