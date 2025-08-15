@@ -58,6 +58,14 @@ class TestRailClient(TestRail):
         # in database before updating.
         # self.db.test_suites_delete()
         db = _db()
+
+        # DIAGNOSTIC
+        print(f"[wire] db adapter = {type(db).__module__}.{type(db).__name__}")
+        assert hasattr(db, "report_test_coverage_insert"), "[wire] method missing on adapter"
+        print(f"[wire] invoking report_test_coverage_insert rows={len(payload)}")
+        db.report_test_coverage_insert(projects_id, payload)
+        print("[wire] returned from report_test_coverage_insert")
+
         db.test_suites_delete()
 
         for project_ids in project_ids_list:
