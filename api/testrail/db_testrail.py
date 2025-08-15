@@ -23,6 +23,9 @@ class DatabaseTestRail(Database):
 
     def __init__(self):
         super().__init__()
+
+        # DIAGNOSTIC
+        print("DIAGNOSTIC: [adapter] DatabaseTestRail ready; session ok =", self.session is not None)
         #self.db = Database()
 
     def test_suites_delete(self):
@@ -133,6 +136,10 @@ class DatabaseTestRail(Database):
         # TODO:  Error on insert
         # insert data from totals into report_test_coverage table
 
+        # DIAGNOSTIC
+        print(f"DIAGNOSTIC: [adapter] report_test_coverage_insert(projects_id={projects_id}, rows={len(df)})")
+
+
         for index, row in payload.iterrows():
             """
             # Diagnostic
@@ -171,6 +178,7 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
+            print("DIAGNOSTIC: [adapter] commit ok")
 
     def report_test_run_payload(self, runs):
         """pack testrail data for 1 run in a data array
