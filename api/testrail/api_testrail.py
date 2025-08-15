@@ -29,6 +29,8 @@ from api.testrail.client import TestRail
 from utils.datetime_utils import DatetimeUtils as dt
 from utils.payload_utils import PayloadUtils as pl
 
+import inspect
+
 _TR = None
 _DB = None
 
