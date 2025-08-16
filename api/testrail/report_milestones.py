@@ -5,9 +5,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import os
-import sys
-from datetime import datetime
 
 import pandas as pd
 import numpy as np
@@ -16,32 +13,18 @@ from lib.testrail_conn import APIClient
 
 from database import (
     Database,
-    Projects,
-    TestSuites,
-    ReportTestCaseCoverage,
     ReportTestRailMilestones,
-    ReportTestRailUsers,
-    ReportTestRailTestPlans,
-    ReportTestRailTestRuns,
-    ReportTestRailTestResults,
 )
 
-from api.testrail.client import TestRail
+from api.testrail.client import TestRail 
 from api.testrail.helpers import testrail_project_ids 
-from utils.datetime_utils import DatetimeUtils as dt
 from utils.payload_utils import PayloadUtils as pl
 
 import inspect
 
-_TR = None
+
 _DB = None
-
-
-def _tr() -> TestRail():
-    global _TR 
-    if _TR is None:
-        _TR = TestRail()
-    return _TR 
+_TR = None
 
 
 def _db() -> Database():
@@ -49,6 +32,13 @@ def _db() -> Database():
     if _DB is None:
         _DB = Database()
     return _DB
+
+
+def _tr() -> TestRail():
+    global _TR
+    if _TR is None:
+        _TR = TestRail()
+    return _TR
 
 
 def testrail_milestones_delete():
@@ -67,6 +57,7 @@ def testrail_milestones_delete():
 def testrail_milestones(project):
 
     db = _db()
+    tr = _tr()
 
     #self.db.testrail_milestones_delete()
     db.testrail_milestones_delete()
