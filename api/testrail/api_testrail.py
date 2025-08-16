@@ -288,6 +288,7 @@ class TestRailClient(TestRail):
                         f"{testrail_project_id}."
                     )
 
+    """
     def testrail_users(self):
         # Step 1: Get all projects
         projects_response = self.projects()
@@ -361,6 +362,7 @@ class TestRailClient(TestRail):
         db = _db()
         #self.db.report_testrail_users_insert(df)
         db.report_testrail_users_insert(df)
+    """
 
     def testrail_runs_update(self, num_days, project_plans):
         """

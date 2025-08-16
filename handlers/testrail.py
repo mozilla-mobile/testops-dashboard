@@ -1,4 +1,5 @@
 from api.testrail.api_testrail import TestRailClient
+import api.testrail.report_users as users
 
 
 def handle_testrail_test_plans_and_runs(args):
@@ -17,8 +18,8 @@ def handle_testrail_milestones(args):
 
 
 def handle_testrail_users(args):
-    client = TestRailClient()
-    client.testrail_users()
+    #client = TestRailClient()
+    users.testrail_users()
 
 
 def handle_testrail_test_case_coverage(args):
