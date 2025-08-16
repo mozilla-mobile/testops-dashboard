@@ -48,9 +48,13 @@ def _db() -> Database():
     return _DB
 
 
-def testrail_users(self):
+def testrail_users():
     # Step 1: Get all projects
-    projects_response = self.projects()
+    #projects_response = self.projects()
+
+    tr = _tr()
+
+    projects_response = tr.projects()
     all_projects = projects_response.get("projects", [])
     all_users = []  # List of all users across all projects
     seen_project_ids = set()
@@ -120,3 +124,42 @@ def testrail_users(self):
 
     #self.db.report_testrail_users_insert(df)
     report_testrail_users_insert(df)
+
+
+
+def report_test_runs_insert(db_plan_id, suite_id, runs):
+
+    # DIAGNOSTIC
+    print("Running: DatabaseTestRail")
+    print(inspect.currentframe().f_code.co_name)
+
+    for run in runs:
+        created_on = dt.convert_epoch_to_datetime(run['created_on'])
+        completed_on = (
+            dt.convert_epoch_to_datetime(run['completed_on'])
+            if run['completed_on'] else None
+        )
+        total_count = (
+            run['passed_count']
+            + run['retest_count']
+            + run['failed_count']
+            + run['blocked_count']
+        )
+
+        report_run = ReportTestRailTestRuns(
+            testrail_run_id=run['id'],
+            plan_id=db_plan_id,
+            suite_id=suite_id,
+            name=run['name'],
+            config=run['config'],
+            test_case_passed_count=run['passed_count'],
+            test_case_retest_count=run['retest_count'],
+            test_case_failed_count=run['failed_count'],
+            test_case_blocked_count=run['blocked_count'],
+            test_case_total_count=total_count,
+            testrail_created_on=created_on,
+            testrail_completed_on=completed_on)
+        #self.session.add(report_run)
+        db.session.add(report_run)
+        #self.session.commit()
+        db.session.commit()
