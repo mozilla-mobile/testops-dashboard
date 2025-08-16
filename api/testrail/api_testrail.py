@@ -92,6 +92,9 @@ class TestRailClient(TestRail):
                 self.testrail_coverage_update(projects_id,
                                               testrail_project_id, suite['id'])
 
+
+    # TODO: once helpers is working, use with all other reports 
+    # comment this out
     def testrail_project_ids(self, project):
         """ Return the ids needed to be able to query the TestRail API for
         a specific test suite from a specific project
@@ -178,6 +181,7 @@ class TestRailClient(TestRail):
         #self.db.report_test_runs_insert(projects_id, totals)
         db.report_test_runs_insert(projects_id, totals)
 
+    """
     def testrail_milestones(self, project):
 
         db = _db()
@@ -287,6 +291,8 @@ class TestRailClient(TestRail):
                         f"No milestones data to insert into database for project "
                         f"{testrail_project_id}."
                     )
+
+    """
 
     """
     def testrail_users(self):
