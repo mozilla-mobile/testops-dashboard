@@ -70,7 +70,8 @@ def testrail_users():
         seen_project_ids.add(project_id)
 
         try:
-            user_response = self.users(project_id)
+            #user_response = self.users(project_id)
+            user_response = tr.users(project_id)
             users = user_response.get("users", [])
             all_users.extend(users)
 
@@ -159,6 +160,7 @@ def report_test_runs_insert(db_plan_id, suite_id, runs):
             test_case_total_count=total_count,
             testrail_created_on=created_on,
             testrail_completed_on=completed_on)
+        db = _db()
         #self.session.add(report_run)
         db.session.add(report_run)
         #self.session.commit()
