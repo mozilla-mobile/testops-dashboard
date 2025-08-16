@@ -72,6 +72,7 @@ class DatabaseTestRail(Database):
         self.session.query(ReportTestRailMilestones).delete()
         self.session.commit()
 
+    """
     def report_test_runs_insert(self, db_plan_id, suite_id, runs):
 
         # DIAGNOSTIC
@@ -106,6 +107,7 @@ class DatabaseTestRail(Database):
                 testrail_completed_on=completed_on)
             self.session.add(report_run)
             self.session.commit()
+    """
 
     def report_milestones_insert(self, projects_id, payload):
 
@@ -207,6 +209,7 @@ class DatabaseTestRail(Database):
             self.session.add(report)
             self.session.commit()
 
+    """
     def report_testrail_users_insert(self, payload):
 
         # DIAGNOSTIC
@@ -223,6 +226,7 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
+    """
 
     def report_test_run_payload(self, runs):
         """pack testrail data for 1 run in a data array
