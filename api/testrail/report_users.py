@@ -127,41 +127,23 @@ def testrail_users():
     report_testrail_users_insert(df)
 
 
-
-def report_test_runs_insert(db_plan_id, suite_id, runs):
+def report_testrail_users_insert(payload):
 
     # DIAGNOSTIC
     print("Running: DatabaseTestRail")
     print(inspect.currentframe().f_code.co_name)
 
-    for run in runs:
-        created_on = dt.convert_epoch_to_datetime(run['created_on'])
-        completed_on = (
-            dt.convert_epoch_to_datetime(run['completed_on'])
-            if run['completed_on'] else None
-        )
-        total_count = (
-            run['passed_count']
-            + run['retest_count']
-            + run['failed_count']
-            + run['blocked_count']
-        )
+    db = _db()
 
-        report_run = ReportTestRailTestRuns(
-            testrail_run_id=run['id'],
-            plan_id=db_plan_id,
-            suite_id=suite_id,
-            name=run['name'],
-            config=run['config'],
-            test_case_passed_count=run['passed_count'],
-            test_case_retest_count=run['retest_count'],
-            test_case_failed_count=run['failed_count'],
-            test_case_blocked_count=run['blocked_count'],
-            test_case_total_count=total_count,
-            testrail_created_on=created_on,
-            testrail_completed_on=completed_on)
-        db = _db()
-        #self.session.add(report_run)
-        db.session.add(report_run)
+    for index, row in payload.iterrows():
+        report = ReportTestRailUsers(
+            name=row['name'],
+            email=row['email'],
+            status=row['status'],
+            role=row['role'],
+            created_at=row['created_at']
+        )
+        #self.session.add(report)
+        db.session.add(report)
         #self.session.commit()
         db.session.commit()
