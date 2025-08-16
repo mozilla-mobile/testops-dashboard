@@ -6,7 +6,7 @@
 
 from datetime import datetime
 
-import numpy as np
+import pandas as pd
 
 from database import (
     Database,
@@ -23,14 +23,14 @@ _DB = None
 
 
 def _tr() -> TestRail():
-    global _TR 
+    global _TR
     if _TR is None:
         _TR = TestRail()
-    return _TR 
+    return _TR
 
 
 def _db() -> Database():
-    global _DB 
+    global _DB
     if _DB is None:
         _DB = Database()
     return _DB

@@ -9,15 +9,13 @@
 import pandas as pd
 import numpy as np
 
-from lib.testrail_conn import APIClient
-
 from database import (
     Database,
     ReportTestRailMilestones,
 )
 
-from api.testrail.client import TestRail 
-from api.testrail.helpers import testrail_project_ids 
+from api.testrail.client import TestRail
+from api.testrail.helpers import testrail_project_ids
 from utils.payload_utils import PayloadUtils as pl
 
 import inspect
@@ -48,9 +46,9 @@ def testrail_milestones_delete():
 
     db = _db()
 
-    #self.session.query(ReportTestRailMilestones).delete()
+    # self.session.query(ReportTestRailMilestones).delete()
     db.session.query(ReportTestRailMilestones).delete()
-    #self.session.commit()
+    # self.session.commit()
     db.session.commit()
 
 
@@ -59,10 +57,10 @@ def testrail_milestones(project):
     db = _db()
     tr = _tr()
 
-    #self.db.testrail_milestones_delete()
+    # self.db.testrail_milestones_delete()
     db.testrail_milestones_delete()
 
-    #project_ids_list = self.testrail_project_ids(project)
+    # project_ids_list = self.testrail_project_ids(project)
     project_ids_list = testrail_project_ids(project)
     milestones_all = pd.DataFrame()
 
@@ -70,7 +68,7 @@ def testrail_milestones(project):
         projects_id = project_ids[0]
         testrail_project_id = project_ids[1]
 
-        #payload = self.milestones(testrail_project_id)
+        # payload = self.milestones(testrail_project_id)
         payload = tr.milestones(testrail_project_id)
         if not payload:
             print(
