@@ -1,5 +1,6 @@
 from api.testrail.api_testrail import TestRailClient
 import api.testrail.report_users as users
+import api.testrail.report_milestones as milestones
 
 
 def handle_testrail_test_plans_and_runs(args):

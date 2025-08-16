@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-# This Source Code Form is subject to the terms of the Mozilla Public
+# T
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
@@ -63,6 +63,7 @@ class DatabaseTestRail(Database):
         self.session.add(suites)
         self.session.commit()
 
+    """
     def testrail_milestones_delete(self):
         # DIAGNOSTIC
         print("Running: DatabaseTestRail")
@@ -71,6 +72,7 @@ class DatabaseTestRail(Database):
 
         self.session.query(ReportTestRailMilestones).delete()
         self.session.commit()
+    """
 
     """
     def report_test_runs_insert(self, db_plan_id, suite_id, runs):
@@ -109,6 +111,7 @@ class DatabaseTestRail(Database):
             self.session.commit()
     """
 
+    """
     def report_milestones_insert(self, projects_id, payload):
 
         # DIAGNOSTIC
@@ -134,6 +137,7 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
+    """
 
     def report_test_coverage_payload(self, cases):
         """given testrail data (cases), calculate test case counts by type"""
