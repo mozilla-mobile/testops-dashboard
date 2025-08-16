@@ -12,6 +12,16 @@ from database import (
 )
 
 
+_DB = None
+
+
+def _db() -> Database():
+    global _DB 
+    if _DB is None:
+        _DB = Database()
+    return _DB
+
+
 def testrail_project_ids(project):
     """ Return the ids needed to be able to query the TestRail API for
     a specific test suite from a specific project
