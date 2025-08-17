@@ -58,7 +58,7 @@ def testrail_milestones(project):
     tr = _tr()
 
     # self.db.testrail_milestones_delete()
-    db.testrail_milestones_delete()
+    testrail_milestones_delete()
 
     # project_ids_list = self.testrail_project_ids(project)
     project_ids_list = testrail_project_ids(project)
