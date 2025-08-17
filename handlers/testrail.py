@@ -2,6 +2,7 @@ from api.testrail.api_testrail import TestRailClient
 import api.testrail.report_users as users
 import api.testrail.report_milestones as milestones
 import api.testrail.report_test_results as test_results
+import api.testrail.report_test_case_coverage as test_case_coverage
 
 
 def handle_testrail_test_plans_and_runs(args):
@@ -10,8 +11,6 @@ def handle_testrail_test_plans_and_runs(args):
 
 
 def handle_testrail_test_results(args):
-    # client = TestRailClient()
-    # client.testrail_test_results()
     test_results.testrail_test_results()
 
 
@@ -24,8 +23,8 @@ def handle_testrail_users(args):
 
 
 def handle_testrail_test_case_coverage(args):
-    client = TestRailClient()
-    client.data_pump_report_test_case_coverage(args.arg_list)
+    # client = TestRailClient()
+    test_case_coverage.data_pump_report_test_case_coverage(args.arg_list)
 
 
 def handle_testrail_test_run_counts_update(args):

@@ -139,6 +139,7 @@ class DatabaseTestRail(Database):
             self.session.commit()
     """
 
+    '''
     def report_test_coverage_payload(self, cases):
         """given testrail data (cases), calculate test case counts by type"""
 
@@ -212,6 +213,7 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
+    '''
 
     """
     def report_testrail_users_insert(self, payload):
