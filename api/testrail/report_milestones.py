@@ -26,7 +26,7 @@ _TR = None
 
 
 def _db() -> Database():
-    global _DB 
+    global _DB
     if _DB is None:
         _DB = Database()
     return _DB
@@ -52,7 +52,6 @@ def testrail_milestones_delete():
 
 def testrail_milestones(project):
 
-    db = _db()
     tr = _tr()
 
     testrail_milestones_delete()
