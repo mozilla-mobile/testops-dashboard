@@ -5,11 +5,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from datetime import datetime
-
-import pandas as pd
-import numpy as np
-
 from database import (
     Database,
     ReportTestRailTestPlans,
@@ -17,11 +12,7 @@ from database import (
 )
 
 from api.testrail.client import TestRail
-from api.testrail.db_testrail import DatabaseTestRail
 from utils.datetime_utils import DatetimeUtils as dt
-
-import inspect
-
 
 _TR = None
 _DB = None
@@ -45,6 +36,9 @@ def testrail_test_results(self):
     """Gets all the test result duration for the latest test plans
     Precondition: testrail_plans_and_runs have been run prior"""
 
+    print("--------------------------------------")
+    print("DIAGNOSTIC: testrail_test_results")
+    print("--------------------------------------")
     db = _db()
     tr = _tr()
 
@@ -85,6 +79,10 @@ def testrail_test_results(self):
 
 
 def report_testrail_test_result_insert(db_run_id, payload, type):
+
+    print("--------------------------------------")
+    print("DIAGNOSTIC: testrail_test_result_insert")
+    print("--------------------------------------")
 
     # insert data from payload into report_testrail_test_results table
 
