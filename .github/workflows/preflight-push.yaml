@@ -62,9 +62,6 @@ jobs:
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
             echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
       # TestRail
-      - name: Mobile Test Case Coverage
-        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
-
       - name: Desktop Test Case Coverage
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform desktop --project ALL
 
@@ -74,9 +71,21 @@ jobs:
       - name: Testrail Users
         run: python ./__main__.py --report-type testrail-users
 
-      - name: Mobile testrail milestones
+      - name: Mobile TestRail milestones
         run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones
   
+      - name: Mobile Test Case Coverage
+        run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
+
+      - name: Mobile Test Run Counts
+        run: python ./__main__.py --report-type testrail-test-run-counts --platform mobile --project ALL
+
+      - name: Mobile Test Plans and Runs 
+        run: python ./__main__.py --report-type testrail-test-plans-and-runs --platform mobile --project ALL
+
+      - name: Mobile Test Results 
+        run: python ./__main__.py --report-type testrail-test-results --platform mobile --project ALL
+
       # Jira
       - name: Jira query qa-needed
         if: always()

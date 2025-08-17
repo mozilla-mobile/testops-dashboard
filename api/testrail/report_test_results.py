@@ -33,7 +33,7 @@ def _db() -> Database():
     return _DB
 
 
-def testrail_test_results(self):
+def testrail_test_results():
     """Gets all the test result duration for the latest test plans
     Precondition: testrail_plans_and_runs have been run prior"""
 
@@ -56,11 +56,9 @@ def testrail_test_results(self):
                 break
 
     # Insert data for beta and refer back to test run table
-    #self.db.clean_table(ReportTestRailTestResults)
     db.clean_table(ReportTestRailTestResults)
     types = ("beta", "l10n")
     for i, type in enumerate(types):
-        #runs = self.get_test_plan(tp_ids[i])["entries"]
         runs = tr.get_test_plan(tp_ids[i])["entries"]
 
         for run in runs:
@@ -69,11 +67,10 @@ def testrail_test_results(self):
                     ReportTestRailTestRuns).filter_by(
                         testrail_run_id=config["id"]).first().id
                 run_results = (
-                    #self.test_results_for_run(config["id"])["results"]
                     tr.test_results_for_run(config["id"])["results"]
                 )
+
                 print(f"Adding all results from run {config['id']}")
-                #db.report_testrail_test_result_insert(
                 report_testrail_test_result_insert(
                     db_run_id, run_results, type)
         print(f"Added all test results from table {type}")
@@ -123,9 +120,7 @@ def report_testrail_test_result_insert(db_run_id, payload, type):
 
         report = ReportTestRailTestResults(**args)
 
-        #self.session.add(report)
         db.session.add(report)
-        #self.session.commit()
         db.session.commit()
         result['id'] = report.id
 

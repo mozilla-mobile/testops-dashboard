@@ -56,6 +56,7 @@ class TestRailClient(TestRail):
         #self.db = DatabaseTestRail()
         #self.db = _db()
 
+    '''
     def data_pump_report_test_case_coverage(self, project='all', suite='all'):
         # call database for 'all' values
         # convert inputs to a list so we can easily
@@ -91,6 +92,7 @@ class TestRailClient(TestRail):
                                       suite['id'], suite['name'])
                 self.testrail_coverage_update(projects_id,
                                               testrail_project_id, suite['id'])
+    '''
 
 
     # TODO: once helpers is working, use with all other reports 
@@ -132,6 +134,7 @@ class TestRailClient(TestRail):
         print(project_ids_list)
         return project_ids_list
 
+    '''
     def testrail_coverage_update(self, projects_id,
                                  testrail_project_id, test_suite_id):
 
@@ -152,6 +155,7 @@ class TestRailClient(TestRail):
         # Insert data in 'totals' array into DB
         #self.db.report_test_coverage_insert(projects_id, payload)
         db.report_test_coverage_insert(projects_id, payload)
+    '''
 
     def testrail_run_counts_update(self, project, num_days):
 
