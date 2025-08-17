@@ -9,6 +9,7 @@ from database import (
     Database,
     ReportTestRailTestPlans,
     ReportTestRailTestResults,
+    ReportTestRailTestRuns,
 )
 
 from api.testrail.client import TestRail
