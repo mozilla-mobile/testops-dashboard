@@ -38,7 +38,6 @@ def _db() -> Database():
 
 def testrail_users():
     # Step 1: Get all projects
-    #projects_response = self.projects()
 
     tr = _tr()
 
@@ -58,7 +57,6 @@ def testrail_users():
         seen_project_ids.add(project_id)
 
         try:
-            #user_response = self.users(project_id)
             user_response = tr.users(project_id)
             users = user_response.get("users", [])
             all_users.extend(users)
@@ -110,15 +108,13 @@ def testrail_users():
     ]
 
     df = pd.DataFrame(user_data)
-
-    #self.db.report_testrail_users_insert(df)
     report_testrail_users_insert(df)
 
 
 def report_testrail_users_insert(payload):
 
     # DIAGNOSTIC
-    print("Running: DatabaseTestRail")
+    print("Running: report_testrail_users_insert")
     print(inspect.currentframe().f_code.co_name)
 
     db = _db()
@@ -131,7 +127,5 @@ def report_testrail_users_insert(payload):
             role=row['role'],
             created_at=row['created_at']
         )
-        #self.session.add(report)
         db.session.add(report)
-        #self.session.commit()
         db.session.commit()

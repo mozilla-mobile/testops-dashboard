@@ -436,6 +436,7 @@ class TestRailClient(TestRail):
             # add the test runs for the queried test plans
             self.testrail_runs_update(num_days, full_plans)
 
+    '''
     def testrail_test_results(self):
         """Gets all the test result duration for the latest test plans
         Precondition: testrail_plans_and_runs have been run prior"""
@@ -474,3 +475,5 @@ class TestRailClient(TestRail):
                     db.report_testrail_test_result_insert(
                         db_run_id, run_results, type)
             print(f"Added all test results from table {type}")
+    
+    '''
