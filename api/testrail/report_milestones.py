@@ -159,7 +159,7 @@ def testrail_milestones(project):
             if not df_selected.empty:
                 #self.db.report_milestones_insert(projects_id, df_selected)
                 # TODO: remove db. after putting function here
-                db.report_milestones_insert(projects_id, df_selected)
+                report_milestones_insert(projects_id, df_selected)
             else:
                 print(
                     f"No milestones data to insert into database for project "
