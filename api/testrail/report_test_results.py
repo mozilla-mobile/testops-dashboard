@@ -25,10 +25,10 @@ def _tr() -> TestRail():
     return _TR
 
 
-def _db() -> DatabaseTestRail():
+def _db() -> Database():
     global _DB
     if _DB is None:
-        _DB = DatabaseTestRail()
+        _DB = Database()
     return _DB
 
 
