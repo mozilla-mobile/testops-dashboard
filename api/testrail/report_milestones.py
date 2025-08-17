@@ -41,14 +41,12 @@ def _tr() -> TestRail():
 
 def testrail_milestones_delete():
     # DIAGNOSTIC
-    print("Running: report_milestones")
+    print("Running: testrail_report_milestones_delete")
     print(inspect.currentframe().f_code.co_name)
 
     db = _db()
 
-    # self.session.query(ReportTestRailMilestones).delete()
     db.session.query(ReportTestRailMilestones).delete()
-    # self.session.commit()
     db.session.commit()
 
 
@@ -57,10 +55,8 @@ def testrail_milestones(project):
     db = _db()
     tr = _tr()
 
-    # self.db.testrail_milestones_delete()
     testrail_milestones_delete()
 
-    # project_ids_list = self.testrail_project_ids(project)
     project_ids_list = testrail_project_ids(project)
     milestones_all = pd.DataFrame()
 
@@ -68,7 +64,6 @@ def testrail_milestones(project):
         projects_id = project_ids[0]
         testrail_project_id = project_ids[1]
 
-        # payload = self.milestones(testrail_project_id)
         payload = tr.milestones(testrail_project_id)
         if not payload:
             print(
@@ -178,7 +173,6 @@ def report_milestones_insert(projects_id, payload):
     db = _db()
 
     for index, row in payload.iterrows():
-        # print(row)
 
         report = ReportTestRailMilestones(
             testrail_milestone_id=row['testrail_milestone_id'],
@@ -194,7 +188,5 @@ def report_milestones_insert(projects_id, payload):
             build_name=row['build_name'],
             build_version=row['build_version']
         )
-        #self.session.add(report)
         db.session.add(report)
-        #self.session.commit()
         db.session.commit()

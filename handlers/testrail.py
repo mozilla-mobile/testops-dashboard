@@ -1,6 +1,7 @@
 from api.testrail.api_testrail import TestRailClient
 import api.testrail.report_users as users
 import api.testrail.report_milestones as milestones
+import api.testrail.report_test_results as test_results 
 
 
 def handle_testrail_test_plans_and_runs(args):
@@ -9,17 +10,16 @@ def handle_testrail_test_plans_and_runs(args):
 
 
 def handle_testrail_test_results(args):
-    client = TestRailClient()
-    client.testrail_test_results()
+    #client = TestRailClient()
+    #client.testrail_test_results()
+    test_results.testrail_test_results()
 
 
 def handle_testrail_milestones(args):
-    #client = TestRailClient()
     milestones.testrail_milestones(args.arg_list)
 
 
 def handle_testrail_users(args):
-    #client = TestRailClient()
     users.testrail_users()
 
 
