@@ -12,13 +12,13 @@ import numpy as np
 
 from database import (
     Database,
+    ReportTestRailTestPlans,
     ReportTestRailTestResults,
 )
 
 from api.testrail.client import TestRail
 from api.testrail.db_testrail import DatabaseTestRail
 from utils.datetime_utils import DatetimeUtils as dt
-from utils.payload_utils import PayloadUtils as pl
 
 import inspect
 
@@ -28,14 +28,14 @@ _DB = None
 
 
 def _tr() -> TestRail():
-    global _TR 
+    global _TR
     if _TR is None:
         _TR = TestRail()
-    return _TR 
+    return _TR
 
 
 def _db() -> DatabaseTestRail():
-    global _DB 
+    global _DB
     if _DB is None:
         _DB = DatabaseTestRail()
     return _DB
