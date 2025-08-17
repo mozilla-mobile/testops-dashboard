@@ -1,4 +1,3 @@
-
 #! /usr/bin/env python3
 
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -16,7 +15,7 @@ _DB = None
 
 
 def _db() -> Database():
-    global _DB 
+    global _DB
     if _DB is None:
         _DB = Database()
     return _DB
@@ -34,6 +33,10 @@ def testrail_project_ids(project):
        in DB for convenience and use them to query test suites
        from each respective project
     """
+
+    print("-------------------------")
+    print("HELPERS")
+    print("-------------------------")
 
     db = _db()
 

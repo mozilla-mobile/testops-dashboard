@@ -14,8 +14,8 @@ def handle_testrail_test_results(args):
 
 
 def handle_testrail_milestones(args):
-    client = TestRailClient()
-    client.testrail_milestones(args.arg_list)
+    #client = TestRailClient()
+    milestones.testrail_milestones(args.arg_list)
 
 
 def handle_testrail_users(args):
