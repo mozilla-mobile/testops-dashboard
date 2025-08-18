@@ -181,7 +181,8 @@ class DatabaseTestRail(Database):
               .sum()
               .reset_index()
         )
-
+    '''
+    '''
     def report_test_coverage_insert(self, projects_id, payload):
 
         # DIAGNOSTIC

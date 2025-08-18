@@ -94,10 +94,9 @@ def testrail_test_case_coverage(project='all', suite='all'):
             print("suite_id: {0}".format(suite['id']))
             print("suite_name: {0}".format(suite['name']))
             """
-            db = _db()
             #self.db.test_suites_update(testrail_project_id,
             #                           suite['id'], suite['name'])
-            db.test_suites_update(testrail_project_id,
+            test_suites_update(testrail_project_id,
                                   suite['id'], suite['name'])
             #self.testrail_coverage_update(projects_id,
             #                              testrail_project_id, suite['id'])
@@ -144,7 +143,7 @@ def testrail_coverage_update(projects_id, testrail_project_id, test_suite_id):
 
     # Insert data in 'totals' array into DB
     #self.db.report_test_coverage_insert(projects_id, payload)
-    db.report_test_coverage_insert(projects_id, payload)
+    report_test_coverage_insert(projects_id, payload)
 
 
 def report_test_coverage_payload(cases):
