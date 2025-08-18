@@ -21,6 +21,26 @@ def _db() -> Database():
     return _DB
 
 
+"""
+TODO: this function was removed from ./database.py in 2021.  i
+It is still invoked by: api/testrail/api_testrail.py testrail_run_counts_update
+
+Could possibly be replaced by testrail_project_ids
+
+def testrail_identity_ids(project):
+        # Return the ids needed to be able to query the TestRail API for
+        # a specific test suite from a specific project
+        # projects.id = projects table id
+        # testrail_id = id of project in testrail
+        # testrail_functional_test_suite_id = Full Functional Tests Suite id
+        # Note:
+        #  As these will never change, we store them in db for convenience
+        q = self.session.query(Projects)
+        p = q.filter_by(project_name_abbrev=project).first()
+        return p.id, p.testrail_id, p.testrail_functional_test_suite_id
+"""
+
+
 def testrail_project_ids(project):
     """ Return the ids needed to be able to query the TestRail API for
     a specific test suite from a specific project

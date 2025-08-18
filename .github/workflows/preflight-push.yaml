@@ -77,8 +77,8 @@ jobs:
       - name: Mobile TestRail milestones
         run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones
   
-      - name: Mobile Test Run Counts
-        run: python ./__main__.py --report-type testrail-test-run-counts --platform mobile --project ALL
+      #- name: Mobile Test Run Counts
+      #  run: python ./__main__.py --report-type testrail-test-run-counts --platform mobile --project ALL
 
       # - name: Mobile Test Results 
       #  run: python ./__main__.py --report-type testrail-test-results --platform mobile --project ALL
