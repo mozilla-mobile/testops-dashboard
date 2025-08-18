@@ -89,7 +89,7 @@ def testrail_test_case_coverage(project='all', suite='all'):
             print("suite_name: {0}".format(suite['name']))
             """
             test_suites_update(testrail_project_id,
-                                  suite['id'], suite['name'])
+                               suite['id'], suite['name'])
             testrail_coverage_update(projects_id,
                                      testrail_project_id, suite['id'])
 
