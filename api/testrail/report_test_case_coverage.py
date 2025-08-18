@@ -38,13 +38,6 @@ def _tr() -> TestRail():
     return _TR
 
 
-# DIAGNOSTIC
-print("--------------------------------------")
-print("Running: report_milestones")
-print(inspect.currentframe().f_code.co_name)
-print("--------------------------------------")
-
-
 def test_suites_delete():
     """ Wipe out all test suite data.
     NOTE: we'll renew this data from Testrail every session."""
@@ -60,6 +53,13 @@ def test_suites_delete():
 
 
 def testrail_test_case_coverage(project='all', suite='all'):
+
+    # DIAGNOSTIC
+    print("--------------------------------------")
+    print("DIAGNOSTIC: ")
+    print(inspect.currentframe().f_code.co_name)
+    print("--------------------------------------")
+
     # call database for 'all' values
     # convert inputs to a list so we can easily
     # loop thru them
