@@ -28,6 +28,8 @@ def handle_testrail_test_case_coverage(args):
     test_case_coverage.testrail_test_case_coverage(args.arg_list)
 
 
+"""
 def handle_testrail_test_run_counts_update(args):
     client = TestRailClient()
     client.testrail_run_counts_update(args.project, args.num_days or '')
+"""
