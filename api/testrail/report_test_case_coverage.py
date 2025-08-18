@@ -45,7 +45,9 @@ def test_suites_delete():
     db = _db()
 
     # DIAGNOSTIC
-    print("DIAGNOSTIC: Running: report_test_case_coverage ")
+    print("--------------------------------------")
+    print("DIAGNOSTIC: report_test_case_coverage ")
+    print("--------------------------------------")
     print(inspect.currentframe().f_code.co_name)
 
     db.session.query(TestSuites).delete()
@@ -133,7 +135,7 @@ def report_test_coverage_payload(cases):
     """given testrail data (cases), calculate test case counts by type"""
 
     # DIAGNOSTIC
-    print("Running: DatabaseTestRail")
+    print("DIAGNOSTIC: ")
     print(inspect.currentframe().f_code.co_name)
 
     payload = []
@@ -171,7 +173,7 @@ def report_test_coverage_payload(cases):
 def report_test_coverage_insert(projects_id, payload):
 
     # DIAGNOSTIC
-    print("Running: report_test_case_coverage")
+    print("DIAGNOSTIC: report_test_case_coverage")
     print(inspect.currentframe().f_code.co_name)
 
     # TODO:  Error on insert
