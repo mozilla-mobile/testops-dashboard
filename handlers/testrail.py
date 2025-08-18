@@ -3,7 +3,7 @@ import api.testrail.report_users as users
 import api.testrail.report_milestones as milestones
 import api.testrail.report_test_results as test_results
 import api.testrail.report_test_case_coverage as test_case_coverage
-import api.testrail.report_test_plans_and_runs as test_plans_and_runs 
+# import api.testrail.report_test_plans_and_runs as test_plans_and_runs 
 
 
 def handle_testrail_test_plans_and_runs(args):
