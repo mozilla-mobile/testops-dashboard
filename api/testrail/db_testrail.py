@@ -52,6 +52,7 @@ class DatabaseTestRail(Database):
         self.session.commit()
     '''
 
+    """
     def test_suites_update(self, testrail_project_id,
                            testrail_test_suites_id, test_suite_name):
 
@@ -64,6 +65,7 @@ class DatabaseTestRail(Database):
                             test_suite_name=test_suite_name)
         self.session.add(suites)
         self.session.commit()
+    """
 
     """
     def testrail_milestones_delete(self):

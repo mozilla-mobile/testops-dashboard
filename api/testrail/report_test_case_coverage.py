@@ -104,6 +104,25 @@ def testrail_test_case_coverage(project='all', suite='all'):
             testrail_coverage_update(projects_id,
                                      testrail_project_id, suite['id'])
 
+
+def test_suites_update(testrail_project_id,
+                       testrail_test_suites_id, test_suite_name):
+
+    db = _db()
+
+    # DIAGNOSTIC
+    print("DIAGNOSTIC:report_test_case_coverage ")
+    print(inspect.currentframe().f_code.co_name)
+
+    suites = TestSuites(testrail_project_id=testrail_project_id,
+                        testrail_test_suites_id=testrail_test_suites_id,
+                        test_suite_name=test_suite_name)
+    #self.session.add(suites)
+    db.session.add(suites)
+    #self.session.commit()
+    db.session.commit()
+
+
 def testrail_coverage_update(projects_id, testrail_project_id, test_suite_id):
 
     db = _db()
