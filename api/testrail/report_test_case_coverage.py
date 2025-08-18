@@ -7,17 +7,14 @@
 
 
 import pandas as pd
-import numpy as np
 
 from database import (
     Database,
-    ReportTestRailMilestones,
     ReportTestCaseCoverage,
 )
 
 from api.testrail.client import TestRail
 from api.testrail.helpers import testrail_project_ids
-from utils.payload_utils import PayloadUtils as pl
 
 import inspect
 
@@ -47,11 +44,24 @@ print(inspect.currentframe().f_code.co_name)
 print("--------------------------------------")
 
 
-def data_pump_report_test_case_coverage(project='all', suite='all'):
+def test_suites_delete(self):
+    """ Wipe out all test suite data.
+    NOTE: we'll renew this data from Testrail every session."""
+
+    # DIAGNOSTIC
+    print("DIAGNOSTIC: Running: report_test_case_coverage ")
+    print(inspect.currentframe().f_code.co_name)
+
+    self.session.query(TestSuites).delete()
+    self.session.commit()
+
+
+def testrail_test_case_coverage(project='all', suite='all'):
     # call database for 'all' values
     # convert inputs to a list so we can easily
     # loop thru them
     #project_ids_list = self.testrail_project_ids(project)
+
 
     project_ids_list = testrail_project_ids(project)
     print(project_ids_list)

@@ -39,6 +39,7 @@ class DatabaseTestRail(Database):
         print("Initiating: DatabaseTestRail")
         print(inspect.currentframe().f_code.co_name)
 
+    '''
     def test_suites_delete(self):
         """ Wipe out all test suite data.
         NOTE: we'll renew this data from Testrail every session."""
@@ -49,6 +50,7 @@ class DatabaseTestRail(Database):
 
         self.session.query(TestSuites).delete()
         self.session.commit()
+    '''
 
     def test_suites_update(self, testrail_project_id,
                            testrail_test_suites_id, test_suite_name):
