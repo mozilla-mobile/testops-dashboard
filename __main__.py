@@ -176,7 +176,7 @@ COMMAND_MAP = {
     'testrail-milestones': handle_testrail_milestones,
     'testrail-users': handle_testrail_users,
     'testrail-test-case-coverage': handle_testrail_test_case_coverage,
-    'testrail-test-run-counts': handle_testrail_test_run_counts_update,
+    # 'testrail-test-run-counts': handle_testrail_test_run_counts_update,
     'testrail-test-plans-and-runs': handle_testrail_test_plans_and_runs,
     'testrail-test-results': handle_testrail_test_results,
 }
