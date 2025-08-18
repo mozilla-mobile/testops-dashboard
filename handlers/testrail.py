@@ -23,8 +23,6 @@ def handle_testrail_users(args):
 
 
 def handle_testrail_test_case_coverage(args):
-    # client = TestRailClient()
-    # test_case_coverage.data_pump_report_test_case_coverage(args.arg_list)
     test_case_coverage.testrail_test_case_coverage(args.arg_list)
 
 
