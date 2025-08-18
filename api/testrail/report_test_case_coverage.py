@@ -12,7 +12,6 @@ from database import (
     Database,
     TestSuites,
     ReportTestCaseCoverage,
-    ReportTestCaseCoverage,
 )
 
 from api.testrail.client import TestRail
@@ -46,7 +45,7 @@ print(inspect.currentframe().f_code.co_name)
 print("--------------------------------------")
 
 
-def test_suites_delete(self):
+def test_suites_delete():
     """ Wipe out all test suite data.
     NOTE: we'll renew this data from Testrail every session."""
 
@@ -77,7 +76,7 @@ def testrail_test_case_coverage(project='all', suite='all'):
     tr = _tr()
 
     #self.db.test_suites_delete()
-    db.test_suites_delete()
+    test_suites_delete()
 
     for project_ids in project_ids_list:
         projects_id = project_ids[0]
