@@ -49,12 +49,16 @@ def test_suites_delete():
     """ Wipe out all test suite data.
     NOTE: we'll renew this data from Testrail every session."""
 
+    db = _db()
+
     # DIAGNOSTIC
     print("DIAGNOSTIC: Running: report_test_case_coverage ")
     print(inspect.currentframe().f_code.co_name)
 
-    self.session.query(TestSuites).delete()
-    self.session.commit()
+    #self.session.query(TestSuites).delete()
+    db.session.query(TestSuites).delete()
+    #self.session.commit()
+    db.session.commit()
 
 
 def testrail_test_case_coverage(project='all', suite='all'):
@@ -62,7 +66,6 @@ def testrail_test_case_coverage(project='all', suite='all'):
     # convert inputs to a list so we can easily
     # loop thru them
     #project_ids_list = self.testrail_project_ids(project)
-
 
     project_ids_list = testrail_project_ids(project)
     print(project_ids_list)
@@ -100,7 +103,6 @@ def testrail_test_case_coverage(project='all', suite='all'):
             #                              testrail_project_id, suite['id'])
             testrail_coverage_update(projects_id,
                                      testrail_project_id, suite['id'])
-
 
 def testrail_coverage_update(projects_id, testrail_project_id, test_suite_id):
 
