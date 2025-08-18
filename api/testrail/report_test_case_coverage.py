@@ -10,6 +10,8 @@ import pandas as pd
 
 from database import (
     Database,
+    TestSuites,
+    ReportTestCaseCoverage,
     ReportTestCaseCoverage,
 )
 
