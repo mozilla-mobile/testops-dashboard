@@ -53,7 +53,7 @@ from handlers.testrail import (
     handle_testrail_milestones,
     handle_testrail_users,
     handle_testrail_test_case_coverage,
-    handle_testrail_test_run_counts_update,
+    # handle_testrail_test_run_counts_update,
 )
 
 
