@@ -281,6 +281,7 @@ class DatabaseTestRail(Database):
             payload.append(tmp)
         return payload
 
+    '''
     def report_test_plans_insert(self, project_id, payload):
         # insert data from payload into test_plans table
 
@@ -307,6 +308,7 @@ class DatabaseTestRail(Database):
             self.session.commit()
             total['id'] = report.id
         return payload
+    '''
 
     '''
     def report_testrail_test_result_insert(self, db_run_id, payload, type):

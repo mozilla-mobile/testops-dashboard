@@ -374,6 +374,7 @@ class TestRailClient(TestRail):
         db.report_testrail_users_insert(df)
     """
 
+    '''
     def testrail_runs_update(self, num_days, project_plans):
         """
             Update the test_runs table with the latest entries up until
@@ -393,7 +394,9 @@ class TestRailClient(TestRail):
             for entry in plan_info['entries']:
                 db.report_test_runs_insert(
                     plan['id'], entry['suite_id'], entry['runs'])
+    '''
 
+    '''
     def testrail_plans_and_runs(self, project, num_days):
         """
         Given a testrail project, update the test_plans and test_runs tables
@@ -439,6 +442,7 @@ class TestRailClient(TestRail):
 
             # add the test runs for the queried test plans
             self.testrail_runs_update(num_days, full_plans)
+    '''
 
     '''
     def testrail_test_results(self):

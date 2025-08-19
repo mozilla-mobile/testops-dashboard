@@ -192,7 +192,6 @@ def main():
         sys.exit(f"Unknown or unsupported report type: {report_type}")
 
     validate_project(args.platform, args.project, report_type)
-    # args.project_list = expand_project_args(args.platform, args.project)
 
     COMMAND_MAP[report_type](args)
 
