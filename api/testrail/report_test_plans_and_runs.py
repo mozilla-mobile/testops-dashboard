@@ -6,16 +6,17 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-import pandas as pd
-import numpy as np
+from datetime import datetime
 
 from database import (
     Database,
     ReportTestRailTestPlans,
+    ReportTestRailTestRuns,
 )
 
 from api.testrail.client import TestRail
-from api.testrail.helpers import testrail_project_ids 
+from api.testrail.helpers import testrail_project_ids
+from utils.datetime_utils import DatetimeUtils as dt
 from utils.payload_utils import PayloadUtils as pl
 
 import inspect
