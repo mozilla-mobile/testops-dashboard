@@ -114,6 +114,7 @@ def testrail_runs_update(num_days, project_plans):
     print("--------------------------------------")
 
     db = _db()
+    tr = _tr()
 
     start_date = dt.start_date(num_days)
     # querying each test plan individually returns the associated runs
