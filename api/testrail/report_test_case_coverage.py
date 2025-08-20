@@ -61,7 +61,7 @@ def testrail_test_case_coverage(project):
     print("DIAGNOSTIC: ")
     print(inspect.currentframe().f_code.co_name)
     print("--------------------------------------")
-    print(f"project {project}")   
+    print(f"project {project}")
 
     # call database for 'all' values
     # convert inputs to a list so we can easily
@@ -143,7 +143,7 @@ def report_test_coverage_payload(cases):
         suit = case['suite_id']
         subs = case.get("custom_sub_test_suites", [7])
 
-        # DIAGNOSTIC 
+        # DIAGNOSTIC
         # print(f'suite_id: {suit}, case_id: {case["id"]}, subs: {subs}')
 
         stat = case['custom_automation_status']
@@ -180,7 +180,7 @@ def report_test_coverage_insert(projects_id, payload):
 
     for index, row in payload.iterrows():
         """
-        # DIAGNOSTIC 
+        # DIAGNOSTIC
 
         print(
             'ROW - suit: {0}, asid: {1}, acid: {2}, ssid: {3}, tally: {4}'.format(

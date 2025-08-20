@@ -1,4 +1,3 @@
-
 #! /usr/bin/env python3
 
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -81,7 +80,7 @@ def testrail_plans_and_runs(project, num_days):
             for plan in result['plans']
             if "Automated testing" in plan['name']
         }
-        
+
         # delete test plans and runs
         print("DIAGNOSTIC: cleaning tables....")
         db.clean_table(ReportTestRailTestRuns)
