@@ -57,17 +57,20 @@ def testrail_project_ids(project):
     print("-------------------------")
     print("HELPERS")
     print("-------------------------")
+    print(f"project: {project}")
 
     db = _db()
 
     # Query with filtering
 
     if isinstance(project, list):
+        print("IS instance project")
         q = (
             db.session.query(Projects)
             .filter(Projects.project_name_abbrev.in_(project))
         )
     else:
+        print("IS NOT instance project")
         q = (
             db.session.query(Projects)
             .filter(Projects.project_name_abbrev == project)
@@ -79,5 +82,6 @@ def testrail_project_ids(project):
         [project.id, project.testrail_project_id] for project in results
     ]
 
-    print(project_ids_list)
+    print(f"project_ids_list: {project_ids_list}")
+
     return project_ids_list

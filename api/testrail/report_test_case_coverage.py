@@ -54,20 +54,21 @@ def test_suites_delete():
     db.session.commit()
 
 
-def testrail_test_case_coverage(project='all', suite='all'):
+def testrail_test_case_coverage(project):
 
     # DIAGNOSTIC
     print("--------------------------------------")
     print("DIAGNOSTIC: ")
     print(inspect.currentframe().f_code.co_name)
     print("--------------------------------------")
+    print(f"project {project}")   
 
     # call database for 'all' values
     # convert inputs to a list so we can easily
     # loop thru them
 
     project_ids_list = testrail_project_ids(project)
-    print(project_ids_list)
+
     # TODO:
     # currently only setup for test_case report
     # fix this for test run data
@@ -86,6 +87,7 @@ def testrail_test_case_coverage(project='all', suite='all'):
 
         for suite in suites:
             """
+            print("DIAGNOSTIC")
             print("testrail_project_id: {0}".format(testrail_project_id))
             print("suite_id: {0}".format(suite['id']))
             print("suite_name: {0}".format(suite['name']))
@@ -122,11 +124,6 @@ def testrail_coverage_update(projects_id, testrail_project_id, test_suite_id):
     # Format and store data in a data payload array
     payload = report_test_coverage_payload(cases)
 
-    print("-------------------------")
-    print("DIAGNOSTIC")
-    print("-------------------------")
-    print(payload)
-
     # Insert data in 'totals' array into DB
     report_test_coverage_insert(projects_id, payload)
 
@@ -135,7 +132,7 @@ def report_test_coverage_payload(cases):
     """given testrail data (cases), calculate test case counts by type"""
 
     # DIAGNOSTIC
-    print("DIAGNOSTIC: ")
+    print("DIAGNOSTIC:report_test_case_coverage ")
     print(inspect.currentframe().f_code.co_name)
 
     payload = []
@@ -146,7 +143,7 @@ def report_test_coverage_payload(cases):
         suit = case['suite_id']
         subs = case.get("custom_sub_test_suites", [7])
 
-        # Diagnostic
+        # DIAGNOSTIC 
         # print(f'suite_id: {suit}, case_id: {case["id"]}, subs: {subs}')
 
         stat = case['custom_automation_status']
@@ -183,7 +180,7 @@ def report_test_coverage_insert(projects_id, payload):
 
     for index, row in payload.iterrows():
         """
-        # Diagnostic
+        # DIAGNOSTIC 
 
         print(
             'ROW - suit: {0}, asid: {1}, acid: {2}, ssid: {3}, tally: {4}'.format(
