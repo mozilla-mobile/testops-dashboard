@@ -77,36 +77,82 @@ def testrail_test_results():
 
 
 
-def testrail_run_counts_update(self, project, num_days):
+def report_test_run_payload(runs):
+    """pack testrail data for 1 run in a data array
 
-	db = _db()
-	start_date = dt.start_date(num_days)
+    NOTE:
+    run_name
 
-	# Get reference IDs from DB
+    Because storing data for 1 run will occupy multipe db rows,
+    Storing the run name would require inserting into a reference
+    table.  For now, we will just store the testrail run id.
+
+    project_id, suite_id
+
+    We will pass along the proj_name_abbrev to the db.
+    For suite_id, we will always default to Full Functional.
+    """
+
+    # DIAGNOSTIC
+    print("Running: DatabaseTestRail")
+    print(inspect.currentframe().f_code.co_name)
+
+    # create array to store values to insert in database
+    payload = []
+
+    for run in runs:
+        tmp = {}
+
+        # identifiers
+        # tmp.append({'name': run['name']})
+        tmp.update({'testrail_run_id': run['id']})
+
+        # epoch dates
+        tmp.update({'testrail_created_on': run['created_on']})
+        tmp.update({'testrail_completed_on': run['completed_on']})
+
+        # test data
+        tmp.update({'passed_count': run['passed_count']})
+        tmp.update({'retest_count': run['retest_count']})
+        tmp.update({'failed_count': run['failed_count']})
+        tmp.update({'blocked_count': run['blocked_count']})
+        payload.append(tmp)
+    return payload
+
+
+def testrail_run_counts_update(project, num_days):
+
+    db = _db()
+    tr = _tr()
+
+    start_date = dt.start_date(num_days)
+
+    # Get reference IDs from DB
     # TODO: testrail_identity_ids was removed in 2022
     #       could be replaced by helper.testrail_project_ids
 
-	(
-		projects_id,
-		testrail_project_id,
-		functional_test_suite_id,
-	) = db.testrail_identity_ids(project)
+    (
+        projects_id,
+        testrail_project_id,
+        functional_test_suite_id,
+    ) = db.testrail_identity_ids(project)
 
-	# Pull JSON blob from Testrail
-	runs = self.test_runs(testrail_project_id, start_date)
+    # Pull JSON blob from Testrail
+    #runs = self.test_runs(testrail_project_id, start_date)
+    runs = tr.test_runs(testrail_project_id, start_date)
 
-	# Format and store data in a 'totals' array
-	#totals = self.db.report_test_run_payload(runs)
-	totals = db.report_test_run_payload(runs)
+    # Format and store data in a 'totals' array
+    #totals = self.db.report_test_run_payload(runs)
+    totals = db.report_test_run_payload(runs)
 
-	print("-------------------------")
-	print("DIAGNOSTIC")
-	print("-------------------------")
-	print(totals)
+    print("-------------------------")
+    print("DIAGNOSTIC")
+    print("-------------------------")
+    print(totals)
 
-	# Insert data in the 'totals' array into DB
-	#self.db.report_test_runs_insert(projects_id, totals)
-	db.report_test_runs_insert(projects_id, totals)
+    # Insert data in the 'totals' array into DB
+    #self.db.report_test_runs_insert(projects_id, totals)
+    db.report_test_runs_insert(projects_id, totals)
 
 
 def report_testrail_test_result_insert(db_run_id, payload, type):
