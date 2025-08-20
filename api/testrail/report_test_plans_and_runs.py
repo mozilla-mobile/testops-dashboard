@@ -6,8 +6,6 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-from datetime import datetime
-
 from database import (
     Database,
     ReportTestRailTestPlans,
@@ -53,24 +51,28 @@ def testrail_plans_and_runs(project, num_days):
 
     # DIAGNOSTIC
     print("--------------------------------------")
-    print("Running: report_testrail_plans_and_runs")
+    print("DIAGNOSTIC: testrail_plans_and_runs")
     print(inspect.currentframe().f_code.co_name)
     print("--------------------------------------")
+    print(f"project = {project}")
+    print(f"num_days: {num_days}")
 
     db = _db()
+    tr = _tr()
 
     start_date = dt.start_date(num_days)
 
     # Get reference IDs from DB
-    #project_ids_list = self.testrail_project_ids(project)  # noqa
     project_ids_list = testrail_project_ids(project)  # noqa
+
+    print("DIAGNOSTIC: project_ids:")
+    print(project_ids_list)
 
     for project_ids in project_ids_list:
         projects_id = project_ids[0]
 
         testrail_project_id = project_ids[1]
         # get the test plans from the start_date for the test rails project
-        #result = self.get_test_plans(testrail_project_id, start_date)  # noqa
         result = tr.get_test_plans(testrail_project_id, start_date)  # noqa
 
         # filter out the Automated testing Plans.
@@ -79,21 +81,18 @@ def testrail_plans_and_runs(project, num_days):
             for plan in result['plans']
             if "Automated testing" in plan['name']
         }
-
+        
         # delete test plans and runs
-        #self.db.clean_table(ReportTestRailTestRuns)
+        print("DIAGNOSTIC: cleaning tables....")
         db.clean_table(ReportTestRailTestRuns)
-        #self.db.clean_table(ReportTestRailTestPlans)
         db.clean_table(ReportTestRailTestPlans)
 
         # Insert data in the formated plan info array into DB
         # get table ids for the plans
 
-        #self.db.report_test_plans_insert(projects_id, full_plans)
         report_test_plans_insert(projects_id, full_plans)
 
         # add the test runs for the queried test plans
-        #self.testrail_runs_update(num_days, full_plans)
         testrail_runs_update(num_days, full_plans)
 
 
@@ -109,7 +108,7 @@ def testrail_runs_update(num_days, project_plans):
 
     # DIAGNOSTIC
     print("--------------------------------------")
-    print("Running: report_testrail_plans_and_runs")
+    print("DIAGNOSTIC: testrail_runs_update")
     print(inspect.currentframe().f_code.co_name)
     print("--------------------------------------")
 
@@ -117,9 +116,9 @@ def testrail_runs_update(num_days, project_plans):
     tr = _tr()
 
     start_date = dt.start_date(num_days)
+
     # querying each test plan individually returns the associated runs
     for plan in project_plans.values():
-        #plan_info = self.get_test_plan(plan['plan_id'], start_date)
         plan_info = tr.get_test_plan(plan['plan_id'], start_date)
         for entry in plan_info['entries']:
             db.report_test_runs_insert(
@@ -131,7 +130,7 @@ def report_test_plans_insert(project_id, payload):
 
     # DIAGNOSTIC
     print("--------------------------------------")
-    print("Running: report_testrail_plans_and_runs")
+    print("DIAGNOSTIC: report_test_plans_insert")
     print(inspect.currentframe().f_code.co_name)
     print("--------------------------------------")
 
@@ -156,9 +155,7 @@ def report_test_plans_insert(project_id, payload):
             testrail_created_on=created_on,
             testrail_completed_on=completed_on)
 
-        #self.session.add(report)
         db.session.add(report)
-        #self.session.commit()
         db.session.commit()
         total['id'] = report.id
     return payload

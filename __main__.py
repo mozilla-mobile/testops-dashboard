@@ -185,8 +185,12 @@ COMMAND_MAP = {
 def main():
     args = parse_args(sys.argv[1:])
     args.arg_list = expand_project_args(args.platform, args.project)
-
     report_type = args.report_type
+
+    # DIAGNOSTIC
+    print(f"args: {args}")
+    print(f"args.report_type: {args.report_type}")
+    print(f"args.arg_list: {args.arg_list}")
 
     if report_type not in COMMAND_MAP:
         sys.exit(f"Unknown or unsupported report type: {report_type}")
