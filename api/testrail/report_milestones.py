@@ -38,6 +38,7 @@ def _tr() -> TestRail():
     return _TR
 
 
+'''
 def testrail_milestones_delete():
     # DIAGNOSTIC
     print("Running: testrail_report_milestones_delete")
@@ -47,7 +48,12 @@ def testrail_milestones_delete():
 
     db.session.query(ReportTestRailMilestones).delete()
     db.session.commit()
+'''
 
+
+# ===================================================================
+# ORCHESTRATOR (BATCH) 
+# ===================================================================
 
 def testrail_milestones(project):
 
@@ -157,6 +163,10 @@ def testrail_milestones(project):
                     f"{testrail_project_id}."
                 )
 
+
+# ===================================================================
+# DB INSERT 
+# ===================================================================
 
 def report_milestones_insert(projects_id, payload):
 

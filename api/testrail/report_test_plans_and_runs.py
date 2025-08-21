@@ -37,6 +37,10 @@ def _tr() -> TestRail():
     return _TR
 
 
+# ===================================================================
+# ORCHESTRATOR (BATCH) 
+# ===================================================================
+
 def testrail_plans_and_runs(project, num_days):
     """
     Given a testrail project, update the test_plans and test_runs tables
@@ -95,6 +99,10 @@ def testrail_plans_and_runs(project, num_days):
         testrail_runs_update(num_days, full_plans)
 
 
+# ===================================================================
+# ORCHESTRATOR (BATCH) 
+# ===================================================================
+
 def testrail_runs_update(num_days, project_plans):
     """
         Update the test_runs table with the latest entries up until
@@ -123,6 +131,10 @@ def testrail_runs_update(num_days, project_plans):
             db.report_test_runs_insert(
                 plan['id'], entry['suite_id'], entry['runs'])
 
+
+# ===================================================================
+# DB INSERT 
+# ===================================================================
 
 def report_test_plans_insert(project_id, payload):
     # insert data from payload into test_plans table

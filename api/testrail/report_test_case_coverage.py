@@ -14,7 +14,7 @@ from database import (
 )
 
 from api.testrail.client import TestRail
-from api.testrail.helpers import testrail_project_ids
+from api.testrail.helpers import testrail_project_ids, test_suites_delete
 
 import inspect
 
@@ -37,6 +37,8 @@ def _tr() -> TestRail():
     return _TR
 
 
+
+'''
 def test_suites_delete():
     """ Wipe out all test suite data.
     NOTE: we'll renew this data from Testrail every session."""
@@ -51,7 +53,12 @@ def test_suites_delete():
 
     db.session.query(TestSuites).delete()
     db.session.commit()
+'''
 
+
+# ===================================================================
+# ORCHESTRATOR (BATCH) 
+# ===================================================================
 
 def testrail_test_case_coverage(project):
 
@@ -97,21 +104,9 @@ def testrail_test_case_coverage(project):
                                      testrail_project_id, suite['id'])
 
 
-def test_suites_update(testrail_project_id,
-                       testrail_test_suites_id, test_suite_name):
-
-    db = _db()
-
-    # DIAGNOSTIC
-    print("DIAGNOSTIC:report_test_case_coverage ")
-    print(inspect.currentframe().f_code.co_name)
-
-    suites = TestSuites(testrail_project_id=testrail_project_id,
-                        testrail_test_suites_id=testrail_test_suites_id,
-                        test_suite_name=test_suite_name)
-    db.session.add(suites)
-    db.session.commit()
-
+# ===================================================================
+# ORCHESTRATOR (PER PROJECT) 
+# ===================================================================
 
 def testrail_coverage_update(projects_id, testrail_project_id, test_suite_id):
 
@@ -126,6 +121,10 @@ def testrail_coverage_update(projects_id, testrail_project_id, test_suite_id):
     # Insert data in 'totals' array into DB
     report_test_coverage_insert(projects_id, payload)
 
+
+# ===================================================================
+# PREPARE/PAYLOAD 
+# ===================================================================
 
 def report_test_coverage_payload(cases):
     """given testrail data (cases), calculate test case counts by type"""
@@ -165,6 +164,30 @@ def report_test_coverage_payload(cases):
           .reset_index()
     )
 
+
+# ===================================================================
+# DB INSERT 
+# ===================================================================
+
+def test_suites_update(testrail_project_id,
+                       testrail_test_suites_id, test_suite_name):
+
+    db = _db()
+
+    # DIAGNOSTIC
+    print("DIAGNOSTIC:report_test_case_coverage ")
+    print(inspect.currentframe().f_code.co_name)
+
+    suites = TestSuites(testrail_project_id=testrail_project_id,
+                        testrail_test_suites_id=testrail_test_suites_id,
+                        test_suite_name=test_suite_name)
+    db.session.add(suites)
+    db.session.commit()
+
+
+# ===================================================================
+# DB INSERT 
+# ===================================================================
 
 def report_test_coverage_insert(projects_id, payload):
 
