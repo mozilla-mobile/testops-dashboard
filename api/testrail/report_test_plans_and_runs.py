@@ -38,7 +38,7 @@ def _tr() -> TestRail():
 
 
 # ===================================================================
-# ORCHESTRATOR (BATCH) 
+# ORCHESTRATOR (BATCH)
 # ===================================================================
 
 def testrail_plans_and_runs(project, num_days):
@@ -100,7 +100,7 @@ def testrail_plans_and_runs(project, num_days):
 
 
 # ===================================================================
-# ORCHESTRATOR (BATCH) 
+# ORCHESTRATOR (BATCH)
 # ===================================================================
 
 def testrail_runs_update(num_days, project_plans):
@@ -133,7 +133,7 @@ def testrail_runs_update(num_days, project_plans):
 
 
 # ===================================================================
-# DB INSERT 
+# DB INSERT
 # ===================================================================
 
 def report_test_plans_insert(project_id, payload):
