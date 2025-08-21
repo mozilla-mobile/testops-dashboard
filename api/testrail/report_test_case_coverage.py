@@ -37,7 +37,6 @@ def _tr() -> TestRail():
     return _TR
 
 
-
 '''
 def test_suites_delete():
     """ Wipe out all test suite data.
@@ -57,7 +56,7 @@ def test_suites_delete():
 
 
 # ===================================================================
-# ORCHESTRATOR (BATCH) 
+# ORCHESTRATOR (BATCH)
 # ===================================================================
 
 def testrail_test_case_coverage(project):
@@ -105,7 +104,7 @@ def testrail_test_case_coverage(project):
 
 
 # ===================================================================
-# ORCHESTRATOR (PER PROJECT) 
+# ORCHESTRATOR (PER PROJECT)
 # ===================================================================
 
 def testrail_coverage_update(projects_id, testrail_project_id, test_suite_id):
@@ -123,7 +122,7 @@ def testrail_coverage_update(projects_id, testrail_project_id, test_suite_id):
 
 
 # ===================================================================
-# PREPARE/PAYLOAD 
+# PREPARE/PAYLOAD
 # ===================================================================
 
 def report_test_coverage_payload(cases):
@@ -166,7 +165,7 @@ def report_test_coverage_payload(cases):
 
 
 # ===================================================================
-# DB INSERT 
+# DB INSERT
 # ===================================================================
 
 def test_suites_update(testrail_project_id,
@@ -186,7 +185,7 @@ def test_suites_update(testrail_project_id,
 
 
 # ===================================================================
-# DB INSERT 
+# DB INSERT
 # ===================================================================
 
 def report_test_coverage_insert(projects_id, payload):

@@ -35,7 +35,7 @@ def _db() -> Database():
 
 
 # ===================================================================
-# ORCHESTRATOR (BATCH) 
+# ORCHESTRATOR (BATCH)
 # ===================================================================
 
 def testrail_test_results():
@@ -82,7 +82,7 @@ def testrail_test_results():
 
 
 # ===================================================================
-# PREPARE/PAYLOAD 
+# PREPARE/PAYLOAD
 # ===================================================================
 
 def report_test_run_payload(runs):
@@ -129,7 +129,7 @@ def report_test_run_payload(runs):
 
 
 # ===================================================================
-# ORCHESTRATOR (PER-PROJECT) 
+# ORCHESTRATOR (PER-PROJECT)
 # ===================================================================
 
 def testrail_run_counts_update(project, num_days):
@@ -165,7 +165,7 @@ def testrail_run_counts_update(project, num_days):
 
 
 # ===================================================================
-# DB INSERT 
+# DB INSERT
 # ===================================================================
 
 def report_testrail_test_result_insert(db_run_id, payload, type):

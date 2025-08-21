@@ -14,7 +14,7 @@ from database import (
 )
 
 from api.testrail.client import TestRail
-from api.testrail.helpers import testrail_project_ids
+from api.testrail.helpers import testrail_project_ids, testrail_milestones_delete
 from utils.payload_utils import PayloadUtils as pl
 
 import inspect
@@ -52,7 +52,7 @@ def testrail_milestones_delete():
 
 
 # ===================================================================
-# ORCHESTRATOR (BATCH) 
+# ORCHESTRATOR (BATCH)
 # ===================================================================
 
 def testrail_milestones(project):
@@ -165,7 +165,7 @@ def testrail_milestones(project):
 
 
 # ===================================================================
-# DB INSERT 
+# DB INSERT
 # ===================================================================
 
 def report_milestones_insert(projects_id, payload):
