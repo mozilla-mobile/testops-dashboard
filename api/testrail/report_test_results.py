@@ -34,6 +34,10 @@ def _db() -> Database():
     return _DB
 
 
+# ===================================================================
+# ORCHESTRATOR (BATCH) 
+# ===================================================================
+
 def testrail_test_results():
     """Gets all the test result duration for the latest test plans
     Precondition: testrail_plans_and_runs have been run prior"""
@@ -76,6 +80,10 @@ def testrail_test_results():
                     db_run_id, run_results, type)
         print(f"Added all test results from table {type}")
 
+
+# ===================================================================
+# PREPARE/PAYLOAD 
+# ===================================================================
 
 def report_test_run_payload(runs):
     """pack testrail data for 1 run in a data array
@@ -120,6 +128,10 @@ def report_test_run_payload(runs):
     return payload
 
 
+# ===================================================================
+# ORCHESTRATOR (PER-PROJECT) 
+# ===================================================================
+
 def testrail_run_counts_update(project, num_days):
 
     db = _db()
@@ -151,6 +163,10 @@ def testrail_run_counts_update(project, num_days):
     # Insert data in the 'totals' array into DB
     db.report_test_runs_insert(projects_id, totals)
 
+
+# ===================================================================
+# DB INSERT 
+# ===================================================================
 
 def report_testrail_test_result_insert(db_run_id, payload, type):
 

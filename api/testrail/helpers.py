@@ -5,9 +5,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
+import inspect
+
 from database import (
     Database,
     Projects,
+    TestSuites,
 )
 
 
@@ -41,6 +44,36 @@ def testrail_identity_ids(project):
 """
 
 
+def testrail_milestones_delete():
+
+    # DIAGNOSTIC
+    print("--------------------------------------")
+    print("DIAGNOSTIC: helpers")
+    print("--------------------------------------")
+    print(inspect.currentframe().f_code.co_name)
+
+    db = _db()
+
+    db.session.query(ReportTestRailMilestones).delete()
+    db.session.commit()
+
+
+def test_suites_delete():
+    """ Wipe out all test suite data.
+    NOTE: we'll renew this data from Testrail every session."""
+
+    # DIAGNOSTIC
+    print("--------------------------------------")
+    print("DIAGNOSTIC: helpers")
+    print("--------------------------------------")
+    print(inspect.currentframe().f_code.co_name)
+
+    db = _db()
+
+    db.session.query(TestSuites).delete()
+    db.session.commit()
+
+
 def testrail_project_ids(project):
     """ Return the ids needed to be able to query the TestRail API for
     a specific test suite from a specific project
@@ -55,7 +88,7 @@ def testrail_project_ids(project):
     """
 
     print("-------------------------")
-    print("HELPERS")
+    print("DIAGNOSTIC: helpers")
     print("-------------------------")
     print(f"project: {project}")
 

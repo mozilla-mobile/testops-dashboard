@@ -36,6 +36,10 @@ def _db() -> Database():
     return _DB
 
 
+# ===================================================================
+# ORCHESTRATOR (BATCH) 
+# ===================================================================
+
 def testrail_users():
     # Step 1: Get all projects
 
@@ -110,6 +114,10 @@ def testrail_users():
     df = pd.DataFrame(user_data)
     report_testrail_users_insert(df)
 
+
+# ===================================================================
+# DB INSERT 
+# ===================================================================
 
 def report_testrail_users_insert(payload):
 
