@@ -1,9 +1,10 @@
-
 #! /usr/bin/env python3
 
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+import inspect
 
 from database import (
     Database,
@@ -76,7 +77,6 @@ def testrail_test_results():
         print(f"Added all test results from table {type}")
 
 
-
 def report_test_run_payload(runs):
     """pack testrail data for 1 run in a data array
 
@@ -138,11 +138,9 @@ def testrail_run_counts_update(project, num_days):
     ) = db.testrail_identity_ids(project)
 
     # Pull JSON blob from Testrail
-    #runs = self.test_runs(testrail_project_id, start_date)
     runs = tr.test_runs(testrail_project_id, start_date)
 
     # Format and store data in a 'totals' array
-    #totals = self.db.report_test_run_payload(runs)
     totals = db.report_test_run_payload(runs)
 
     print("-------------------------")
@@ -151,7 +149,6 @@ def testrail_run_counts_update(project, num_days):
     print(totals)
 
     # Insert data in the 'totals' array into DB
-    #self.db.report_test_runs_insert(projects_id, totals)
     db.report_test_runs_insert(projects_id, totals)
 
 
