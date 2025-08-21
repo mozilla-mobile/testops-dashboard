@@ -28,8 +28,5 @@ def handle_testrail_test_case_coverage(args):
 
 """
 def handle_testrail_test_run_counts_update(args):
-    from api.testrail.api_testrail import TestRailClient
-    client = TestRailClient()
-    client.testrail_run_counts_update(args.project, args.num_days or '')
     run_counts.testrail_run_counts_update(args.project, args.num_days or '')
 """

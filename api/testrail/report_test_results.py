@@ -43,8 +43,10 @@ def testrail_test_results():
     Precondition: testrail_plans_and_runs have been run prior"""
 
     print("--------------------------------------")
-    print("DIAGNOSTIC: testrail_test_results")
+    print("DIAGNOSTIC")
+    print(inspect.currentframe().f_code.co_name)
     print("--------------------------------------")
+
     db = _db()
     tr = _tr()
 
@@ -102,8 +104,10 @@ def report_test_run_payload(runs):
     """
 
     # DIAGNOSTIC
-    print("Running: DatabaseTestRail")
+    print("--------------------------------------")
+    print("DIAGNOSTIC")
     print(inspect.currentframe().f_code.co_name)
+    print("--------------------------------------")
 
     # create array to store values to insert in database
     payload = []
@@ -157,6 +161,7 @@ def testrail_run_counts_update(project, num_days):
 
     print("-------------------------")
     print("DIAGNOSTIC")
+    print(inspect.currentframe().f_code.co_name)
     print("-------------------------")
     print(totals)
 
@@ -171,7 +176,8 @@ def testrail_run_counts_update(project, num_days):
 def report_testrail_test_result_insert(db_run_id, payload, type):
 
     print("--------------------------------------")
-    print("DIAGNOSTIC: testrail_test_result_insert")
+    print("DIAGNOSTIC")
+    print(inspect.currentframe().f_code.co_name)
     print("--------------------------------------")
 
     # insert data from payload into report_testrail_test_results table
