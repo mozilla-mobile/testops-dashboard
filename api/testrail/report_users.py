@@ -43,6 +43,11 @@ def _db() -> Database():
 def testrail_users():
     # Step 1: Get all projects
 
+    # DIAGNOSTIC
+    print("--------------------------------------")
+    print("Running: report_testrail_users_insert")
+    print(inspect.currentframe().f_code.co_name)
+
     tr = _tr()
 
     projects_response = tr.projects()
@@ -122,8 +127,10 @@ def testrail_users():
 def report_testrail_users_insert(payload):
 
     # DIAGNOSTIC
+    print("--------------------------------------")
     print("Running: report_testrail_users_insert")
     print(inspect.currentframe().f_code.co_name)
+    print("--------------------------------------")
 
     db = _db()
 

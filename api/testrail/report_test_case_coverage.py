@@ -37,24 +37,6 @@ def _tr() -> TestRail():
     return _TR
 
 
-'''
-def test_suites_delete():
-    """ Wipe out all test suite data.
-    NOTE: we'll renew this data from Testrail every session."""
-
-    db = _db()
-
-    # DIAGNOSTIC
-    print("--------------------------------------")
-    print("DIAGNOSTIC: report_test_case_coverage ")
-    print("--------------------------------------")
-    print(inspect.currentframe().f_code.co_name)
-
-    db.session.query(TestSuites).delete()
-    db.session.commit()
-'''
-
-
 # ===================================================================
 # ORCHESTRATOR (BATCH)
 # ===================================================================

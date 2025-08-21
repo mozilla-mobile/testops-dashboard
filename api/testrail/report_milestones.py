@@ -38,19 +38,6 @@ def _tr() -> TestRail():
     return _TR
 
 
-'''
-def testrail_milestones_delete():
-    # DIAGNOSTIC
-    print("Running: testrail_report_milestones_delete")
-    print(inspect.currentframe().f_code.co_name)
-
-    db = _db()
-
-    db.session.query(ReportTestRailMilestones).delete()
-    db.session.commit()
-'''
-
-
 # ===================================================================
 # ORCHESTRATOR (BATCH)
 # ===================================================================
