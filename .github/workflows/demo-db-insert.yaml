@@ -69,7 +69,6 @@ jobs:
           report_name: Mobile Test Case Coverage
           run: python ./__main__.py --report-type testrail-test-case-coverage --platform mobile --project ALL
           zero_ok: 'false'
-          require_delete: 'false'
 
       #- name: Mobile testrail milestones
       #  run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones

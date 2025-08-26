@@ -142,7 +142,7 @@ class TestRailClient(TestRail):
         # convert inputs to a list so we can easily
         # loop thru them
         project_ids_list = self.testrail_project_ids(project)
-        print(project_ids_list)
+        #print(project_ids_list)
         # TODO:
         # currently only setup for test_case report
         # fix this for test run data
