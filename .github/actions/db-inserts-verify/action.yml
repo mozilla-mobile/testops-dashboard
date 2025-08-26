@@ -14,7 +14,7 @@ inputs:
     default: 'false'
   parse_regex:
     description: RegEx to capture ROWS_INSERTED=NNN (advanced override)
-    required: false
+    required: '' 
     default: 'ROWS_INSERTED\s*=\s*([0-9]+)'
 
 runs:
@@ -27,7 +27,17 @@ runs:
         set -euo pipefail
         echo "[verify] running: ${{ inputs.run }}"
         bash -lc '${{ inputs.run }}' 2>&1 | tee report.out
-        count="$(grep -Eo "${{ inputs.parse_regex }}" report.out                   | sed -E 's/.*=([0-9]+).*/\1/' | tail -n1 || true)"
+
+
+        # Pick regex
+        regex="${{ inputs.parse_regex }}"
+        if [[ -z "$regex" ]]; then
+          # Default: match common formats
+          regex='([0-9]+)[[:space:]]*(rows inserted|total inserted|committed|Inserted|ROWS_INSERTED=)'
+        fi
+
+        # Find last match
+        count="$(grep -Eo "${{ inputs.parse_regex }}" report.out | sed -E 's/.*=([0-9]+).*/\1/' | tail -n1 || true)"
         if [[ -z "${count:-}" ]]; then count=0; fi
         echo "rows_inserted=${count}" >> "$GITHUB_OUTPUT"
 

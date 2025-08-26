@@ -14,7 +14,7 @@ on:
 
 jobs:
   deploy:
-    name: Testops Check All Jobs on Push
+    name: Demo - Verify DB insert / delete 
     runs-on: ubuntu-latest
 
     steps:
