@@ -210,7 +210,7 @@ class TestRailClient(TestRail):
 
         # Format and store data in a data payload array
         payload = self.db.report_test_coverage_payload(cases)
-        print(payload)
+        #print(payload)
 
         # Insert data in 'totals' array into DB
         self.db.report_test_coverage_insert(projects_id, payload)
