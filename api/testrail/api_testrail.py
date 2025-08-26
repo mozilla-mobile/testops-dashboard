@@ -213,6 +213,8 @@ class TestRailClient(TestRail):
         #print(payload)
 
         # Insert data in 'totals' array into DB
+        print("DIAGNOSTIC: inserting coverage data now")
+
         self.db.report_test_coverage_insert(projects_id, payload)
 
     def testrail_run_counts_update(self, project, num_days):
