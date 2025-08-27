@@ -620,6 +620,7 @@ class DatabaseTestRail(Database):
         # TODO:  Error on insert
         # insert data from totals into report_test_coverage table
 
+        rows = len(payload)
         for index, row in payload.iterrows():
             """
             # Diagnostic
@@ -646,6 +647,7 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
+        print(f'ROWS_INSERTED={rows}')
 
     def report_testrail_users_insert(self, payload):
         for index, row in payload.iterrows():
