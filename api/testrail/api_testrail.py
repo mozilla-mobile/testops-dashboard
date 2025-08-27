@@ -647,7 +647,8 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
-        print(f'ROWS_INSERTED={rows}')
+        #print(f'ROWS_INSERTED={rows}')
+        print(f'ROWS_INSERTED=0')
 
     def report_testrail_users_insert(self, payload):
         for index, row in payload.iterrows():
