@@ -30,11 +30,7 @@ runs:
 
 
         # Pick regex
-        regex="${{ inputs.parse_regex }}"
-        if [[ -z "$regex" ]]; then
-          # Default: match common formats
-          regex='([0-9]+)[[:space:]]*(rows inserted|total inserted|committed|Inserted|ROWS_INSERTED=)'
-        fi
+        regex='ROWS_INSERTED=([0-9]+)'
 
         # Find last match
         count="$(grep -Eo "${{ inputs.parse_regex }}" report.out | sed -E 's/.*=([0-9]+).*/\1/' | tail -n1 || true)"

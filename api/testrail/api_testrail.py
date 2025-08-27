@@ -647,8 +647,7 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
-        #print(f'ROWS_INSERTED={rows}')
-        print(f'ROWS_INSERTED=0')
+        print(f'ROWS_INSERTED={rows}')
 
     def report_testrail_users_insert(self, payload):
         for index, row in payload.iterrows():
@@ -661,6 +660,7 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
+        print(f'ROWS_INSERTED={rows}')
 
     def report_test_run_payload(self, runs):
         """pack testrail data for 1 run in a data array
@@ -724,6 +724,7 @@ class DatabaseTestRail(Database):
             self.session.add(report)
             self.session.commit()
             total['id'] = report.id
+        print(f'ROWS_INSERTED={rows}')
         return payload
 
     def report_testrail_test_result_insert(self, db_run_id, payload, type):
