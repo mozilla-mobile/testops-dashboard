@@ -19,7 +19,7 @@ from database import (
 )
 
 # The 2 major versions are beta and release.
-NUM_MAJOR_VERSIONS = 2
+NUM_MAJOR_VERSIONS = 7
 
 
 class Sentry:
@@ -30,7 +30,23 @@ class Sentry:
             self.client.api_token = os.environ['SENTRY_API_TOKEN']
             self.organization_slug = \
                 os.environ['SENTRY_ORGANIZATION_SLUG']
-            self.project_id = os.environ['SENTRY_PROJECT_ID']
+            # Only fetch the platform from which the ID is defined.
+            self.ios_project_id = os.environ['SENTRY_IOS_PROJECT_ID']
+            self.fenix_project_id = os.environ['SENTRY_FENIX_PROJECT_ID']
+            self.project_id = ""
+            self.project = ""
+            self.environment = ""
+            self.package = ""
+            if self.ios_project_id:
+                self.project_id = self.ios_project_id
+                self.project = "firefox-ios"
+                self.environment = "Production"
+                self.package = "org.mozilla.ios.Firefox"
+            if self.fenix_project_id:
+                 self.project_id = self.fenix_project_id
+                 self.project = "fenix"
+                 self.environment = "release"
+                 self.package = "org.mozilla.firefox"
         except KeyError:
             print("ERROR: Missing testrail env var")
             sys.exit(1)
@@ -62,6 +78,20 @@ class Sentry:
                 '&environment=Production'
             ).format(self.organization_slug, self.project_id)
         )
+        
+    # API: Releases (with filtering)
+    # /organizations/mozilla/releases/
+    # ?adoptionStages=1&environment={environment}&project={project_id}
+    # &query=release.package:{package}}&status=open&summaryStatsPeriod=7d
+    def releases_v2(self):
+        return self.client.http_get(
+            (
+            '/organizations/mozilla/releases/'
+            '?adoptionStages=1&environment={0}&project={1}'
+            '&query=release.package:{2}&status=open&summaryStatsPeriod=7d'
+            ).format(self.environment, self.project_id, self.package)
+        )
+        
 
     # API: Session (crash free rate (session) and crash free rate (user))
     # The crash free rate for the past 24 hours
@@ -81,10 +111,10 @@ class Sentry:
     def sentry_adoption_rate(self, release):
         health_info_release = self.client.http_get(
             (
-                "organizations/{0}/releases/org.mozilla.ios.Firefox%40{1}/"
-                "?health=1&summaryStatsPeriod=7d&project={2}"
-                "&environment=Production&adoptionStages=1"
-            ).format(self.organization_slug, release, self.project_id)
+                "organizations/{0}/releases/{1}%40{2}/"
+                "?health=1&summaryStatsPeriod=7d&project={3}"
+                "&environment={4}&adoptionStages=1"
+            ).format(self.organization_slug, self.package, release, self.project_id, self.environment)
         )
         # Long version name could be beta
         if health_info_release is None:
@@ -105,6 +135,8 @@ class SentryClient(Sentry):
     def __init__(self):
         print("SentryClient.__init__()")
         super().__init__()
+        #self.ios_project_id = os.environ['SENTRY_IOS_PROJECT_ID']
+        self.fenix_project_id = os.environ['SENTRY_FENIX_PROJECT_ID']
         self.db = DatabaseSentry()
 
     def data_pump():
@@ -120,7 +152,7 @@ class SentryClient(Sentry):
 
     def sentry_releases(self):
         print("SentryClient.sentry_releases()")
-        releases = self.releases()
+        releases = self.releases_v2()
         release_versions = self.db.report_version_strings(releases)
         return release_versions
 
@@ -194,6 +226,8 @@ class DatabaseSentry:
         print("DatabaseSentry.__init__()")
         super().__init__()
         self.db = Database()
+        self.ios_project_id = None # os.environ['SENTRY_IOS_PROJECT_ID']
+        self.fenix_project_id = os.environ['SENTRY_FENIX_PROJECT_ID']
 
     # Filter out the non-production versions such as 9000
     def _production_versions(self, version):
@@ -230,14 +264,27 @@ class DatabaseSentry:
     # Get the last two major versions
     def report_version_strings(self, release_versions):
         payload = []
+        
+        # iOS
+        if self.ios_project_id:
 
-        for release_version in release_versions:
-            # Production only. Filter out beta and interim versions
-            description = release_version['versionInfo']['description']
-            if self._production_versions(description):
-                payload.append(description)
+            for release_version in release_versions:
+                # Production only. Filter out beta and interim versions
+                description = release_version['versionInfo']['description']
+                if self._production_versions(description):
+                    payload.append(description)
 
-        payload = self._all_new_production_dot_versions(payload)
+            payload = self._all_new_production_dot_versions(payload)
+        
+        # Android
+        else:
+            for release_version in release_versions:
+                if release_version['versionInfo']['version']['buildCode'] is not None:
+                    raw_version = release_version['versionInfo']['version']['raw']
+                    build_code = int(release_version['versionInfo']['version'].get('buildCode', 0))
+                    if build_code % 2 == 1:
+                        payload.append(raw_version)
+            payload = self._all_new_production_dot_versions(payload)
 
         # Just a list of released versions, not a dataframe
         return payload
