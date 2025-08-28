@@ -143,12 +143,9 @@ class TestRailClient(TestRail):
         # loop thru them
         project_ids_list = self.testrail_project_ids(project)
         #print(project_ids_list)
-        # TODO:
-        # currently only setup for test_case report
-        # fix this for test run data
 
-        # Test suite data is dynamic. Wipe out old test suite data
-        # in database before updating.
+        # Test suite data is dynamic. Wipe out old test suite data in database
+        # before updating.
         self.db.test_suites_delete()
 
         for project_ids in project_ids_list:
@@ -213,8 +210,6 @@ class TestRailClient(TestRail):
         #print(payload)
 
         # Insert data in 'totals' array into DB
-        print("DIAGNOSTIC: inserting coverage data now")
-
         self.db.report_test_coverage_insert(projects_id, payload)
 
     def testrail_run_counts_update(self, project, num_days):
@@ -675,6 +670,7 @@ class DatabaseTestRail(Database):
             ]
             self.session.bulk_save_objects(reports)
             self.session.commit()
+            print("DIAGNOSTIC: batch insert!")
             print(f"ROWS_INSERTED={len(reports)}")
         except Exception as e:
             self.session.rollback()
@@ -711,7 +707,6 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
-        print(f'ROWS_INSERTED={rows}')
 
     def report_test_run_payload(self, runs):
         """pack testrail data for 1 run in a data array
@@ -775,7 +770,6 @@ class DatabaseTestRail(Database):
             self.session.add(report)
             self.session.commit()
             total['id'] = report.id
-        print(f'ROWS_INSERTED={rows}')
         return payload
 
     def report_testrail_test_result_insert(self, db_run_id, payload, type):
