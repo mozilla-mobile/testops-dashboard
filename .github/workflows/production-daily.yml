@@ -101,7 +101,7 @@ jobs:
 
       - name: Construct JSON for Slack (Sentry)
         run: |
-          python -m api.sentry.utils_slack ./sentry_rates.csv
+          python -m api.sentry.utils ./sentry_rates.csv
         continue-on-error: true
       - name: Send latest Sentry issues to Slack
         id: slack-sentry
