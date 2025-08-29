@@ -55,6 +55,7 @@ class Jira:
         #return self.client.get_search(query, data_type='issues')
 
         tmp = self.client.get_search(query, data_type='issues')
+        print(f"function: filters")
         print(f"DIAGNOSTIC - query: {query}")
         print(f"DIAGNOSTIC - get_search: {tmp}")
         return tmp
@@ -64,6 +65,8 @@ class Jira:
                 + '&fields=' + DEFAULT_COLUMNS \
                 + COLUMNS_ISSUE_TYPE + ',' + STORY_POINTS + ',' \
                 + TESTED_TRAINS + '&' + MAX_RESULT
+        print(f"function: filters_new_issue_type")
+        print(f"DIAGNOSTIC - query: {query}")
 
         return self.client.get_search(query, data_type='issues')
 
@@ -73,6 +76,7 @@ class Jira:
         #        + '&' + MAX_RESULT
         #return self.client.get_search(query, data_type='issues')
         tmp = self.client.get_search(query, data_type='issues')
+        print(f"function: filter_qa_needed")
         print(f"DIAGNOSTIC - query: {query}")
         print(f"DIAGNOSTIC - get_search: {tmp}")
         return tmp
@@ -80,16 +84,23 @@ class Jira:
 
     def filter_sv_parent_in_board(self):
         query = SEARCH + '?' + JQL_QUERY + QATT_BOARD + '&' + QATT_FIELDS
+        print(f"function: filter_sv_parent_in_board")
+        print(f"DIAGNOSTIC - query: {query}")
+
         return self.client.get_search(query, data_type='issues')
 
     # API: Issues
     def filter_child_issues(self, parent_key):
         query = SEARCH + '?' + QATT_PARENT_TICKETS_IN_BOARD + parent_key
+        print(f"function: filter_child_issues")
+        print(f"DIAGNOSTIC - query: {query}")
         return self.client.get_search(query, data_type='issues')
 
     # API: Worklogs
     def filter_worklogs(self, issue_key):
         query = WORKLOG_URL_TEMPLATE.format(issue_key=issue_key)
+        print(f"function: filter_work_logs")
+        print(f"DIAGNOSTIC - query: {query}")
         return self.client.get_search(query, data_type='worklogs')
 
 
@@ -106,6 +117,7 @@ class JiraClient(Jira):
             parent_key = issue["key"]
             parent_name = issue["fields"]["summary"]
             children = self.filter_child_issues(parent_key)
+            print(f"DIAGNOSTIC - children: {children}")
 
             # ---- Get worklogs for the parent itself ----
             parent_worklogs = self.filter_worklogs(parent_key)
