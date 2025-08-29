@@ -36,6 +36,9 @@ class Jira:
             self.client = JiraAPIClient(JIRA_HOST)
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
+            print(f"JIRA_HOST: {JIRA_HOST}") 
+            sys.exit(1)
+
         except KeyError:
             print("ERROR: Missing jira env var")
             sys.exit(1)

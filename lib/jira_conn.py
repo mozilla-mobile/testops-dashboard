@@ -30,7 +30,7 @@ class JiraAPIClient:
 
         Args:
             filter{id}: The API method to call including parameters,
-            e.g. GET /rest/api/2/filter/{id}.
+            e.g. GET /rest/api/3/filter/{id}.
 
         Returns:
             JSON representation of the search results.
