@@ -69,7 +69,7 @@ class Jira:
 
     def filter_qa_needed(self):
         query = SEARCH + '?' + JQL_QUERY + FILTER_ID_QA_NEEDED_iOS \
-                + '&files=labels&' + MAX_RESULT
+                + '&fields=labels&' + MAX_RESULT
         #        + '&' + MAX_RESULT
         #return self.client.get_search(query, data_type='issues')
         tmp = self.client.get_search(query, data_type='issues')
