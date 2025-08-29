@@ -52,7 +52,11 @@ class Jira:
                 + FIREFOX_RELEASE_TRAIN + ',' \
                 + ENGINEERING_TEAM + '&' + MAX_RESULT
 
-        return self.client.get_search(query, data_type='issues')
+        #return self.client.get_search(query, data_type='issues')
+
+        tmp = self.client.get_search(query, data_type='issues')
+        print(f"DIAGNOSTIC: {tmp}")
+        return tmp
 
     def filters_new_issue_type(self):
         query = SEARCH + '?' + JQL_QUERY + FILTER_ID_ALL_REQUEST_ISSUE_TYPE \
