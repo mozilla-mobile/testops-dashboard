@@ -32,7 +32,10 @@ class Jira:
     def __init__(self):
         try:
             # Change in github secrets: remove last part
-            JIRA_HOST = os.environ['JIRA_HOST']
+
+            # TODO: reset to proper env var - DIAGNOSTIC ONLY
+            # JIRA_HOST = os.environ['JIRA_HOST']
+            JIRA_HOST = "https://mozilla-hub.atlassian.net/rest/api/3"
             self.client = JiraAPIClient(JIRA_HOST)
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
