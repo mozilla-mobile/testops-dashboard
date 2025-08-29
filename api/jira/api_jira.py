@@ -55,7 +55,8 @@ class Jira:
         #return self.client.get_search(query, data_type='issues')
 
         tmp = self.client.get_search(query, data_type='issues')
-        print(f"DIAGNOSTIC: {tmp}")
+        print(f"DIAGNOSTIC - query: {query}")
+        print(f"DIAGNOSTIC - get_search: {tmp}")
         return tmp
 
     def filters_new_issue_type(self):
@@ -68,10 +69,12 @@ class Jira:
 
     def filter_qa_needed(self):
         query = SEARCH + '?' + JQL_QUERY + FILTER_ID_QA_NEEDED_iOS \
-                + '&' + MAX_RESULT
+                + '&files=labels&' + MAX_RESULT
+        #        + '&' + MAX_RESULT
         #return self.client.get_search(query, data_type='issues')
         tmp = self.client.get_search(query, data_type='issues')
-        print(f"DIAGNOSTIC: {tmp}")
+        print(f"DIAGNOSTIC - query: {query}")
+        print(f"DIAGNOSTIC - get_search: {tmp}")
         return tmp
 
 
