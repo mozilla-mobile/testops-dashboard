@@ -39,7 +39,11 @@ class JiraAPIClient:
 
     def __send_request(self, method, query, data_type):
 
+        print(f"self.__url: {self.__url}")
         url = self.__url + query
+        print(f"url: {url}")
+        import sys
+        sys.exit(1)
         # Store all results
         all_results = []
         params = {"startAt": 0, "maxResults": 100}  # Set pagination params
