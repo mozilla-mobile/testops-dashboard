@@ -69,7 +69,11 @@ class Jira:
     def filter_qa_needed(self):
         query = SEARCH + '?' + JQL_QUERY + FILTER_ID_QA_NEEDED_iOS \
                 + '&' + MAX_RESULT
-        return self.client.get_search(query, data_type='issues')
+        #return self.client.get_search(query, data_type='issues')
+        tmp = self.client.get_search(query, data_type='issues')
+        print(f"DIAGNOSTIC: {tmp}")
+        return tmp
+
 
     def filter_sv_parent_in_board(self):
         query = SEARCH + '?' + JQL_QUERY + QATT_BOARD + '&' + QATT_FIELDS
