@@ -48,7 +48,10 @@ class Jira:
 
             # TODO: reset to proper env var - DIAGNOSTIC ONLY
             # JIRA_HOST = os.environ['JIRA_HOST']
+            JIRA_HOST = os.environ['JIRA_HOST_V3']
             self.client = JiraAPIClient(JIRA_HOST)
+            #self.client.host = os.environ['JIRA_HOST']
+            self.client.host = os.environ['JIRA_HOST_V3']
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
 
@@ -107,7 +110,7 @@ class Jira:
         """
         Jira v3 search using constants; explicitly requests needed fields; paginated.
         """
-        base = f"{JIRA_HOST}/search/jql"  # e.g. https://mozilla-hub.atlassian.net/rest/api/3/search/jql
+        base = f"{self.client.host}/search/jql"  # e.g. https://mozilla-hub.atlassian.net/rest/api/3/search/jql
         params = {
             "jql": f"filter={QATT_BOARD}",
             "fields": "summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog",
