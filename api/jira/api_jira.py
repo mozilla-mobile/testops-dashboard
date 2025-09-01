@@ -32,10 +32,13 @@ from constants import (
     COLUMNS_ISSUE_TYPE,
     TESTED_TRAINS,
     QATT_BOARD,
+    FILTER_ID_QA_NEEDED_iOS,
+    QATT_FIELDS,
+    QATT_BOARD,
+    QATT_PARENT_TICKETS_IN_BOARD,
+    SEARCH,
+    WORKLOG_URL_TEMPLATE,
 )
-from constants import FILTER_ID_QA_NEEDED_iOS
-from constants import QATT_FIELDS, QATT_BOARD, QATT_PARENT_TICKETS_IN_BOARD # noqa
-from constants import SEARCH, WORKLOG_URL_TEMPLATE
 
 # TODO: move to constants
 JIRA_HOST = "https://mozilla-hub.atlassian.net/rest/api/3"
@@ -48,10 +51,9 @@ class Jira:
 
             # TODO: reset to proper env var - DIAGNOSTIC ONLY
             # JIRA_HOST = os.environ['JIRA_HOST']
-            JIRA_HOST = os.environ['JIRA_HOST_V3']
             self.client = JiraAPIClient(JIRA_HOST)
             #self.client.host = os.environ['JIRA_HOST']
-            self.client.host = os.environ['JIRA_HOST_V3']
+            self.client.host = "https://mozilla-hub.atlassian.net/rest/api/3"
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
 
