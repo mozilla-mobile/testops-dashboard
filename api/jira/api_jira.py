@@ -20,8 +20,18 @@ from database import (
     ReportJIraQARequestsNewIssueType
 )
 from utils.datetime_utils import DatetimeUtils as dt
-from constants import FILTER_ID_ALL_REQUESTS_2022, FILTER_ID_ALL_REQUEST_ISSUE_TYPE, MAX_RESULT # noqa
-from constants import JQL_QUERY, STORY_POINTS, FIREFOX_RELEASE_TRAIN, ENGINEERING_TEAM, DEFAULT_COLUMNS, COLUMNS_ISSUE_TYPE, TESTED_TRAINS # noqa
+from constants import (
+    FILTER_ID_ALL_REQUESTS_2022,
+    FILTER_ID_ALL_REQUEST_ISSUE_TYPE,
+    MAX_RESULT,
+    JQL_QUERY,
+    STORY_POINTS,
+    FIREFOX_RELEASE_TRAIN,
+    ENGINEERING_TEAM,DEFAULT_COLUMNS,
+    COLUMNS_ISSUE_TYPE,
+    TESTED_TRAINS,
+    QATT_BOARD,
+)
 from constants import FILTER_ID_QA_NEEDED_iOS
 from constants import QATT_FIELDS, QATT_BOARD, QATT_PARENT_TICKETS_IN_BOARD # noqa
 from constants import SEARCH, WORKLOG_URL_TEMPLATE
@@ -91,39 +101,49 @@ class Jira:
         return self.client.get_search(query, data_type='issues')
     '''
 
+	def filter_sv_parent_in_board(self):
+		"""
+		Jira v3 search using constants; explicitly requests needed fields; paginated.
+		"""
+		base = f"{JIRA_HOST}/search/jql"  # e.g. https://mozilla-hub.atlassian.net/rest/api/3/search/jql
+		params = {
+			"jql": f"filter={QATT_BOARD}",
+			"fields": "summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog",
+			"expand": "names",
+			"maxResults": 100,
+			"startAt": 0,
+		}
 
-    def filter_sv_parent_in_board(self):
-        """
-        Returns a list of full issue objects (each has top-level 'key' and nested 'fields')
-        from filter=15948. Uses Jira v3 and explicitly requests needed fields.
-        """
-        base = f"{self.base_url}/rest/api/3/search/jql"  # v3 + new endpoint
-        jql = "filter=15948"
+		print(f"DIAGNOSTIC - query: search/jql?jql={params['jql']}&fields={params['fields']}")
+		all_issues = []
 
-        params = {
-            "jql": jql,
-            "fields": "summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog",
-            "expand": "names",
-            "maxResults": 100,
-            "startAt": 0,
-        }
+		while True:
+			print(f"Fetching data from: {base}")
+			r = self.session.get(
+				base,
+				params=params,
+				headers={"Accept": "application/json"},
+				timeout=30,
+			)
+			r.raise_for_status()
+			payload = r.json()
+			issues = payload.get("issues", [])
+			all_issues.extend(issues)
 
-        all_issues = []
-        while True:
-            r = self.session.get(base, params=params, headers={"Accept": "application/json"}, timeout=30)
-            r.raise_for_status()
-            payload = r.json()
-            issues = payload.get("issues", [])
-            all_issues.extend(issues)
+			total = payload.get("total", 0)
+			start = payload.get("startAt", 0)
+			maxr  = payload.get("maxResults", len(issues))
+			got   = start + len(issues)
+			print(f"Retrieved {got} of {total or 'unknown total'} issues")
 
-            total = payload.get("total", 0)
-            start = payload.get("startAt", 0)
-            maxr = payload.get("maxResults", len(issues))
-            if start + maxr >= total or not issues:
-                break
-            params["startAt"] = start + maxr
+			if start + maxr >= total or not issues:
+				break
+			params["startAt"] = start + maxr
 
-        return all_issues
+		print(f"✅ Total issues retrieved: {len(all_issues)}")
+		return all_issues
+
+
 
 
     # API: Issues
