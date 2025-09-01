@@ -31,8 +31,6 @@ from constants import (
     FIREFOX_RELEASE_TRAIN,
     MAX_RESULT,
     QATT_BOARD,
-    QATT_FIELDS,
-    QATT_PARENT_TICKETS_IN_BOARD,
     SEARCH,
     STORY_POINTS,
     TESTED_TRAINS,
@@ -47,9 +45,9 @@ class Jira:
 
             # TODO
             # Change in github secrets: remove last part
-            #self.client.host = os.environ['JIRA_HOST']
-            self.client.host = "https://mozilla-hub.atlassian.net/rest/api/3"
-            self.client = JiraAPIClient(self.client.host)
+            # _url_host = os.environ['JIRA_HOST']
+            _url_host = "https://mozilla-hub.atlassian.net/rest/api/3"
+            self.client = JiraAPIClient(_url_host)
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
 
