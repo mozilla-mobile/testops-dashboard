@@ -39,7 +39,6 @@ from constants import (
     WORKLOG_URL_TEMPLATE,
 )
 
-#JIRA_HOST = "https://mozilla-hub.atlassian.net/rest/api/3"
 
 class Jira:
 
@@ -49,7 +48,7 @@ class Jira:
             # TODO
             # Change in github secrets: remove last part
             #self.client.host = os.environ['JIRA_HOST']
-            self.client.host = os.environ['JIRA_HOST_V3']
+            self.client.host = "https://mozilla-hub.atlassian.net/rest/api/3"
             self.client = JiraAPIClient(self.client.host)
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
@@ -140,8 +139,6 @@ class JiraClient(Jira):
         issues = self.filter_sv_parent_in_board()
 
         for issue in issues:
-            # TODO: fix Jira API to v.3
-            # parent_key = issue["key"]
             parent_key = (issue.get("fields", {}).get("parent") or {}).get("key", issue.get("key"))  # noqa
             parent_name = issue.get("fields", {}).get("summary", "Unknown")
 
@@ -157,10 +154,6 @@ class JiraClient(Jira):
                 time_spent = log["timeSpent"]
                 time_spent_seconds = log["timeSpentSeconds"]
                 started_raw = log["started"]
-
-                #comment = log.get("comment", "")
-                #if not isinstance(comment, str) or comment.strip() == "":
-                #    comment = "No Comment"
 
                 raw_comment = log.get("comment")
                 if isinstance(raw_comment, dict):
@@ -207,9 +200,6 @@ class JiraClient(Jira):
                     time_spent_seconds = log["timeSpentSeconds"]
                     started_raw = log["started"]
 
-                    #comment = log.get("comment", "")
-                    #if not isinstance(comment, str) or comment.strip() == "":
-                    #    comment = "No Comment"
                     raw_comment = log.get("comment")
                     if isinstance(raw_comment, dict):
                         comment = adf_to_plain_text(raw_comment) or "No Comment"
