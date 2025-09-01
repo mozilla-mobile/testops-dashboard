@@ -11,6 +11,7 @@ from datetime import datetime
 
 import pandas as pd
 
+from api.jira.utils import adf_to_plain_text
 from lib.jira_conn import JiraAPIClient
 from database import (
     Database,
@@ -36,6 +37,8 @@ from constants import FILTER_ID_QA_NEEDED_iOS
 from constants import QATT_FIELDS, QATT_BOARD, QATT_PARENT_TICKETS_IN_BOARD # noqa
 from constants import SEARCH, WORKLOG_URL_TEMPLATE
 
+# TODO: move to constants
+JIRA_HOST = "https://mozilla-hub.atlassian.net/rest/api/3"
 
 class Jira:
 
@@ -45,7 +48,6 @@ class Jira:
 
             # TODO: reset to proper env var - DIAGNOSTIC ONLY
             # JIRA_HOST = os.environ['JIRA_HOST']
-            JIRA_HOST = "https://mozilla-hub.atlassian.net/rest/api/3"
             self.client = JiraAPIClient(JIRA_HOST)
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
@@ -188,8 +190,16 @@ class JiraClient(Jira):
                 time_spent_seconds = log["timeSpentSeconds"]
                 started_raw = log["started"]
 
-                comment = log.get("comment", "")
-                if not isinstance(comment, str) or comment.strip() == "":
+                #comment = log.get("comment", "")
+                #if not isinstance(comment, str) or comment.strip() == "":
+                #    comment = "No Comment"
+
+                raw_comment = log.get("comment")
+                if isinstance(raw_comment, dict):
+                    comment = adf_to_plain_text(raw_comment) or "No Comment"
+                elif isinstance(raw_comment, str):
+                    comment = raw_comment.strip() or "No Comment"
+                else:
                     comment = "No Comment"
 
                 try:
@@ -222,8 +232,15 @@ class JiraClient(Jira):
                     time_spent_seconds = log["timeSpentSeconds"]
                     started_raw = log["started"]
 
-                    comment = log.get("comment", "")
-                    if not isinstance(comment, str) or comment.strip() == "":
+                    #comment = log.get("comment", "")
+                    #if not isinstance(comment, str) or comment.strip() == "":
+                    #    comment = "No Comment"
+                    raw_comment = log.get("comment")
+                    if isinstance(raw_comment, dict):
+                        comment = adf_to_plain_text(raw_comment) or "No Comment"
+                    elif isinstance(raw_comment, str):
+                        comment = raw_comment.strip() or "No Comment"
+                    else:
                         comment = "No Comment"
 
                     try:
