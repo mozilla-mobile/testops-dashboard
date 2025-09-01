@@ -85,12 +85,12 @@ class Jira:
     def filter_qa_needed(self):
         query = SEARCH + '?' + JQL_QUERY + FILTER_ID_QA_NEEDED_iOS \
                 + '&fields=labels&' + MAX_RESULT
-        #return self.client.get_search(query, data_type='issues')
-        tmp = self.client.get_search(query, data_type='issues')
+        # return self.client.get_search(query, data_type='issues')
+        resp = self.client.get_search(query, data_type='issues')
         print("function: filter_qa_needed")
         print(f"DIAGNOSTIC - query: {query}")
-        print(f"DIAGNOSTIC - get_search: {tmp}")
-        return tmp
+        print(f"DIAGNOSTIC - get_search: {resp}")
+        return resp 
 
     def filter_sv_parent_in_board(self):
         """
@@ -118,7 +118,7 @@ class Jira:
             f"?jql=filter={QATT_BOARD} AND parent={parent_key}"
             f"&fields=summary&maxResults=100&expand=names"
         )
-        return self.client.get_search(query, data_type="issues") 
+        return self.client.get_search(query, data_type="issues")
 
     # API: Worklogs
     def filter_worklogs(self, issue_key):

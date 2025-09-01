@@ -54,7 +54,6 @@ REPORT_TYPES = [
 ]
 
 # JQL query options
-#SEARCH = "search"
 SEARCH = "search/jql"
 ISSUES = "issues"
 
