@@ -24,7 +24,8 @@ from utils.datetime_utils import DatetimeUtils as dt
 from constants import (
     COLUMNS_ISSUE_TYPE,
     JQL_QUERY,
-    ENGINEERING_TEAM,DEFAULT_COLUMNS,
+    ENGINEERING_TEAM,
+    DEFAULT_COLUMNS,
     FILTER_ID_ALL_REQUESTS_2022,
     FILTER_ID_ALL_REQUEST_ISSUE_TYPE,
     FILTER_ID_QA_NEEDED_iOS,
@@ -63,10 +64,10 @@ class Jira:
                 + FIREFOX_RELEASE_TRAIN + ',' \
                 + ENGINEERING_TEAM + '&' + MAX_RESULT
 
-        #return self.client.get_search(query, data_type='issues')
-
+        # TODO: remove diagnostic print
+        # return self.client.get_search(query, data_type='issues')
         tmp = self.client.get_search(query, data_type='issues')
-        print(f"function: filters")
+        print("function: filters")
         print(f"DIAGNOSTIC - query: {query}")
         print(f"DIAGNOSTIC - get_search: {tmp}")
         return tmp
@@ -86,7 +87,7 @@ class Jira:
                 + '&fields=labels&' + MAX_RESULT
         #return self.client.get_search(query, data_type='issues')
         tmp = self.client.get_search(query, data_type='issues')
-        print(f"function: filter_qa_needed")
+        print("function: filter_qa_needed")
         print(f"DIAGNOSTIC - query: {query}")
         print(f"DIAGNOSTIC - get_search: {tmp}")
         return tmp
@@ -122,7 +123,7 @@ class Jira:
     # API: Worklogs
     def filter_worklogs(self, issue_key):
         query = WORKLOG_URL_TEMPLATE.format(issue_key=issue_key)
-        print(f"function: filter_work_logs")
+        print("function: filter_work_logs")
         print(f"DIAGNOSTIC - query: {query}")
         return self.client.get_search(query, data_type='worklogs')
 
