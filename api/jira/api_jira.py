@@ -153,6 +153,7 @@ class Jira:
 
 
 
+
     # API: Issues
     def filter_child_issues(self, parent_key):
         query = SEARCH + '?' + QATT_PARENT_TICKETS_IN_BOARD + parent_key
