@@ -53,6 +53,9 @@ REPORT_TYPES = [
     'sentry-rates'
 ]
 
+# Jira Host
+HOST_JIRA = "mozilla-hub.atlassian.net"
+
 # JQL query options
 SEARCH = "search/jql"
 ISSUES = "issues"

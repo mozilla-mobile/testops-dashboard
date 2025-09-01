@@ -30,6 +30,7 @@ from constants import (
     FILTER_ID_ALL_REQUEST_ISSUE_TYPE,
     FILTER_ID_QA_NEEDED_iOS,
     FIREFOX_RELEASE_TRAIN,
+    HOST_JIRA,
     MAX_RESULT,
     QATT_BOARD,
     SEARCH,
@@ -44,10 +45,8 @@ class Jira:
     def __init__(self):
         try:
 
-            # TODO
-            # Change in github secrets: remove last part
             # _url_host = os.environ['JIRA_HOST']
-            _url_host = "https://mozilla-hub.atlassian.net/rest/api/3"
+            _url_host = f"https://{HOST_JIRA}/rest/api/3"
             self.client = JiraAPIClient(_url_host)
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
@@ -90,7 +89,7 @@ class Jira:
         print("function: filter_qa_needed")
         print(f"DIAGNOSTIC - query: {query}")
         print(f"DIAGNOSTIC - get_search: {resp}")
-        return resp 
+        return resp
 
     def filter_sv_parent_in_board(self):
         """
