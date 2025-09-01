@@ -39,6 +39,7 @@ from constants import (
     WORKLOG_URL_TEMPLATE,
 )
 
+JIRA_HOST = "https://mozilla-hub.atlassian.net/rest/api/3"
 
 class Jira:
 
@@ -46,9 +47,8 @@ class Jira:
         try:
             # Change in github secrets: remove last part
 
-            # TODO: reset to proper env var - DIAGNOSTIC ONLY
-            # JIRA_HOST = os.environ['JIRA_HOST']
             self.client = JiraAPIClient(JIRA_HOST)
+            # TODO
             #self.client.host = os.environ['JIRA_HOST']
             self.client.host = "https://mozilla-hub.atlassian.net/rest/api/3"
             self.client.user = os.environ['JIRA_USER']
@@ -87,22 +87,12 @@ class Jira:
     def filter_qa_needed(self):
         query = SEARCH + '?' + JQL_QUERY + FILTER_ID_QA_NEEDED_iOS \
                 + '&fields=labels&' + MAX_RESULT
-        #        + '&' + MAX_RESULT
         #return self.client.get_search(query, data_type='issues')
         tmp = self.client.get_search(query, data_type='issues')
         print(f"function: filter_qa_needed")
         print(f"DIAGNOSTIC - query: {query}")
         print(f"DIAGNOSTIC - get_search: {tmp}")
         return tmp
-
-    '''
-    def filter_sv_parent_in_board(self):
-        query = SEARCH + '?' + JQL_QUERY + QATT_BOARD + '&' + QATT_FIELDS
-        print(f"function: filter_sv_parent_in_board")
-        print(f"DIAGNOSTIC - query: {query}")
-
-        return self.client.get_search(query, data_type='issues')
-    '''
 
     def filter_sv_parent_in_board(self):
         """
