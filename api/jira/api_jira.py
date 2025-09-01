@@ -108,51 +108,24 @@ class Jira:
         return self.client.get_search(query, data_type='issues')
     '''
 
-    def filter_sv_parent_in_board(self):
-        """
-        Jira v3 search using constants; explicitly requests needed fields; paginated.
-        """
-        base = f"{self.client.host}/search/jql"  # e.g. https://mozilla-hub.atlassian.net/rest/api/3/search/jql
-        params = {
-            "jql": f"filter={QATT_BOARD}",
-            "fields": "summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog",
-            "expand": "names",
-            "maxResults": 100,
-            "startAt": 0,
-        }
+	def filter_sv_parent_in_board(self):
+		"""
+		Jira v3 search using your existing JiraAPIClient.
+		No self.session usage; returns the list of issues directly.
+		"""
+		query = (
+			"search/jql"
+			"?jql=filter=" + QATT_BOARD +
+			"&fields=summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog"
+			"&maxResults=100&expand=names"
+		)
 
-        print(f"DIAGNOSTIC - query: search/jql?jql={params['jql']}&fields={params['fields']}")
-        all_issues = []
+		print("function: filter_sv_parent_in_board")
+		print(f"DIAGNOSTIC - query: {query}")
 
-        while True:
-            print(f"Fetching data from: {base}")
-            r = self.session.get(
-                base,
-                params=params,
-                headers={"Accept": "application/json"},
-                timeout=30,
-            )
-            r.raise_for_status()
-            payload = r.json()
-            issues = payload.get("issues", [])
-            all_issues.extend(issues)
-
-            total = payload.get("total", 0)
-            start = payload.get("startAt", 0)
-            maxr  = payload.get("maxResults", len(issues))
-            got   = start + len(issues)
-            print(f"Retrieved {got} of {total or 'unknown total'} issues")
-
-            if start + maxr >= total or not issues:
-                break
-            params["startAt"] = start + maxr
-
-        print(f"✅ Total issues retrieved: {len(all_issues)}")
-        return all_issues
-
-
-
-
+		issues = self.client.get_search(query, data_type='issues')
+		print(f"✅ Total issues retrieved: {len(issues)}")
+		return issues
 
     # API: Issues
     def filter_child_issues(self, parent_key):
