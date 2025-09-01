@@ -108,24 +108,24 @@ class Jira:
         return self.client.get_search(query, data_type='issues')
     '''
 
-	def filter_sv_parent_in_board(self):
-		"""
-		Jira v3 search using your existing JiraAPIClient.
-		No self.session usage; returns the list of issues directly.
-		"""
-		query = (
-			"search/jql"
-			"?jql=filter=" + QATT_BOARD +
-			"&fields=summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog"
-			"&maxResults=100&expand=names"
-		)
+    def filter_sv_parent_in_board(self):
+        """
+        Jira v3 search using your existing JiraAPIClient.
+        No self.session usage; returns the list of issues directly.
+        """
+        query = (
+            "search/jql"
+            "?jql=filter=" + QATT_BOARD +
+            "&fields=summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog"
+            "&maxResults=100&expand=names"
+        )
 
-		print("function: filter_sv_parent_in_board")
-		print(f"DIAGNOSTIC - query: {query}")
+        print("function: filter_sv_parent_in_board")
+        print(f"DIAGNOSTIC - query: {query}")
 
-		issues = self.client.get_search(query, data_type='issues')
-		print(f"✅ Total issues retrieved: {len(issues)}")
-		return issues
+        issues = self.client.get_search(query, data_type='issues')
+        print(f"✅ Total issues retrieved: {len(issues)}")
+        return issues
 
     # API: Issues
     def filter_child_issues(self, parent_key):
