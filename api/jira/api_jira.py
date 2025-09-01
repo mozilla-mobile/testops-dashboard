@@ -39,18 +39,18 @@ from constants import (
     WORKLOG_URL_TEMPLATE,
 )
 
-JIRA_HOST = "https://mozilla-hub.atlassian.net/rest/api/3"
+#JIRA_HOST = "https://mozilla-hub.atlassian.net/rest/api/3"
 
 class Jira:
 
     def __init__(self):
         try:
-            # Change in github secrets: remove last part
 
-            self.client = JiraAPIClient(JIRA_HOST)
             # TODO
+            # Change in github secrets: remove last part
             #self.client.host = os.environ['JIRA_HOST']
-            self.client.host = "https://mozilla-hub.atlassian.net/rest/api/3"
+            self.client.host = os.environ['JIRA_HOST_V3']
+            self.client = JiraAPIClient(self.client.host)
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
 
@@ -114,27 +114,13 @@ class Jira:
         return issues
 
     # API: Issues
-    '''
-    def filter_child_issues(self, parent_key):
-        query = SEARCH + '?' + QATT_PARENT_TICKETS_IN_BOARD + parent_key
-        print(f"function: filter_child_issues")
-        print(f"DIAGNOSTIC - query: {query}")
-        return self.client.get_search(query, data_type='issues')
-    '''
-
-    def filter_child_issues(self, parent_key: str):
-        print("function: filter_child_issues")
-
-        # Use constants.SEARCH_JQL if present; else default to v3 path
-        search_path = getattr(constants, "SEARCH_JQL", "search/jql")
-
-        query = (
-            f"{search_path}"
-            f"?jql=filter={constants.QATT_BOARD} AND parent={parent_key}"
-            f"&fields=summary&maxResults=100&expand=names"
-        )
-        print(f"DIAGNOSTIC - query: {query}")
-        return self.client.get_search(query, data_type="issues")
+	def filter_child_issues(self, parent_key: str):
+		query = (
+			f"{SEARCH}"
+			f"?jql=filter={QATT_BOARD} AND parent={parent_key}"
+			f"&fields=summary&maxResults=100&expand=names"
+		)
+		return self.client.get_search(query, data_type="issues") 
 
     # API: Worklogs
     def filter_worklogs(self, issue_key):
