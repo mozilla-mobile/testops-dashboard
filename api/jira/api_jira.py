@@ -82,12 +82,49 @@ class Jira:
         return tmp
 
 
+    '''
     def filter_sv_parent_in_board(self):
         query = SEARCH + '?' + JQL_QUERY + QATT_BOARD + '&' + QATT_FIELDS
         print(f"function: filter_sv_parent_in_board")
         print(f"DIAGNOSTIC - query: {query}")
 
         return self.client.get_search(query, data_type='issues')
+    '''
+
+
+    def filter_sv_parent_in_board(self):
+        """
+        Returns a list of full issue objects (each has top-level 'key' and nested 'fields')
+        from filter=15948. Uses Jira v3 and explicitly requests needed fields.
+        """
+        base = f"{self.base_url}/rest/api/3/search/jql"  # v3 + new endpoint
+        jql = "filter=15948"
+
+        params = {
+            "jql": jql,
+            "fields": "summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog",
+            "expand": "names",
+            "maxResults": 100,
+            "startAt": 0,
+        }
+
+        all_issues = []
+        while True:
+            r = self.session.get(base, params=params, headers={"Accept": "application/json"}, timeout=30)
+            r.raise_for_status()
+            payload = r.json()
+            issues = payload.get("issues", [])
+            all_issues.extend(issues)
+
+            total = payload.get("total", 0)
+            start = payload.get("startAt", 0)
+            maxr = payload.get("maxResults", len(issues))
+            if start + maxr >= total or not issues:
+                break
+            params["startAt"] = start + maxr
+
+        return all_issues
+
 
     # API: Issues
     def filter_child_issues(self, parent_key):
