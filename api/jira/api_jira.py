@@ -11,6 +11,7 @@ from datetime import datetime
 
 import pandas as pd
 
+from api.jira.utils import adf_to_plain_text
 from lib.jira_conn import JiraAPIClient
 from database import (
     Database,
@@ -20,22 +21,36 @@ from database import (
     ReportJIraQARequestsNewIssueType
 )
 from utils.datetime_utils import DatetimeUtils as dt
-from constants import FILTER_ID_ALL_REQUESTS_2022, FILTER_ID_ALL_REQUEST_ISSUE_TYPE, MAX_RESULT # noqa
-from constants import JQL_QUERY, STORY_POINTS, FIREFOX_RELEASE_TRAIN, ENGINEERING_TEAM, DEFAULT_COLUMNS, COLUMNS_ISSUE_TYPE, TESTED_TRAINS # noqa
-from constants import FILTER_ID_QA_NEEDED_iOS
-from constants import QATT_FIELDS, QATT_BOARD, QATT_PARENT_TICKETS_IN_BOARD # noqa
-from constants import SEARCH, WORKLOG_URL_TEMPLATE
+from constants import (
+    COLUMNS_ISSUE_TYPE,
+    JQL_QUERY,
+    ENGINEERING_TEAM,
+    DEFAULT_COLUMNS,
+    FILTER_ID_ALL_REQUESTS_2022,
+    FILTER_ID_ALL_REQUEST_ISSUE_TYPE,
+    FILTER_ID_QA_NEEDED_iOS,
+    FIREFOX_RELEASE_TRAIN,
+    HOST_JIRA,
+    MAX_RESULT,
+    QATT_BOARD,
+    SEARCH,
+    STORY_POINTS,
+    TESTED_TRAINS,
+    WORKLOG_URL_TEMPLATE,
+)
 
 
 class Jira:
 
     def __init__(self):
         try:
-            # Change in github secrets: remove last part
-            JIRA_HOST = os.environ['JIRA_HOST']
-            self.client = JiraAPIClient(JIRA_HOST)
+
+            # _url_host = os.environ['JIRA_HOST']
+            _url_host = f"https://{HOST_JIRA}/rest/api/3"
+            self.client = JiraAPIClient(_url_host)
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
+
         except KeyError:
             print("ERROR: Missing jira env var")
             sys.exit(1)
@@ -48,33 +63,67 @@ class Jira:
                 + FIREFOX_RELEASE_TRAIN + ',' \
                 + ENGINEERING_TEAM + '&' + MAX_RESULT
 
-        return self.client.get_search(query, data_type='issues')
+        # TODO: remove diagnostic print
+        # return self.client.get_search(query, data_type='issues')
+        tmp = self.client.get_search(query, data_type='issues')
+        print("function: filters")
+        print(f"DIAGNOSTIC - query: {query}")
+        print(f"DIAGNOSTIC - get_search: {tmp}")
+        return tmp
 
     def filters_new_issue_type(self):
         query = SEARCH + '?' + JQL_QUERY + FILTER_ID_ALL_REQUEST_ISSUE_TYPE \
                 + '&fields=' + DEFAULT_COLUMNS \
                 + COLUMNS_ISSUE_TYPE + ',' + STORY_POINTS + ',' \
                 + TESTED_TRAINS + '&' + MAX_RESULT
+        print("function: filters_new_issue_type")
+        print(f"DIAGNOSTIC - query: {query}")
 
         return self.client.get_search(query, data_type='issues')
 
     def filter_qa_needed(self):
         query = SEARCH + '?' + JQL_QUERY + FILTER_ID_QA_NEEDED_iOS \
-                + '&' + MAX_RESULT
-        return self.client.get_search(query, data_type='issues')
+                + '&fields=labels&' + MAX_RESULT
+        # return self.client.get_search(query, data_type='issues')
+        resp = self.client.get_search(query, data_type='issues')
+        print("function: filter_qa_needed")
+        print(f"DIAGNOSTIC - query: {query}")
+        print(f"DIAGNOSTIC - get_search: {resp}")
+        return resp
 
     def filter_sv_parent_in_board(self):
-        query = SEARCH + '?' + JQL_QUERY + QATT_BOARD + '&' + QATT_FIELDS
-        return self.client.get_search(query, data_type='issues')
+        """
+        Jira v3 search using your existing JiraAPIClient.
+        No self.session usage; returns the list of issues directly.
+        """
+        query = (
+            "search/jql"
+            "?jql=filter=" + QATT_BOARD +
+            "&fields=summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog"  # noqa
+            "&maxResults=100&expand=names"
+        )
+
+        print("function: filter_sv_parent_in_board")
+        print(f"DIAGNOSTIC - query: {query}")
+
+        issues = self.client.get_search(query, data_type='issues')
+        print(f"✅ Total issues retrieved: {len(issues)}")
+        return issues
 
     # API: Issues
-    def filter_child_issues(self, parent_key):
-        query = SEARCH + '?' + QATT_PARENT_TICKETS_IN_BOARD + parent_key
-        return self.client.get_search(query, data_type='issues')
+    def filter_child_issues(self, parent_key: str):
+        query = (
+            f"{SEARCH}"
+            f"?jql=filter={QATT_BOARD} AND parent={parent_key}"
+            f"&fields=summary&maxResults=100&expand=names"
+        )
+        return self.client.get_search(query, data_type="issues")
 
     # API: Worklogs
     def filter_worklogs(self, issue_key):
         query = WORKLOG_URL_TEMPLATE.format(issue_key=issue_key)
+        print("function: filter_work_logs")
+        print(f"DIAGNOSTIC - query: {query}")
         return self.client.get_search(query, data_type='worklogs')
 
 
@@ -88,9 +137,12 @@ class JiraClient(Jira):
         issues = self.filter_sv_parent_in_board()
 
         for issue in issues:
-            parent_key = issue["key"]
+            parent_key = (issue.get("fields", {}).get("parent") or {}).get("key", issue.get("key"))  # noqa
+            parent_name = issue.get("fields", {}).get("summary", "Unknown")
+
             parent_name = issue["fields"]["summary"]
             children = self.filter_child_issues(parent_key)
+            print(f"DIAGNOSTIC - children: {children}")
 
             # ---- Get worklogs for the parent itself ----
             parent_worklogs = self.filter_worklogs(parent_key)
@@ -101,8 +153,12 @@ class JiraClient(Jira):
                 time_spent_seconds = log["timeSpentSeconds"]
                 started_raw = log["started"]
 
-                comment = log.get("comment", "")
-                if not isinstance(comment, str) or comment.strip() == "":
+                raw_comment = log.get("comment")
+                if isinstance(raw_comment, dict):
+                    comment = adf_to_plain_text(raw_comment) or "No Comment"
+                elif isinstance(raw_comment, str):
+                    comment = raw_comment.strip() or "No Comment"
+                else:
                     comment = "No Comment"
 
                 try:
@@ -120,13 +176,20 @@ class JiraClient(Jira):
                     time_spent_seconds,
                     started_str,
                     comment,
-                    parent_name
+                    parent_name,
+                    None         # child_name placeholder
                 ])
 
             # ---- Get worklogs for each child ----
             for child in children:
                 child_key = child.get("key", "Unknown")
                 child_name = child.get("fields", {}).get("summary", "Unknown")
+
+                # Skip Unknown keys to avoid 404s like issue/Unknown/worklog
+                if child_key in (None, "", "Unknown"):
+                    print("⚠️ Skipping child without key:", child)
+                    continue
+
                 child_worklogs = self.filter_worklogs(child_key)
 
                 for log in child_worklogs:
@@ -135,8 +198,12 @@ class JiraClient(Jira):
                     time_spent_seconds = log["timeSpentSeconds"]
                     started_raw = log["started"]
 
-                    comment = log.get("comment", "")
-                    if not isinstance(comment, str) or comment.strip() == "":
+                    raw_comment = log.get("comment")
+                    if isinstance(raw_comment, dict):
+                        comment = adf_to_plain_text(raw_comment) or "No Comment"
+                    elif isinstance(raw_comment, str):
+                        comment = raw_comment.strip() or "No Comment"
+                    else:
                         comment = "No Comment"
 
                     try:
@@ -159,7 +226,9 @@ class JiraClient(Jira):
                     ])
 
         df = pd.DataFrame(worklog_data, columns=[
-            "parent_key", "child_key", "author", "time_spent", "time_seconds", "started_date", "comment", "parent_name", "child_name" # noqa
+            "parent_key", "child_key", "author",
+            "time_spent", "time_seconds", "started_date",
+            "comment", "parent_name", "child_name",
         ])
 
         self.db.jira_worklogs_delete()

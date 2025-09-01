@@ -53,8 +53,11 @@ REPORT_TYPES = [
     'sentry-rates'
 ]
 
+# Jira Host
+HOST_JIRA = "mozilla-hub.atlassian.net"
+
 # JQL query options
-SEARCH = "search"
+SEARCH = "search/jql"
 ISSUES = "issues"
 
 # JQL query All QA Requests since 2022 filter_id: 13856
