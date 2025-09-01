@@ -22,26 +22,23 @@ from database import (
 )
 from utils.datetime_utils import DatetimeUtils as dt
 from constants import (
+    COLUMNS_ISSUE_TYPE,
+    JQL_QUERY,
+    ENGINEERING_TEAM,DEFAULT_COLUMNS,
     FILTER_ID_ALL_REQUESTS_2022,
     FILTER_ID_ALL_REQUEST_ISSUE_TYPE,
-    MAX_RESULT,
-    JQL_QUERY,
-    STORY_POINTS,
-    FIREFOX_RELEASE_TRAIN,
-    ENGINEERING_TEAM,DEFAULT_COLUMNS,
-    COLUMNS_ISSUE_TYPE,
-    TESTED_TRAINS,
-    QATT_BOARD,
     FILTER_ID_QA_NEEDED_iOS,
-    QATT_FIELDS,
+    FIREFOX_RELEASE_TRAIN,
+    MAX_RESULT,
     QATT_BOARD,
+    QATT_FIELDS,
     QATT_PARENT_TICKETS_IN_BOARD,
     SEARCH,
+    STORY_POINTS,
+    TESTED_TRAINS,
     WORKLOG_URL_TEMPLATE,
 )
 
-# TODO: move to constants
-JIRA_HOST = "https://mozilla-hub.atlassian.net/rest/api/3"
 
 class Jira:
 
@@ -82,7 +79,7 @@ class Jira:
                 + '&fields=' + DEFAULT_COLUMNS \
                 + COLUMNS_ISSUE_TYPE + ',' + STORY_POINTS + ',' \
                 + TESTED_TRAINS + '&' + MAX_RESULT
-        print(f"function: filters_new_issue_type")
+        print("function: filters_new_issue_type")
         print(f"DIAGNOSTIC - query: {query}")
 
         return self.client.get_search(query, data_type='issues')
@@ -97,7 +94,6 @@ class Jira:
         print(f"DIAGNOSTIC - query: {query}")
         print(f"DIAGNOSTIC - get_search: {tmp}")
         return tmp
-
 
     '''
     def filter_sv_parent_in_board(self):
@@ -116,7 +112,7 @@ class Jira:
         query = (
             "search/jql"
             "?jql=filter=" + QATT_BOARD +
-            "&fields=summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog"
+            "&fields=summary,parent,status,labels,issuetype,assignee,reporter,created,updated,worklog"  # noqa
             "&maxResults=100&expand=names"
         )
 
@@ -128,11 +124,27 @@ class Jira:
         return issues
 
     # API: Issues
+    '''
     def filter_child_issues(self, parent_key):
         query = SEARCH + '?' + QATT_PARENT_TICKETS_IN_BOARD + parent_key
         print(f"function: filter_child_issues")
         print(f"DIAGNOSTIC - query: {query}")
         return self.client.get_search(query, data_type='issues')
+    '''
+
+	def filter_child_issues(self, parent_key: str):
+		print("function: filter_child_issues")
+
+		# Use constants.SEARCH_JQL if present; else default to v3 path
+		search_path = getattr(constants, "SEARCH_JQL", "search/jql")
+
+		query = (
+			f"{search_path}"
+			f"?jql=filter={constants.QATT_BOARD} AND parent={parent_key}"
+			f"&fields=summary&maxResults=100&expand=names"
+		)
+		print(f"DIAGNOSTIC - query: {query}")
+		return self.client.get_search(query, data_type="issues")
 
     # API: Worklogs
     def filter_worklogs(self, issue_key):
@@ -154,7 +166,7 @@ class JiraClient(Jira):
         for issue in issues:
             # TODO: fix Jira API to v.3
             # parent_key = issue["key"]
-            parent_key = (issue.get("fields", {}).get("parent") or {}).get("key", issue.get("key"))
+            parent_key = (issue.get("fields", {}).get("parent") or {}).get("key", issue.get("key"))  # noqa
             parent_name = issue.get("fields", {}).get("summary", "Unknown")
 
             parent_name = issue["fields"]["summary"]
