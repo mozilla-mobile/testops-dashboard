@@ -132,19 +132,19 @@ class Jira:
         return self.client.get_search(query, data_type='issues')
     '''
 
-	def filter_child_issues(self, parent_key: str):
-		print("function: filter_child_issues")
+    def filter_child_issues(self, parent_key: str):
+        print("function: filter_child_issues")
 
-		# Use constants.SEARCH_JQL if present; else default to v3 path
-		search_path = getattr(constants, "SEARCH_JQL", "search/jql")
+        # Use constants.SEARCH_JQL if present; else default to v3 path
+        search_path = getattr(constants, "SEARCH_JQL", "search/jql")
 
-		query = (
-			f"{search_path}"
-			f"?jql=filter={constants.QATT_BOARD} AND parent={parent_key}"
-			f"&fields=summary&maxResults=100&expand=names"
-		)
-		print(f"DIAGNOSTIC - query: {query}")
-		return self.client.get_search(query, data_type="issues")
+        query = (
+            f"{search_path}"
+            f"?jql=filter={constants.QATT_BOARD} AND parent={parent_key}"
+            f"&fields=summary&maxResults=100&expand=names"
+        )
+        print(f"DIAGNOSTIC - query: {query}")
+        return self.client.get_search(query, data_type="issues")
 
     # API: Worklogs
     def filter_worklogs(self, issue_key):
