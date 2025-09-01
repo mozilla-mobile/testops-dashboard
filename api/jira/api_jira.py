@@ -114,13 +114,13 @@ class Jira:
         return issues
 
     # API: Issues
-	def filter_child_issues(self, parent_key: str):
-		query = (
-			f"{SEARCH}"
-			f"?jql=filter={QATT_BOARD} AND parent={parent_key}"
-			f"&fields=summary&maxResults=100&expand=names"
-		)
-		return self.client.get_search(query, data_type="issues") 
+    def filter_child_issues(self, parent_key: str):
+        query = (
+            f"{SEARCH}"
+            f"?jql=filter={QATT_BOARD} AND parent={parent_key}"
+            f"&fields=summary&maxResults=100&expand=names"
+        )
+        return self.client.get_search(query, data_type="issues") 
 
     # API: Worklogs
     def filter_worklogs(self, issue_key):
