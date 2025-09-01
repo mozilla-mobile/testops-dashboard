@@ -155,6 +155,7 @@ class JiraClient(Jira):
             # TODO: fix Jira API to v.3
             # parent_key = issue["key"]
             parent_key = (issue.get("fields", {}).get("parent") or {}).get("key", issue.get("key"))
+            parent_name = issue.get("fields", {}).get("summary", "Unknown")
 
             parent_name = issue["fields"]["summary"]
             children = self.filter_child_issues(parent_key)
@@ -196,13 +197,20 @@ class JiraClient(Jira):
                     time_spent_seconds,
                     started_str,
                     comment,
-                    parent_name
+                    parent_name,
+                    None         # child_name placeholder
                 ])
 
             # ---- Get worklogs for each child ----
             for child in children:
                 child_key = child.get("key", "Unknown")
                 child_name = child.get("fields", {}).get("summary", "Unknown")
+
+                # Skip Unknown keys to avoid 404s like issue/Unknown/worklog
+                if child_key in (None, "", "Unknown"):
+                    print("⚠️ Skipping child without key:", child)
+                    continue
+
                 child_worklogs = self.filter_worklogs(child_key)
 
                 for log in child_worklogs:
@@ -242,7 +250,9 @@ class JiraClient(Jira):
                     ])
 
         df = pd.DataFrame(worklog_data, columns=[
-            "parent_key", "child_key", "author", "time_spent", "time_seconds", "started_date", "comment", "parent_name", "child_name" # noqa
+            "parent_key", "child_key", "author",
+            "time_spent", "time_seconds", "started_date",
+            "comment", "parent_name", "child_name",
         ])
 
         self.db.jira_worklogs_delete()
