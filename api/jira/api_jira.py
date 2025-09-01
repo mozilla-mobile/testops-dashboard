@@ -114,7 +114,10 @@ class JiraClient(Jira):
         issues = self.filter_sv_parent_in_board()
 
         for issue in issues:
-            parent_key = issue["key"]
+            # TODO: fix Jira API to v.3
+            # parent_key = issue["key"]
+            parent_key = (issue.get("fields", {}).get("parent") or {}).get("key", issue.get("key"))
+
             parent_name = issue["fields"]["summary"]
             children = self.filter_child_issues(parent_key)
             print(f"DIAGNOSTIC - children: {children}")
