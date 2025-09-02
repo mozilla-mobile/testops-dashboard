@@ -175,7 +175,7 @@ class JiraClient(Jira):
                     time_spent_seconds,
                     started_str,
                     comment,
-                    parent_name         # child_name placeholder
+                    parent_name
                 ])
 
             # ---- Get worklogs for each child ----
