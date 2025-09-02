@@ -42,7 +42,7 @@ class JiraAPIClient:
         url = self.__url + query
         # Store all results
         all_results = []
-        params = {"startAt": 0, "maxResults": 100}  # Set pagination params
+        params = {"startAt": 0, "maxResults": 100, "fields": "key,summary"}
         headers = {"Content-Type": "application/json"}
 
         print(f"Fetching data from: {url}")
