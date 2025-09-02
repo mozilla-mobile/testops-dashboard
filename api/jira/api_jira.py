@@ -33,6 +33,7 @@ from constants import (
     HOST_JIRA,
     MAX_RESULT,
     QATT_BOARD,
+    QATT_PARENT_TICKETS_IN_BOARD,
     SEARCH,
     STORY_POINTS,
     TESTED_TRAINS,
@@ -112,12 +113,10 @@ class Jira:
 
     # API: Issues
     def filter_child_issues(self, parent_key: str):
-        query = (
-            f"{SEARCH}"
-            f"?jql=filter={QATT_BOARD} AND parent={parent_key}"
-            f"&fields=summary&maxResults=100&expand=names"
-        )
-        return self.client.get_search(query, data_type="issues")
+        query = SEARCH + '?' + QATT_PARENT_TICKETS_IN_BOARD + parent_key
+        print("function: filter_child_issues")
+        print(f"DIAGNOSTIC - query: {query}")
+        return self.client.get_search(query, data_type='issues')
 
     # API: Worklogs
     def filter_worklogs(self, issue_key):
@@ -176,8 +175,7 @@ class JiraClient(Jira):
                     time_spent_seconds,
                     started_str,
                     comment,
-                    parent_name,
-                    None         # child_name placeholder
+                    parent_name
                 ])
 
             # ---- Get worklogs for each child ----
@@ -230,7 +228,6 @@ class JiraClient(Jira):
             "time_spent", "time_seconds", "started_date",
             "comment", "parent_name", "child_name",
         ])
-
         self.db.jira_worklogs_delete()
         self.db.report_jira_sv_worklogs_insert(df)
 
