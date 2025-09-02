@@ -18,6 +18,7 @@ from database import (
     ReportBugzillaQENeeded,
     ReportBugzillaSoftvisionBugs,
     ReportBugzillaMetaBugs,
+    ReportBugzillaQueryByKeyword,
 )
 
 
@@ -327,6 +328,54 @@ class BugzillaClient(Bugz):
         self.db.bugzilla_desktop_bugs_update_insert(df_update)
         print(f"Updated {len(df_update)} bugs in database.")
 
+    def bugzilla_query_by_keyword(self, keyword: str):
+        """
+        Query Bugzilla for all bugs with the given keyword.
+
+        Parameters:
+        - keyword (str): The keyword to search for in Bugzilla.
+
+        Returns:
+        - pd.DataFrame: A DataFrame of bugs matching the keyword.
+        """
+        query = {
+            "keywords": keyword,
+            "keywords_type": "allwords",
+            "include_fields": BUGZILLA_BUGS_FIELDS
+        }
+
+        bugs = BugzillaHelper().query(query)
+
+        rows = []
+        for bug in bugs:
+            resolved_raw = getattr(bug, "cf_last_resolved", None)
+            resolved_at = pd.to_datetime(str(resolved_raw)) if resolved_raw else None
+
+            rows.append({
+                "bug_id": bug.id,
+                "summary": bug.summary,
+                "product": bug.product,
+                "qa_whiteboard": getattr(bug, "cf_qa_whiteboard", ""),
+                "severity": bug.severity,
+                "priority": bug.priority,
+                "status": bug.status,
+                "resolution": bug.resolution,
+                "created_at": pd.to_datetime(str(bug.creation_time)),
+                "last_change_time": pd.to_datetime(str(bug.last_change_time)),
+                "whiteboard": bug.whiteboard,
+                "keyword": bug.keywords,
+                "resolved_at": resolved_at
+            })
+
+        df_bugs = pd.DataFrame(rows)
+        print(df_bugs)
+        print(f"Found {len(df_bugs)} bugs with keyword '{keyword}'.")
+
+        self.db.clean_table(ReportBugzillaQueryByKeyword)
+        self.db.report_bugzilla_query_by_keyword_insert(df_bugs)
+
+        return df_bugs
+
 
 class DatabaseBugzilla(Database):
 
@@ -468,6 +517,47 @@ class DatabaseBugzilla(Database):
                         bugzilla_bug_resolved_at=None if pd.isna(row['resolved_at']) else row['resolved_at'] # noqa
                     )
                     self.session.add(new_bug)
+
+            except KeyError as e:
+                print(f"Missing key: {e} in row {index}")
+
+        self.session.commit()
+
+    def report_bugzilla_query_by_keyword_insert(self, payload):
+        """
+        Insert rows into the ReportBugzillaQueryByKeyword table.
+        """
+        for index, row in payload.iterrows():
+            try:
+                bugzilla_bug_keyword = (
+                    ", ".join(row["keyword"])
+                    if isinstance(row["keyword"], list)
+                    else None
+                )
+
+                report = ReportBugzillaQueryByKeyword(
+                    bugzilla_key=row["bug_id"],
+                    bugzilla_summary=row["summary"],
+                    bugzilla_product=row["product"],
+                    bugzilla_qa_whiteboard=row["qa_whiteboard"],
+                    bugzilla_bug_severity=row["severity"],
+                    bugzilla_bug_priority=row["priority"],
+                    bugzilla_bug_status=row["status"],
+                    bugzilla_bug_resolution=(
+                        None if pd.isna(row["resolution"]) else row["resolution"]
+                    ),
+                    bugzilla_bug_created_at=row["created_at"],
+                    bugzilla_bug_last_change_time=row["last_change_time"],
+                    bugzilla_bug_whiteboard=(
+                        None if pd.isna(row["whiteboard"]) else row["whiteboard"]
+                    ),
+                    bugzilla_bug_keyword=bugzilla_bug_keyword,
+                    bugzilla_bug_resolved_at=(
+                        None if pd.isna(row["resolved_at"]) else row["resolved_at"]
+                    ),
+                )
+
+                self.session.add(report)
 
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")

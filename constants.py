@@ -35,6 +35,7 @@ REPORT_TYPES = [
     'bugzilla-desktop-bugs',
     'bugzilla-meta-bugs',
     'bugzilla-qe-verify',
+    'bugzilla-query-by-keyword',
     'confluence-updates',
     'confluence-new-page',
     'confluence-build-validation',

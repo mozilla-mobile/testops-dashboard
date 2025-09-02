@@ -1,4 +1,4 @@
--- MySQL dump 10.13  Distrib 8.3.0, for macos14 (arm64)
+-- MySQL dump 10.13  Distrib 8.4.6, for macos15.4 (arm64)
 --
 -- Host: 127.0.0.1    Database: staging
 -- ------------------------------------------------------
@@ -14,14 +14,6 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
-SET @MYSQLDUMP_TEMP_LOG_BIN = @@SESSION.SQL_LOG_BIN;
-SET @@SESSION.SQL_LOG_BIN= 0;
-
---
--- GTID state at the beginning of the backup 
---
-
-SET @@GLOBAL.GTID_PURGED=/*!80000 '+'*/ 'c8ec8c69-6014-11eb-824f-42010a8a0052:1-19087392';
 
 --
 -- Current Database: `staging`
@@ -58,7 +50,7 @@ CREATE TABLE `projects` (
   `project_name_abbrev` varchar(25) NOT NULL,
   `project_name` varchar(75) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -70,10 +62,40 @@ DROP TABLE IF EXISTS `report_bitrise_builds_count`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `report_bitrise_builds_count` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `total_builds` int DEFAULT NULL,
+  `build_number` int NOT NULL,
+  `branch` varchar(250) DEFAULT NULL,
+  `status` int DEFAULT NULL,
+  `status_text` varchar(250) DEFAULT NULL,
+  `triggered_workflow` varchar(250) DEFAULT NULL,
+  `triggered_by` varchar(250) DEFAULT NULL,
+  `triggered_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7802 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=69085 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_bugzilla_meta_bugs`
+--
+
+DROP TABLE IF EXISTS `report_bugzilla_meta_bugs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_bugzilla_meta_bugs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `bugzilla_key` int NOT NULL,
+  `bugzilla_summary` text,
+  `bugzilla_bug_status` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_created_at` datetime DEFAULT NULL,
+  `bugzilla_bug_resolution` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_severity` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_priority` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_assigned_to` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_keyword` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_resolved_at` datetime DEFAULT NULL,
+  `bugzilla_bug_parent` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_product` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1137 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -97,7 +119,7 @@ CREATE TABLE `report_bugzilla_qe_needed` (
   `bugzilla_bug_status` varchar(25) NOT NULL,
   `bugzilla_bug_resolution` varchar(25) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=208 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=297 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -112,7 +134,84 @@ CREATE TABLE `report_bugzilla_qe_needed_count` (
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `bugzilla_total_qa_needed` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=92 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_bugzilla_query_by_keyword`
+--
+
+DROP TABLE IF EXISTS `report_bugzilla_query_by_keyword`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_bugzilla_query_by_keyword` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `bugzilla_key` int NOT NULL,
+  `bugzilla_summary` text,
+  `bugzilla_product` varchar(100) DEFAULT NULL,
+  `bugzilla_qa_whiteboard` varchar(255) DEFAULT NULL,
+  `bugzilla_bug_severity` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_priority` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_status` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_resolution` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_created_at` datetime DEFAULT NULL,
+  `bugzilla_bug_last_change_time` datetime DEFAULT NULL,
+  `bugzilla_bug_whiteboard` varchar(255) DEFAULT NULL,
+  `bugzilla_bug_keyword` varchar(255) DEFAULT NULL,
+  `bugzilla_bug_resolved_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `idx_bugzilla_key` (`bugzilla_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_bugzilla_softvision_bugs`
+--
+
+DROP TABLE IF EXISTS `report_bugzilla_softvision_bugs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_bugzilla_softvision_bugs` (
+  `bugzilla_key` int NOT NULL,
+  `bugzilla_summary` text,
+  `bugzilla_product` varchar(255) DEFAULT NULL,
+  `bugzilla_qa_whiteboard` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_severity` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_priority` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_status` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_resolution` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_created_at` datetime DEFAULT NULL,
+  `bugzilla_bug_last_change_time` datetime DEFAULT NULL,
+  `bugzilla_bug_whiteboard` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_keyword` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_resolved_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`bugzilla_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_bugzilla_softvision_bugs_sync`
+--
+
+DROP TABLE IF EXISTS `report_bugzilla_softvision_bugs_sync`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_bugzilla_softvision_bugs_sync` (
+  `bugzilla_key` int NOT NULL,
+  `bugzilla_summary` text,
+  `bugzilla_product` varchar(255) DEFAULT NULL,
+  `bugzilla_qa_whiteboard` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_severity` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_priority` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_status` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_resolution` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_created_at` datetime DEFAULT NULL,
+  `bugzilla_bug_last_change_time` datetime DEFAULT NULL,
+  `bugzilla_bug_whiteboard` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_keyword` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_resolved_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`bugzilla_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -155,7 +254,7 @@ CREATE TABLE `report_jira_qa_needed` (
   `jira_qa_needed_verified_nightly` int DEFAULT NULL,
   `jira_qa_needed_not_verified` int DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=109 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -177,7 +276,7 @@ CREATE TABLE `report_jira_qa_requests` (
   `jira_assignee_username` varchar(100) DEFAULT NULL,
   `jira_labels` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11492 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=68327 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -202,7 +301,7 @@ CREATE TABLE `report_jira_qa_requests_new_issue_types` (
   `jira_issue_type` varchar(50) NOT NULL,
   `jira_parent_link` varchar(25) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6871 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=25619 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -223,9 +322,79 @@ CREATE TABLE `report_jira_softvision_worklogs` (
   `time_spent_seconds` int NOT NULL DEFAULT '0',
   `parent_name` varchar(2000) DEFAULT NULL,
   `child_name` varchar(2000) DEFAULT NULL,
-
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9707 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=652343 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_sentry_crash_free_rate_session`
+--
+
+DROP TABLE IF EXISTS `report_sentry_crash_free_rate_session`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_sentry_crash_free_rate_session` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `crash_free_rate_user` float NOT NULL,
+  `crash_free_rate_session` float NOT NULL,
+  `release_version` varchar(10) NOT NULL,
+  `created_at` timestamp NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8500 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_sentry_crash_free_rate_user`
+--
+
+DROP TABLE IF EXISTS `report_sentry_crash_free_rate_user`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_sentry_crash_free_rate_user` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `created_at` datetime NOT NULL,
+  `release_version` varchar(10) NOT NULL,
+  `crash_free_rate` float NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_sentry_issues`
+--
+
+DROP TABLE IF EXISTS `report_sentry_issues`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_sentry_issues` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `sentry_id` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `culprit` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `title` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `count` int NOT NULL,
+  `user_count` int NOT NULL,
+  `release_version` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `permalink` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13455 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_sentry_rates`
+--
+
+DROP TABLE IF EXISTS `report_sentry_rates`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_sentry_rates` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `crash_free_rate_user` float NOT NULL,
+  `crash_free_rate_session` float NOT NULL,
+  `adoption_rate_user` float NOT NULL,
+  `release_version` varchar(250) NOT NULL,
+  `created_at` timestamp NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=8617 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -253,7 +422,7 @@ CREATE TABLE `report_test_case_coverage` (
   CONSTRAINT `report_test_case_coverage_ibfk_2` FOREIGN KEY (`test_sub_suites_id`) REFERENCES `test_sub_suites` (`id`),
   CONSTRAINT `report_test_case_coverage_ibfk_3` FOREIGN KEY (`test_automation_status_id`) REFERENCES `test_automation_status` (`id`),
   CONSTRAINT `report_test_case_coverage_ibfk_4` FOREIGN KEY (`test_automation_coverage_id`) REFERENCES `test_automation_coverage` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17245 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=63962 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -280,7 +449,139 @@ CREATE TABLE `report_testrail_milestones` (
   PRIMARY KEY (`id`),
   KEY `fk_projects` (`projects_id`),
   CONSTRAINT `fk_projects` FOREIGN KEY (`projects_id`) REFERENCES `projects` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9598 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=10775 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_testrail_test_plans`
+--
+
+DROP TABLE IF EXISTS `report_testrail_test_plans`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_testrail_test_plans` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `testrail_plan_id` int NOT NULL,
+  `projects_id` int NOT NULL,
+  `name` varchar(75) NOT NULL,
+  `test_case_passed_count` int NOT NULL DEFAULT '0',
+  `test_case_retest_count` int NOT NULL DEFAULT '0',
+  `test_case_failed_count` int NOT NULL DEFAULT '0',
+  `test_case_blocked_count` int NOT NULL DEFAULT '0',
+  `test_case_total_count` int NOT NULL DEFAULT '0',
+  `testrail_created_on` date DEFAULT NULL,
+  `testrail_completed_on` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `test_run_projects` (`projects_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1147 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_testrail_test_results`
+--
+
+DROP TABLE IF EXISTS `report_testrail_test_results`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_testrail_test_results` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `testrail_result_id` int NOT NULL,
+  `run_id` int NOT NULL,
+  `test_id` int NOT NULL,
+  `elapsed` float(5,2) NOT NULL,
+  `status_id` int NOT NULL,
+  `testrail_created_on` date DEFAULT NULL,
+  `testrail_completed_on` timestamp NULL DEFAULT NULL,
+  `type` varchar(55) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `report_testrail_test_results` (`run_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=28294 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_testrail_test_results_beta`
+--
+
+DROP TABLE IF EXISTS `report_testrail_test_results_beta`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_testrail_test_results_beta` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `testrail_result_id` int NOT NULL,
+  `run_id` int NOT NULL,
+  `test_id` int NOT NULL,
+  `elapsed` int NOT NULL,
+  `status_id` int NOT NULL,
+  `testrail_created_on` date DEFAULT NULL,
+  `testrail_completed_on` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `test_result_runs_beta` (`run_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_testrail_test_results_l10n`
+--
+
+DROP TABLE IF EXISTS `report_testrail_test_results_l10n`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_testrail_test_results_l10n` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `testrail_result_id` int NOT NULL,
+  `run_id` int NOT NULL,
+  `test_id` int NOT NULL,
+  `elapsed` int NOT NULL,
+  `status_id` int NOT NULL,
+  `testrail_created_on` date DEFAULT NULL,
+  `testrail_completed_on` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `test_result_runs_l10n` (`run_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_testrail_test_runs`
+--
+
+DROP TABLE IF EXISTS `report_testrail_test_runs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_testrail_test_runs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `testrail_run_id` int NOT NULL,
+  `plan_id` int NOT NULL,
+  `suite_id` int NOT NULL,
+  `name` varchar(75) NOT NULL,
+  `config` varchar(55) NOT NULL,
+  `test_case_passed_count` int NOT NULL DEFAULT '0',
+  `test_case_retest_count` int NOT NULL DEFAULT '0',
+  `test_case_failed_count` int NOT NULL DEFAULT '0',
+  `test_case_blocked_count` int NOT NULL DEFAULT '0',
+  `test_case_total_count` int NOT NULL DEFAULT '0',
+  `testrail_created_on` date DEFAULT NULL,
+  `testrail_completed_on` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `test_run_plans` (`plan_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=68923 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `report_testrail_users`
+--
+
+DROP TABLE IF EXISTS `report_testrail_users`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_testrail_users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `status` varchar(50) NOT NULL,
+  `role` varchar(100) NOT NULL,
+  `created_at` timestamp NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13015 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -314,6 +615,31 @@ CREATE TABLE `test_automation_status` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `test_plans`
+--
+
+DROP TABLE IF EXISTS `test_plans`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `test_plans` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `testrail_plan_id` int NOT NULL,
+  `projects_id` int NOT NULL,
+  `name` varchar(75) NOT NULL,
+  `test_case_passed_count` int NOT NULL DEFAULT '0',
+  `test_case_retest_count` int NOT NULL DEFAULT '0',
+  `test_case_failed_count` int NOT NULL DEFAULT '0',
+  `test_case_blocked_count` int NOT NULL DEFAULT '0',
+  `test_case_total_count` int NOT NULL DEFAULT '0',
+  `testrail_created_on` date DEFAULT NULL,
+  `testrail_completed_on` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `test_run_projects` (`projects_id`),
+  CONSTRAINT `test_run_projects` FOREIGN KEY (`projects_id`) REFERENCES `projects` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=56 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `test_run_result_types`
 --
 
@@ -330,6 +656,33 @@ CREATE TABLE `test_run_result_types` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `test_runs`
+--
+
+DROP TABLE IF EXISTS `test_runs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `test_runs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `testrail_run_id` int NOT NULL,
+  `plan_id` int NOT NULL,
+  `suite_id` int NOT NULL,
+  `name` varchar(75) NOT NULL,
+  `config` varchar(55) NOT NULL,
+  `test_case_passed_count` int NOT NULL DEFAULT '0',
+  `test_case_retest_count` int NOT NULL DEFAULT '0',
+  `test_case_failed_count` int NOT NULL DEFAULT '0',
+  `test_case_blocked_count` int NOT NULL DEFAULT '0',
+  `test_case_total_count` int NOT NULL DEFAULT '0',
+  `testrail_created_on` date DEFAULT NULL,
+  `testrail_completed_on` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `test_run_plans` (`plan_id`),
+  CONSTRAINT `test_run_plans` FOREIGN KEY (`plan_id`) REFERENCES `test_plans` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2805 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `test_sub_suites`
 --
 
@@ -342,7 +695,7 @@ CREATE TABLE `test_sub_suites` (
   `test_sub_suite_abbrev` varchar(25) NOT NULL,
   `test_sub_suite` varchar(75) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -358,9 +711,8 @@ CREATE TABLE `test_suites` (
   `testrail_test_suites_id` int NOT NULL,
   `test_suite_name` varchar(250) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb3;
+) ENGINE=InnoDB AUTO_INCREMENT=26073 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
-SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -371,100 +723,4 @@ SET @@SESSION.SQL_LOG_BIN = @MYSQLDUMP_TEMP_LOG_BIN;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-03-24 16:53:33
-
---
--- Table structure for table `report_bitrise_builds_count`
---
-
-DROP TABLE IF EXISTS `report_bitrise_builds_count`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `report_bitrise_builds_count` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `build_number` int NOT NULL,
-  `branch` varchar(250) DEFAULT NULL,
-  `status` int DEFAULT NULL,
-  `status_text` varchar(250) DEFAULT NULL,
-  `triggered_workflow` varchar(250) DEFAULT NULL,
-  `triggered_by` varchar(250) DEFAULT NULL,
-  `triggered_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `report_sentry_issue`
---
-
-DROP TABLE IF EXISTS `report_sentry_issues`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `report_sentry_issues` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `sentry_id` int NOT NULL,
-  `culprit` varchar(250) NOT NULL,
-  `title` varchar(250) NOT NULL,
-  `count` int NOT NULL,
-  `user_count` int NOT NULL,
-  `release_version` varchar(250) NOT NULL,
-  `permalink` varchar(250) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
-DROP TABLE IF EXISTS `report_sentry_rates`;
-CREATE TABLE `report_sentry_rates` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `user_crash_free_rate` float NOT NULL,
-  `session_crash_free_rate` float NOT NULL,
-  `user_adoption_rate` float NOT NULL,
-  `release_version` varchar(250) NOT NULL,
-  `created_at` timestamp NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8461 DEFAULT CHARSET=utf8mb4;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `report_testrail_users`
---
-
-DROP TABLE IF EXISTS `report_testrail_users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `report_testrail_users` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `status` varchar(50) NOT NULL,
-  `role` varchar(100) NOT NULL,
-  `created_at` timestamp NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=269 DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `production.report_bugzilla_meta_bugs`
---
-
-DROP TABLE IF EXISTS `production.report_bugzilla_meta_bugs`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `production.report_bugzilla_meta_bugs` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `bugzilla_key` int NOT NULL,
-  `bugzilla_summary` text,
-  `bugzilla_bug_status` varchar(50) DEFAULT NULL,
-  `bugzilla_bug_created_at` datetime DEFAULT NULL,
-  `bugzilla_bug_resolution` varchar(50) DEFAULT NULL,
-  `bugzilla_bug_severity` varchar(50) DEFAULT NULL,
-  `bugzilla_bug_priority` varchar(50) DEFAULT NULL,
-  `bugzilla_bug_assigned_to` varchar(100) DEFAULT NULL,
-  `bugzilla_bug_keyword` varchar(100) DEFAULT NULL,
-  `bugzilla_bug_resolved_at` datetime DEFAULT NULL,
-  `bugzilla_bug_parent` varchar(100) DEFAULT NULL,
-  `bugzilla_bug_product` varchar(100) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
+-- Dump completed on 2025-09-04 11:35:53

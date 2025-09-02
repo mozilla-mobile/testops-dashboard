@@ -99,6 +99,9 @@ jobs:
       - name: Bugzilla Desktop Bugs
         run: python ./__main__.py --report-type bugzilla-desktop-bugs
 
+      - name: Bugzilla Android UI Tests Bugs Caught
+        run: python ./__main__.py --report-type bugzilla-query-by-keyword --bz-keyword "ui-test-bug-auto-found"
+
       # Bitrise
       - name: Bitrise Build Count
         if: always()

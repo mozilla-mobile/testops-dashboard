@@ -104,6 +104,10 @@ class ReportBugzillaMetaBugs(Base):
     __table__ = Table('report_bugzilla_meta_bugs', Base.metadata, autoload=True) # noqa
 
 
+class ReportBugzillaQueryByKeyword(Base):
+    __table__ = Table('report_bugzilla_query_by_keyword', Base.metadata, autoload=True)  # noqa
+
+
 class Database:
     def __init__(self):
         self.session = Session()

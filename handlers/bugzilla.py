@@ -14,3 +14,8 @@ def handle_bugzilla_meta_bugs(args):
 def handle_bugzilla_qe_verify(args):
     client = BugzillaClient()
     client.bugzilla_qe_verify()
+
+
+def handle_bugzilla_query_by_keyword(args):
+    client = BugzillaClient()
+    client.bugzilla_query_by_keyword(keyword=args.bz_keyword)
