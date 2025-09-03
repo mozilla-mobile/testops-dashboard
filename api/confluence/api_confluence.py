@@ -7,6 +7,7 @@ import os
 import glob
 import json
 import requests
+import sys
 import yaml
 
 from atlassian import Confluence
@@ -115,6 +116,7 @@ def page_payload_write(page_id, update_payload):
     else:
         print("Failed to update the page")
         print(update_response.text)
+        sys.exit(1)
 
 
 def page_payload(page_id, page_title, page_data, current_version, new_content):
