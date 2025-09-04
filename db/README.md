@@ -36,7 +36,7 @@ Before starting, ensure you have set the following environment variables. The cr
 1. Log in to Google Cloud and configure the project name.
    ```
    gcloud auth login
-   gcloud config set project [project name]
+   gcloud config set project [GCP project name]
    ```
 1. Download the [Cloud SQL Auth Proxy](https://cloud.google.com/sql/docs/mysql/connect-auth-proxy#install) appropriate for your OS.
 1. Place the binary in this `DB/` directory.
