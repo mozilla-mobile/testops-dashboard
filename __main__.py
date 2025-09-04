@@ -24,6 +24,7 @@ from handlers.bugzilla import (
     handle_bugzilla_desktop_bugs,
     handle_bugzilla_meta_bugs,
     handle_bugzilla_qe_verify,
+    handle_bugzilla_query_by_keyword,
 )
 
 from handlers.confluence import (
@@ -72,7 +73,7 @@ def parse_args(cmdln_args):
         help="Select the platform: Mobile, Ecosystem or Desktop",
         required=False,
         choices=PLATFORMS,
-        )
+    )
 
     parser.add_argument(
         "--report-type",
@@ -92,6 +93,13 @@ def parse_args(cmdln_args):
         help="Indicate Bugzilla metabug ID for bugzilla-meta-bugs",
         required=False,
         type=int,
+    )
+
+    parser.add_argument(
+        "--bz-keyword",
+        help="Indicate Bugzilla keyword for bugzilla-query-by-keyword",
+        required=False,
+        type=str,
     )
 
     return parser.parse_args(args=cmdln_args)
@@ -156,6 +164,7 @@ COMMAND_MAP = {
     'bugzilla-desktop-bugs': handle_bugzilla_desktop_bugs,
     'bugzilla-meta-bugs': handle_bugzilla_meta_bugs,
     'bugzilla-qe-verify': handle_bugzilla_qe_verify,
+    'bugzilla-query-by-keyword': handle_bugzilla_query_by_keyword,
     'confluence-updates': handle_confluence_updates,
     'confluence-build-validation': handle_confluence_build_validation,
     'github-issue-regression': handle_github_issue_regression,

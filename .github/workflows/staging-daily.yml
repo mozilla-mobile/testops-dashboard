@@ -71,3 +71,6 @@ jobs:
 
       - name: Bugzilla Metabug Android Memory Leaks
         run: python  ./__main__.py --report-type bugzilla-meta-bugs --meta-bug-id 1935100
+
+      - name: Bugzilla Android UI Tests Bugs Caught
+        run: python ./__main__.py --report-type bugzilla-query-by-keyword --bz-keyword "ui-test-bug-auto-found"
