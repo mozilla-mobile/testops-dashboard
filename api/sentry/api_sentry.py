@@ -185,13 +185,14 @@ class SentryClient(Sentry):
 
         df_issues = pd.DataFrame()
         for release_version in release_versions:
-            issues = self.issues(release_version)
+            short_release_version = release_version.split('+')[0]
+            issues = self.issues(short_release_version)
             # NOTE: Use just the last two major releases for now
             df_issues_release = self.db.report_issue_payload(issues,
-                                                             release_version)
+                                                             short_release_version)
             # output CSV for debugging
             df_issues_release.to_csv(
-                "sentry_issues_{0}.csv".format(release_version),
+                "sentry_issues_{0}.csv".format(short_release_version),
                 index=False)
 
             # Insert issues from this release into the same dataframe
