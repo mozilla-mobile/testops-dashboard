@@ -6,6 +6,7 @@
 
 import os
 import sys
+import requests
 
 import pandas as pd
 
@@ -19,7 +20,7 @@ from database import (
 )
 
 # The 2 major versions are beta and release.
-NUM_MAJOR_VERSIONS = 7
+NUM_MAJOR_VERSIONS = 2
 
 
 class Sentry:
@@ -37,16 +38,17 @@ class Sentry:
             self.project = ""
             self.environment = ""
             self.package = ""
-            if self.ios_project_id:
+            self.platform = os.environ['SENTRY_PLATFORM'] or 'android'
+            if self.platform == 'ios':
                 self.project_id = self.ios_project_id
                 self.project = "firefox-ios"
                 self.environment = "Production"
                 self.package = "org.mozilla.ios.Firefox"
-            if self.fenix_project_id:
-                 self.project_id = self.fenix_project_id
-                 self.project = "fenix"
-                 self.environment = "release"
-                 self.package = "org.mozilla.firefox"
+            if self.platform == 'android':
+                self.project_id = self.fenix_project_id
+                self.project = "fenix"
+                self.environment = "release"
+                self.package = "org.mozilla.firefox"
         except KeyError:
             print("ERROR: Missing testrail env var")
             sys.exit(1)
@@ -78,20 +80,27 @@ class Sentry:
                 '&environment=Production'
             ).format(self.organization_slug, self.project_id)
         )
-        
+
     # API: Releases (with filtering)
-    # /organizations/mozilla/releases/
-    # ?adoptionStages=1&environment={environment}&project={project_id}
-    # &query=release.package:{package}}&status=open&summaryStatsPeriod=7d
+    # /organizations/{{organization_slug}}/releases/
+    # ?adoptionStages=1&environment={{environment}}&project={{project_id}}
+    # &query=release.package:{{package}}&status=open&summaryStatsPeriod=24h
+    # &sort=adoption&adoptionStages=adopted
     def releases_v2(self):
+        # Android TODO: filter out the 170, 169 etc
         return self.client.http_get(
             (
-            '/organizations/mozilla/releases/'
-            '?adoptionStages=1&environment={0}&project={1}'
-            '&query=release.package:{2}&status=open&summaryStatsPeriod=7d'
+                '/organizations/mozilla/releases/'
+                '?adoptionStages=1&project={1}&environment={0}'
+                '&query=release.package:{2}&status=open&summaryStatsPeriod=7d'
+                '&adoptionStages=1&sort=adoption'
             ).format(self.environment, self.project_id, self.package)
         )
-        
+
+    # Workaround: Get the largest/latest version through whattrainisitnow
+    def what_train_is_it_now(self):
+        response = requests.get('https://whattrainisitnow.com/api/firefox/releases/')
+        return list(response.json().keys())
 
     # API: Session (crash free rate (session) and crash free rate (user))
     # The crash free rate for the past 24 hours
@@ -109,25 +118,28 @@ class Sentry:
 
     # API: Adoption Rate (Users)
     def sentry_adoption_rate(self, release):
+        # Android TODO: Need build number in release number
         health_info_release = self.client.http_get(
             (
                 "organizations/{0}/releases/{1}%40{2}/"
                 "?health=1&summaryStatsPeriod=7d&project={3}"
                 "&environment={4}&adoptionStages=1"
-            ).format(self.organization_slug, self.package, release, self.project_id, self.environment)
+            ).format(
+                self.organization_slug, self.package,
+                release, self.project_id, self.environment)
         )
         # Long version name could be beta
-        if health_info_release is None:
-            return self.client.http_get(
-                (
-                    "organizations/{0}/releases/"
-                    "org.mozilla.ios.FirefoxBeta%40{1}/"
-                    "?health=1&summaryStatsPeriod=7d&project={2}"
-                    "&environment=Production&adoptionStages=1"
-                ).format(self.organization_slug, release, self.project_id)
-            )
-        else:
-            return health_info_release
+        # if health_info_release is None:
+        #     return self.client.http_get(
+        #         (
+        #             "organizations/{0}/releases/"
+        #             "org.mozilla.ios.FirefoxBeta%40{1}/"
+        #             "?health=1&summaryStatsPeriod=7d&project={2}"
+        #             "&environment=Production&adoptionStages=1"
+        #         ).format(self.organization_slug, release, self.project_id)
+        #     )
+        # else:
+        return health_info_release
 
 
 class SentryClient(Sentry):
@@ -135,7 +147,7 @@ class SentryClient(Sentry):
     def __init__(self):
         print("SentryClient.__init__()")
         super().__init__()
-        #self.ios_project_id = os.environ['SENTRY_IOS_PROJECT_ID']
+        self.ios_project_id = os.environ['SENTRY_IOS_PROJECT_ID']
         self.fenix_project_id = os.environ['SENTRY_FENIX_PROJECT_ID']
         self.db = DatabaseSentry()
 
@@ -148,12 +160,19 @@ class SentryClient(Sentry):
     def sentry_reports(self):
         release_versions = self.sentry_releases()
         self.sentry_rates(release_versions)
-        self.sentry_issues(release_versions)
+        # self.sentry_issues(release_versions)
 
+    # Now output the "long" version. Example: org.mozilla.firefox@142.0.1+2016110936
     def sentry_releases(self):
         print("SentryClient.sentry_releases()")
         releases = self.releases_v2()
-        release_versions = self.db.report_version_strings(releases)
+        # Workaround: Do not use Fenix versions that are "too new".
+        # Query whattrainisitnow.com for the latest version.
+        # (Example: v170 exists while nightly now is only at v144.)
+        what_train_is_it_now = self.what_train_is_it_now()[-1]
+        release_versions = self.db.report_version_strings(
+            releases, what_train_is_it_now)
+        print(release_versions)
         return release_versions
 
     def sentry_issues(self, release=[]):
@@ -191,13 +210,14 @@ class SentryClient(Sentry):
 
         df_rates = pd.DataFrame()
         for release_version in release_versions:
+            short_release_version = release_version.split('+')[0]
             response_crash_free_rate_session = (
                 self.sentry_sessions_crash_free_rate(
-                    "session", release_version)
+                    "session", short_release_version)
             )
             response_crash_free_rate_user = (
                 self.sentry_sessions_crash_free_rate(
-                    "user", release_version)
+                    "user", short_release_version)
             )
             response_adoption_rate = self.sentry_adoption_rate(
                 release_version
@@ -205,7 +225,7 @@ class SentryClient(Sentry):
             df_rate = self.db.report_rates_payload(
                 response_crash_free_rate_user,
                 response_crash_free_rate_session,
-                response_adoption_rate, release_version
+                response_adoption_rate, short_release_version
             )
             # If any of the rate is null, do not insert into the database.
             if df_rate is not None:
@@ -226,65 +246,28 @@ class DatabaseSentry:
         print("DatabaseSentry.__init__()")
         super().__init__()
         self.db = Database()
-        self.ios_project_id = None # os.environ['SENTRY_IOS_PROJECT_ID']
+        self.ios_project_id = os.environ['SENTRY_IOS_PROJECT_ID']
         self.fenix_project_id = os.environ['SENTRY_FENIX_PROJECT_ID']
-
-    # Filter out the non-production versions such as 9000
-    def _production_versions(self, version):
-        version = version.strip()
-        if version is None or version == '' or version == '9000':
-            return False
-        if "(" in version or ")" in version:
-            return False
-        if "org.mozilla.ios.Firefox" in version:
-            return False
-        parts = version.split('.')
-        return all(p.isdigit() for p in parts) and len(parts) > 0
-
-    # Get the beta and the release versions and all their
-    # dot releases.
-    def _all_new_production_dot_versions(self, versions):
-        major_versions = []
-        for version in versions:
-            parts = version.split('.')
-            major = parts[0]
-            major_versions.append(major)
-        major_versions = sorted(list(set(major_versions)), reverse=True)
-        major_versions = major_versions[:NUM_MAJOR_VERSIONS]
-        payload = []
-        for major_version in major_versions:
-            for version in versions:
-                if version.startswith(major_version+"."):
-                    payload.append(version)
-        payload = sorted(list(set(payload)), reverse=True)
-        print("Most recent {0} major versions:".format(NUM_MAJOR_VERSIONS))
-        print(payload)
-        return payload
+        self.platform = os.environ['SENTRY_PLATFORM']
 
     # Get the last two major versions
-    def report_version_strings(self, release_versions):
+    def report_version_strings(self, release_versions, latest_version):
         payload = []
-        
-        # iOS
-        if self.ios_project_id:
+        latest_major_version = int(latest_version.split('.')[0])
+        oldest_major_version = latest_major_version - 2
 
-            for release_version in release_versions:
-                # Production only. Filter out beta and interim versions
-                description = release_version['versionInfo']['description']
-                if self._production_versions(description):
-                    payload.append(description)
-
-            payload = self._all_new_production_dot_versions(payload)
-        
-        # Android
-        else:
-            for release_version in release_versions:
-                if release_version['versionInfo']['version']['buildCode'] is not None:
-                    raw_version = release_version['versionInfo']['version']['raw']
-                    build_code = int(release_version['versionInfo']['version'].get('buildCode', 0))
-                    if build_code % 2 == 1:
+        for release_version in release_versions:
+            version = release_version['versionInfo']['version']
+            raw_version = version['raw']
+            major_version = int(version['major'])
+            build_code = version['buildCode']
+            if oldest_major_version < major_version and major_version <= latest_major_version:
+                if self.platform == 'ios' and build_code is None:
+                    payload.append(raw_version)
+                if self.platform == 'android' and build_code is not None:
+                    if int(build_code) % 2 == 1:
                         payload.append(raw_version)
-            payload = self._all_new_production_dot_versions(payload)
+        payload.sort()
 
         # Just a list of released versions, not a dataframe
         return payload
