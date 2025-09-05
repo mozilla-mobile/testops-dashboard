@@ -150,6 +150,6 @@ def main(filename_csv):
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print("Usage: python sentry_slack.py <csv_filename>")
+        print("Usage: python utils.py <csv_filename>")
         sys.exit(1)
     main(sys.argv[1])
