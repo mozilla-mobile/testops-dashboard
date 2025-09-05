@@ -119,7 +119,7 @@ jobs:
           path: ./sentry_issues_*.csv
       - name: Construct JSON for Slack (Sentry)
         run: |
-          python -m lib.sentry_slack_rates ./sentry_rates.csv
+          python -m api.sentry_slack_rates ./sentry_rates.csv
 
       - name: Set job log URL
         if: always()
