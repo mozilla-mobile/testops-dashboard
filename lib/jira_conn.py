@@ -19,43 +19,49 @@ from requests.auth import HTTPBasicAuth
 
 class JiraAPIClient:
     def __init__(self, base_url):
-        self.user = ''
-        self.password = ''
+        self.user = ''          # Jira account email
+        self.password = ''      # API token (not your account password)
         if not base_url.endswith('/'):
             base_url += '/'
         self.__url = base_url
 
     def get_search(self, query, data_type):
-        """Issue a GET request (read) against the API.
+        """
+        Fetch data from Jira Cloud v3 Enhanced Search endpoint.
 
         Args:
-            filter{id}: The API method to call including parameters,
-            e.g. GET /rest/api/3/filter/{id}.
+            query (str): API path with params, e.g.
+                         'rest/api/3/search/jql?jql=project=FOX ORDER BY created DESC'
+            data_type (str): key to collect from each page (usually 'issues').
 
         Returns:
-            JSON representation of the search results.
+            list: concatenated results across all pages.
         """
-        return self.__send_request('GET', query, data_type)
+        return self.__send_request(query, data_type)
 
-    def __send_request(self, method, query, data_type):
-
+    def __send_request(self, query, data_type):
         url = self.__url + query
-        # Store all results
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+
+        params = {"maxResults": 100, "fields": "key,summary"}
         all_results = []
-        params = {"startAt": 0, "maxResults": 100, "fields": "key,summary"}
-        headers = {"Content-Type": "application/json"}
+        next_token = None
 
         print(f"Fetching data from: {url}")
 
         while True:
-            # Send GET request
+            effective_params = dict(params)
+            if next_token:
+                effective_params["nextPageToken"] = next_token
+
             response = requests.get(
                 url,
                 headers=headers,
                 auth=HTTPBasicAuth(self.user, self.password),
-                params=params
+                params=effective_params,
+                timeout=60,
             )
-
+            response.raise_for_status()
             data = response.json()
 
             # Ensure the expected key exists in the response
@@ -64,16 +70,16 @@ class JiraAPIClient:
                 break
 
             # Extend the results
-            all_results.extend(data[data_type])
+            items = data[data_type]
+            all_results.extend(items)
 
-            print(f"Retrieved {len(all_results)} of {data.get('total', 'unknown')} total {data_type}") # noqa
+            print(f"Retrieved {len(all_results)} {data_type} so far...")
 
-            # If we've retrieved all results, break the loop
-            if params['startAt'] + params['maxResults'] >= data.get('total', 0): # noqa
+            next_token = data.get("nextPageToken")
+            is_last = data.get("isLast", next_token is None)
+
+            if is_last or not items:
                 break
-
-            # Increment the startAt parameter to get the next batch
-            params['startAt'] += params['maxResults']
 
         print(f"✅ Total {data_type} retrieved: {len(all_results)}")
         return all_results
