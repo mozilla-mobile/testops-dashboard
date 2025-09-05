@@ -63,7 +63,7 @@ jobs:
       - name: Send custom JSON data to Slack workflow
         if: always()
         id: slack
-        uses: slackapi/slack-github-action@v1.26.0
+        uses: slackapi/slack-github-action@v2.1.1
         env:
           WORKFLOW_NAME: ${{ github.workflow }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
