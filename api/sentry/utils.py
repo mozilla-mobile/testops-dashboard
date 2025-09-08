@@ -2,11 +2,21 @@ import json
 import csv
 import sys
 from pathlib import Path
+import requests
 
 from utils.datetime_utils import DatetimeUtils
 
 
+def get_all_future_versions():
+    response = requests.get('https://whattrainisitnow.com/api/firefox/releases/future/')
+    if response.status_code != 200:
+        return None
+    else:
+        return sorted(list(response.json().keys()))
+
 def insert_rates(json_data, csv_file):
+    all_future_versions = get_all_future_versions()
+    print(all_future_versions)
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
         for row in rows:
@@ -24,6 +34,9 @@ def insert_rates(json_data, csv_file):
                 else row['adoption_rate_user']
             )
             release_version = row['release_version']
+            if all_future_versions is not None:
+                if release_version in all_future_versions:
+                    release_version = release_version + " (Beta)"
             json_data["blocks"].append(
                 {
                     "type": "section",
