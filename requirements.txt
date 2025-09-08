@@ -1,13 +1,13 @@
 numpy
 pandas
 PyMySQL
-SQLAlchemy==1.4.49
+SQLAlchemy==2.0.43
 certifi
 charset-normalizer
 idna
 requests
 urllib3
 python-bugzilla==3.3.0
-atlassian-python-api==4.0.4
+atlassian-python-api==4.0.7
 PyYAML
 Jinja2
