@@ -15,12 +15,13 @@ Copyright Atlassian developer. See license.md for details.
 import requests
 
 from requests.auth import HTTPBasicAuth
+from urllib.parse import urlsplit, parse_qsl
 
 
 class JiraAPIClient:
     def __init__(self, base_url):
-        self.user = ''          # Jira account email
-        self.password = ''      # API token (not your account password)
+        self.user = ''
+        self.password = ''
         if not base_url.endswith('/'):
             base_url += '/'
         self.__url = base_url
@@ -43,43 +44,83 @@ class JiraAPIClient:
         url = self.__url + query
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
 
-        params = {"maxResults": 100, "fields": "key,summary"}
-        all_results = []
-        next_token = None
+        # detect endpoint
+        parts = urlsplit(url)
+        qparams = dict(parse_qsl(parts.query or ""))
+        has_fields_in_query = "fields" in qparams
+
+        is_enhanced_search = "/rest/api/3/search/jql" in parts.path
+        is_worklog = parts.path.endswith("/worklog")
 
         print(f"Fetching data from: {url}")
 
-        while True:
-            effective_params = dict(params)
-            if next_token:
-                effective_params["nextPageToken"] = next_token
+        if is_enhanced_search:
+            # Enhanced JQL search: nextPageToken + isLast
+            params = {"maxResults": 100}
+            if not has_fields_in_query:
+                params["fields"] = "key,summary"
 
-            response = requests.get(
-                url,
-                headers=headers,
-                auth=HTTPBasicAuth(self.user, self.password),
-                params=effective_params,
-                timeout=60,
-            )
-            response.raise_for_status()
-            data = response.json()
+            all_results, next_token = [], None
+            while True:
+                effective = dict(params)
+                if next_token:
+                    effective["nextPageToken"] = next_token
+                r = requests.get(url, headers=headers,
+                                 auth=HTTPBasicAuth(self.user, self.password),
+                                 params=effective, timeout=60)
+                r.raise_for_status()
+                data = r.json()
 
-            # Ensure the expected key exists in the response
-            if data_type not in data:
-                print(f"⚠️ Warning: {data_type} not found in response! Full response: {data}") # noqa
-                break
+                items = data.get(data_type, [])
+                if not isinstance(items, list):
+                    raise KeyError(f"Expected list at '{data_type}', got keys: {list(data.keys())}") # noqa
+                all_results.extend(items)
+                print(f"Retrieved {len(all_results)} {data_type} so far...")
 
-            # Extend the results
-            items = data[data_type]
-            all_results.extend(items)
+                next_token = data.get("nextPageToken")
+                is_last = data.get("isLast", next_token is None)
+                if is_last or not items:
+                    break
 
-            print(f"Retrieved {len(all_results)} {data_type} so far...")
+            print(f"✅ Total {data_type} retrieved: {len(all_results)}")
+            return all_results
 
-            next_token = data.get("nextPageToken")
-            is_last = data.get("isLast", next_token is None)
+        if is_worklog:
+            # Worklogs: startAt + maxResults + total (no fields param here)
+            params = {"startAt": 0, "maxResults": 100}
+            all_logs = []
+            while True:
+                r = requests.get(url, headers=headers,
+                                 auth=HTTPBasicAuth(self.user, self.password),
+                                 params=params, timeout=60)
+                r.raise_for_status()
+                data = r.json()
 
-            if is_last or not items:
-                break
+                logs = data.get("worklogs", [])
+                total = data.get("total", 0)
+                all_logs.extend(logs)
+                got = params["startAt"] + len(logs)
+                print(f"Retrieved {len(all_logs)} of {total} total worklogs")
 
-        print(f"✅ Total {data_type} retrieved: {len(all_results)}")
-        return all_results
+                if got >= total or not logs:
+                    break
+
+                params["startAt"] += data.get("maxResults", params["maxResults"])
+
+            print(f"✅ Total worklogs retrieved: {len(all_logs)}")
+            return all_logs
+
+        # Default: single GET; only add fields
+        params = {}
+        if not has_fields_in_query and data_type and "." not in data_type:
+            # Safe default for simple top-level collections
+            params["fields"] = "key,summary"
+
+        r = requests.get(url, headers=headers,
+                         auth=HTTPBasicAuth(self.user, self.password),
+                         params=params or None, timeout=60)
+        r.raise_for_status()
+        data = r.json()
+
+        # Try top-level, else return whole payload (data_type="" to get all)
+        return data.get(data_type, data)
