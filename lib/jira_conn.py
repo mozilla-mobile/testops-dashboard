@@ -54,6 +54,12 @@ class JiraAPIClient:
 
         print(f"Fetching data from: {url}")
 
+        """
+        Pagination with Jira Cloud v3 Enhanced Search endpoint
+        /rest/api/3/search/jql → paginate with nextPageToken (isLast).
+        /rest/api/3/issue/{key}/worklog → paginate with startAt/maxResults/total
+        """
+
         if is_enhanced_search:
             # Enhanced JQL search: nextPageToken + isLast
             params = {"maxResults": 100}
