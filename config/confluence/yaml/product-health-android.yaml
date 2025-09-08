@@ -8,3 +8,8 @@ wiki_page:
           report-description: "Number of Memory Leaks Bugs"
           attachment-filename: "android-memory-leak-bugzilla-number-of-bugs.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3012"
+        - report-title: "Bugs caught by UI tests"
+          report-description: "Breakdown of bug status"
+          attachment-filename: "bugs-caught-by-ui-tests-on-android.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3041"
+          
