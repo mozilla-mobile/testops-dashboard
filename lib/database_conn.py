@@ -36,6 +36,7 @@ pool = create_engine(
         host=db_host,
         port=db_port,
         database=db_name,
+        query={}
     ),
     **db_config
 )
