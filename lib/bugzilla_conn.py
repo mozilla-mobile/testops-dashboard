@@ -5,8 +5,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
-
 import bugzilla
+from requests.adapters import HTTPAdapter, Retry
 
 from constants import BUGZILLA_URL
 
@@ -29,5 +29,17 @@ class BugzillaAPIClient:
         self.key = os.environ.get("BUGZILLA_API_KEY")
         if not self.key:
             raise Exception("Missing BUGZILLA_API_KEY")
+
         if self.key:
             self.bz_client = bugzilla.Bugzilla(self.URL, api_key=self.key)
+
+            retries = Retry(
+                total=3,
+                backoff_factor=4,
+                status_forcelist=[502, 503, 504],
+                allowed_methods=["GET", "POST"],
+            )
+            adapter = HTTPAdapter(max_retries=retries)
+
+            self.bz_client._session.mount("http://", adapter)
+            self.bz_client._session.mount("https://", adapter)
