@@ -121,7 +121,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
-      - uses: slackapi/slack-github-action@v1.26.0
+      - uses: slackapi/slack-github-action@v2.1.1
         env:
           WORKFLOW_NAME: ${{ github.workflow }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
