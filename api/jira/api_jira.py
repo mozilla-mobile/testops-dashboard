@@ -279,6 +279,10 @@ class DatabaseJira(Database):
         # Normalize the JSON data
         df = pd.json_normalize(payload, sep='_')
 
+        # Ensure fields_labels exists
+        if 'fields_labels' not in df.columns:
+            df['fields_labels'] = [[] for _ in range(len(df))]
+
         # Check if 'jira_assignee_username' exists
         # if not use 'alternative_assignee_emailAddress'
         if 'fields_assignee_emailAddress' not in df.columns:
@@ -323,6 +327,10 @@ class DatabaseJira(Database):
         # Normalize the JSON data
         self.session.query(ReportJIraQARequestsNewIssueType).delete()
         df = pd.json_normalize(payload, sep='_')
+
+        # Ensure fields_labels exists
+        if 'fields_labels' not in df.columns:
+            df['fields_labels'] = [[] for _ in range(len(df))]
 
         # Check if 'jira_assignee_username' exists
         # if not use 'alternative_assignee_emailAddress'
@@ -408,15 +416,23 @@ class DatabaseJira(Database):
         df = pd.json_normalize(payload, sep='_')
         total_rows = len(df)
 
-        # Join list of labels into a single string
-        jira_labels = df['fields_labels'] = df['fields_labels'].apply(lambda x: ','.join(x) if isinstance(x, list) else x) # noqa
-        # Calculate Nightly Verified label
-        verified_nightly_count = jira_labels.str.contains('verified', case=False, na=False).sum() # noqa
+        # Ensure 'fields_labels' exists
+        if 'fields_labels' not in df.columns:
+            df['fields_labels'] = [[] for _ in range(len(df))]
 
+        # Join list of labels into a single string
+        df['fields_labels'] = df['fields_labels'].apply(
+            lambda x: ','.join(x) if isinstance(x, list)
+            else (x if pd.notnull(x) else '')
+        )
+
+        # Calculate Nightly Verified label
+        verified_nightly_count = df['fields_labels'].str.contains(
+            'verified', case=False, na=False
+        ).sum()
         not_verified_count = total_rows - verified_nightly_count
 
-        data = [total_rows, not_verified_count, verified_nightly_count]
-        return data
+        return [total_rows, not_verified_count, verified_nightly_count]
 
     def report_jira_qa_needed_insert(self, payload):
         report = ReportJiraQANeeded(jira_total_qa_needed=payload[0],
