@@ -32,25 +32,23 @@ class Sentry:
             self.organization_slug = \
                 os.environ['SENTRY_ORGANIZATION_SLUG']
             # Only fetch the platform from which the ID is defined.
-            self.ios_project_id = os.environ['SENTRY_IOS_PROJECT_ID']
-            self.fenix_project_id = os.environ['SENTRY_FENIX_PROJECT_ID']
             self.project_id = ""
             self.project = ""
             self.environment = ""
             self.package = ""
             self.platform = os.environ['SENTRY_PLATFORM'] or 'android'
             if self.platform == 'ios':
-                self.project_id = self.ios_project_id
+                self.project_id = os.environ['SENTRY_IOS_PROJECT_ID']
                 self.project = "firefox-ios"
                 self.environment = "Production"
                 self.package = "org.mozilla.ios.Firefox"
             if self.platform == 'android':
-                self.project_id = self.fenix_project_id
+                self.project_id = os.environ['SENTRY_FENIX_PROJECT_ID']
                 self.project = "fenix"
                 self.environment = "release"
                 self.package = "org.mozilla.firefox"
         except KeyError:
-            print("ERROR: Missing testrail env var")
+            print("ERROR: Missing sentry env var")
             sys.exit(1)
 
     # API: Issues
@@ -147,9 +145,7 @@ class SentryClient(Sentry):
     def __init__(self):
         print("SentryClient.__init__()")
         super().__init__()
-        self.ios_project_id = os.environ['SENTRY_IOS_PROJECT_ID']
-        self.fenix_project_id = os.environ['SENTRY_FENIX_PROJECT_ID']
-        self.db = DatabaseSentry()
+        self.db = DatabaseSentry(project_id=self.project_id, platform=self.platform)
 
     def data_pump():
         # Let's leave this to stay consistent with other
@@ -243,13 +239,12 @@ class SentryClient(Sentry):
 
 class DatabaseSentry:
 
-    def __init__(self):
+    def __init__(self, project_id='', platform='android'):
         print("DatabaseSentry.__init__()")
         super().__init__()
         self.db = Database()
-        self.ios_project_id = os.environ['SENTRY_IOS_PROJECT_ID']
-        self.fenix_project_id = os.environ['SENTRY_FENIX_PROJECT_ID']
-        self.platform = os.environ['SENTRY_PLATFORM']
+        self.project_id = project_id
+        self.platform = platform
 
     # Get the last two major versions
     def report_version_strings(self, release_versions, latest_version):
@@ -284,8 +279,9 @@ class DatabaseSentry:
             lifetime = issue['lifetime']
             count = lifetime.get('count', 0)
             user_count = lifetime.get('userCount', 0)
+            project_id = self.project_id
             row = [sentry_id, culprit, title, count, user_count,
-                   release_version, permalink]
+                   release_version, permalink, project_id]
             payload.append(row)
 
         # sentry_id: ID given by sentry. Maybe in the permalink as well
@@ -298,7 +294,7 @@ class DatabaseSentry:
         df = pd.DataFrame(data=payload,
                           columns=["sentry_id", "culprit", "title",
                                    "count", "user_count", "release_version",
-                                   "permalink"])
+                                   "permalink", "project_id"])
         return df
 
     def issue_insert(self, payload):
@@ -311,7 +307,8 @@ class DatabaseSentry:
                 count=row['count'],
                 user_count=row['user_count'],
                 release_version=row['release_version'],
-                permalink=row['permalink']
+                permalink=row['permalink'],
+                project_id=row['project_id']
             )
             self.db.session.add(issue)
             self.db.session.commit()
@@ -367,7 +364,8 @@ class DatabaseSentry:
             percentage_crash_free_rate_user,
             percentage_adoption_rate_user,
             release_version,
-            now
+            now,
+            self.project_id
         ]
         df = pd.DataFrame(
             data=[row],
@@ -376,7 +374,8 @@ class DatabaseSentry:
                 'crash_free_rate_session',
                 'adoption_rate_user',
                 'release_version',
-                'created_at'
+                'created_at',
+                'project_id'
             ]
         )
         return df
@@ -390,7 +389,8 @@ class DatabaseSentry:
                 crash_free_rate_user=row['crash_free_rate_user'],
                 adoption_rate_user=row['adoption_rate_user'],
                 release_version=row['release_version'],
-                created_at=row['created_at']
+                created_at=row['created_at'],
+                project_id=row['project_id']
             )
             self.db.session.add(rates)
             self.db.session.commit()

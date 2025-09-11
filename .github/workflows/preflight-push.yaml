@@ -103,15 +103,24 @@ jobs:
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
       - run: pip install -r requirements.txt
-      - name: Sentry query
+      - name: Sentry query (iOS)
         run: |
-          python __main__.py --report-type sentry-issues
-          python __main__.py --report-type sentry-rates
+          SENTRY_PLATFORM='ios' python __main__.py --report-type sentry-issues
+          SENTRY_PLATFORM='ios' python __main__.py --report-type sentry-rates
       - uses: actions/upload-artifact@v4
         with:
           name: sentry_issues
           path: ./sentry_issues_*.csv
-      - run: python -m api.sentry.utils ./sentry_rates.csv
+      - run: SENTRY_PLATFORM='ios' python -m api.sentry.utils ./sentry_rates.csv
+      - name: Sentry query (Android)
+        run: |
+          SENTRY_PLATFORM='android' python __main__.py --report-type sentry-issues
+          SENTRY_PLATFORM='android' python __main__.py --report-type sentry-rates
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sentry_issues
+          path: ./sentry_issues_*.csv
+      - run: SENTRY_PLATFORM='android' python -m api.sentry.utils ./sentry_rates.csv
 
   notify:
     name: Slack notify
