@@ -14,6 +14,7 @@ def get_all_future_versions():
     else:
         return sorted(list(response.json().keys()))
 
+
 def insert_rates(json_data, csv_file):
     all_future_versions = get_all_future_versions()
     print(all_future_versions)
@@ -66,7 +67,8 @@ def insert_rates(json_data, csv_file):
                     )
                 )
             else:
-                print("Version {0}'s adoption rate is less than 1%. Skipping.".format(row['release_version']))
+                print("Version {0}'s adoption rate is less than 1%. Skipping."
+                      .format(row['release_version']))
         json_data["blocks"].append(
             {
                 "type": "actions",
