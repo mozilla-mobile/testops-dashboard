@@ -403,7 +403,7 @@ DROP TABLE IF EXISTS `report_sentry_projects`;
 CREATE TABLE `report_sentry_projects` (
   `project_id` varchar(100) NOT NULL,
   `project` varchar(100) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`project_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
