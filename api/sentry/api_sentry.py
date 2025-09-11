@@ -257,7 +257,8 @@ class DatabaseSentry:
             raw_version = version['raw']
             major_version = int(version['major'])
             build_code = version['buildCode']
-            if oldest_major_version < major_version and major_version <= latest_major_version:
+            if oldest_major_version < major_version and \
+               major_version <= latest_major_version:
                 if self.platform == 'ios' and build_code is None:
                     payload.append(raw_version)
                 if self.platform == 'android' and build_code is not None:
