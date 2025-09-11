@@ -1,3 +1,4 @@
+import os
 import json
 import csv
 import sys
@@ -140,6 +141,11 @@ def insert_json_content(json_data, versions):
 
 def init_json():
     now = DatetimeUtils.start_date('0')
+    platform = ''
+    if os.environ.get('SENTRY_PLATFORM') == 'ios':
+        platform = ':apple: iOS'
+    else:
+        platform = ':android: Android'
     json_data = {
         "blocks": [
             {
@@ -147,8 +153,8 @@ def init_json():
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        "*:health: iOS Health Report ({0}) :sentry:*"
-                    ).format(now)
+                        "*:health: {0} Health Report ({1}) :sentry:*"
+                    ).format(platform, now)
                 }
             }
         ]
