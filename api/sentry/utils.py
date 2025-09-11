@@ -21,49 +21,52 @@ def insert_rates(json_data, csv_file):
         rows = csv.DictReader(file)
         for row in rows:
             print(row)
-            crash_free_rate_user = (
-                "NaN" if float(row['crash_free_rate_user']) < 0
-                else row['crash_free_rate_user']
-            )
-            crash_free_rate_session = (
-                "NaN" if float(row['crash_free_rate_session']) < 0
-                else row['crash_free_rate_session']
-            )
-            adoption_rate_user = (
-                "NaN" if float(row['adoption_rate_user']) < 0
-                else row['adoption_rate_user']
-            )
-            release_version = row['release_version']
-            if all_future_versions is not None:
-                if release_version in all_future_versions:
-                    release_version = release_version + " (Beta)"
-            json_data["blocks"].append(
-                {
-                    "type": "section",
-                    "text": {
-                        "type": "mrkdwn",
-                        "text": (
-                            "*v{0}* → :iphone: {1}%  "
-                            ":bust_in_silhouette: {2}% "
-                            ":rocket: {3}%"
-                        ).format(
-                            release_version,
-                            crash_free_rate_session,
-                            crash_free_rate_user,
-                            adoption_rate_user
-                        )
-                    }
-                }
-            )
-            print(
-                "crash_free_rate_user: {0}, crash_free_rate_session: {1}, "
-                "user_adoption_rate: {2}, release_version: {3}".format(
-                    crash_free_rate_user,
-                    crash_free_rate_session,
-                    adoption_rate_user,
-                    release_version
+            if float(row['adoption_rate_user']) > 1:
+                crash_free_rate_user = (
+                    "NaN" if float(row['crash_free_rate_user']) < 0
+                    else row['crash_free_rate_user']
                 )
-            )
+                crash_free_rate_session = (
+                    "NaN" if float(row['crash_free_rate_session']) < 0
+                    else row['crash_free_rate_session']
+                )
+                adoption_rate_user = (
+                    "NaN" if float(row['adoption_rate_user']) < 0
+                    else row['adoption_rate_user']
+                )
+                release_version = row['release_version']
+                if all_future_versions is not None:
+                    if release_version in all_future_versions:
+                        release_version = release_version + " (Beta)"
+                json_data["blocks"].append(
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": (
+                                "*v{0}* → :iphone: {1}%  "
+                                ":bust_in_silhouette: {2}% "
+                                ":rocket: {3}%"
+                            ).format(
+                                release_version,
+                                crash_free_rate_session,
+                                crash_free_rate_user,
+                                adoption_rate_user
+                            )
+                        }
+                    }
+                )
+                print(
+                    "crash_free_rate_user: {0}, crash_free_rate_session: {1}, "
+                    "user_adoption_rate: {2}, release_version: {3}".format(
+                        crash_free_rate_user,
+                        crash_free_rate_session,
+                        adoption_rate_user,
+                        release_version
+                    )
+                )
+            else:
+                print("Version {0}'s adoption rate is less than 1%. Skipping.".format(row['release_version']))
         json_data["blocks"].append(
             {
                 "type": "actions",
