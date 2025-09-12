@@ -193,7 +193,6 @@ class DatabaseSentry:
     def __init__(self):
         print("DatabaseSentry.__init__()")
         super().__init__()
-        self.project_id = os.environ['SENTRY_PROJECT_ID']
         self.db = Database()
 
     # Filter out the non-production versions such as 9000
@@ -254,9 +253,8 @@ class DatabaseSentry:
             lifetime = issue['lifetime']
             count = lifetime.get('count', 0)
             user_count = lifetime.get('userCount', 0)
-            project_id = self.project_id
             row = [sentry_id, culprit, title, count, user_count,
-                   release_version, permalink, project_id]
+                   release_version, permalink]
             payload.append(row)
 
         # sentry_id: ID given by sentry. Maybe in the permalink as well
@@ -282,8 +280,7 @@ class DatabaseSentry:
                 count=row['count'],
                 user_count=row['user_count'],
                 release_version=row['release_version'],
-                permalink=row['permalink'],
-                project_id=row['project_id']
+                permalink=row['permalink']
             )
             self.db.session.add(issue)
             self.db.session.commit()
@@ -339,8 +336,7 @@ class DatabaseSentry:
             percentage_crash_free_rate_user,
             percentage_adoption_rate_user,
             release_version,
-            now,
-            self.project_id
+            now
         ]
         df = pd.DataFrame(
             data=[row],
@@ -349,8 +345,7 @@ class DatabaseSentry:
                 'crash_free_rate_session',
                 'adoption_rate_user',
                 'release_version',
-                'created_at',
-                'project_id'
+                'created_at'
             ]
         )
         return df
@@ -364,8 +359,7 @@ class DatabaseSentry:
                 crash_free_rate_user=row['crash_free_rate_user'],
                 adoption_rate_user=row['adoption_rate_user'],
                 release_version=row['release_version'],
-                created_at=row['created_at'],
-                project_id=row['project_id']
+                created_at=row['created_at']
             )
             self.db.session.add(rates)
             self.db.session.commit()
