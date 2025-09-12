@@ -1,0 +1,59 @@
+name: Run report and verify inserts
+description: Runs a command, parses ROWS_INSERTED=N, and enforces zero policy
+
+inputs:
+  report_name:
+    description: Logical name of the report (for messages)
+    required: true
+  run:
+    description: Shell command to run the report (must print ROWS_INSERTED=N)
+    required: true
+  zero_ok:
+    description: 'Allow zero inserts without failing (true/false)'
+    required: false
+    default: 'false'
+  parse_regex:
+    description: RegEx to capture ROWS_INSERTED=NNN (advanced override)
+    required: '' 
+    default: 'ROWS_INSERTED\s*=\s*([0-9]+)'
+
+runs:
+  using: composite
+  steps:
+    - name: Run report
+      id: runreport
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "[verify] running: ${{ inputs.run }}"
+        bash -lc '${{ inputs.run }}' 2>&1 | tee report.out
+
+
+        # Pick regex
+        regex='ROWS_INSERTED=([0-9]+)'
+
+        # Find last match
+        count="$(grep -Eo "${{ inputs.parse_regex }}" report.out | sed -E 's/.*=([0-9]+).*/\1/' | tail -n1 || true)"
+        if [[ -z "${count:-}" ]]; then count=0; fi
+        echo "rows_inserted=${count}" >> "$GITHUB_OUTPUT"
+
+    - name: Show parsed count
+      shell: bash
+      run: echo "[verify] parsed rows_inserted=${{ steps.runreport.outputs.rows_inserted }}"
+
+    - name: Enforce non-zero inserts
+      if: steps.runreport.outputs.rows_inserted == '0' && inputs.zero_ok != 'true'
+      shell: bash
+      run: |
+        echo "::error::Report '${{ inputs.report_name }}' expected inserts but got 0"
+        echo "[verify] rows_inserted=0; showing last 200 lines of report.out for debugging"
+        tail -n 200 report.out || true
+        exit 1
+
+    - name: Diagnostic (zero allowed)
+      if: steps.runreport.outputs.rows_inserted == '0' && inputs.zero_ok == 'true'
+      shell: bash
+      run: |
+        echo "::warning::Report '${{ inputs.report_name }}' inserted 0 rows (allowed)"
+        echo "[verify] rows_inserted=0; showing last 100 lines of report.out for context"
+        tail -n 100 report.out || true

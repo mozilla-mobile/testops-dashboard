@@ -142,13 +142,10 @@ class TestRailClient(TestRail):
         # convert inputs to a list so we can easily
         # loop thru them
         project_ids_list = self.testrail_project_ids(project)
-        print(project_ids_list)
-        # TODO:
-        # currently only setup for test_case report
-        # fix this for test run data
+        #print(project_ids_list)
 
-        # Test suite data is dynamic. Wipe out old test suite data
-        # in database before updating.
+        # Test suite data is dynamic. Wipe out old test suite data in database
+        # before updating.
         self.db.test_suites_delete()
 
         for project_ids in project_ids_list:
@@ -210,7 +207,7 @@ class TestRailClient(TestRail):
 
         # Format and store data in a data payload array
         payload = self.db.report_test_coverage_payload(cases)
-        print(payload)
+        #print(payload)
 
         # Insert data in 'totals' array into DB
         self.db.report_test_coverage_insert(projects_id, payload)
@@ -614,10 +611,12 @@ class DatabaseTestRail(Database):
               .reset_index()
         )
 
+    '''
     def report_test_coverage_insert(self, projects_id, payload):
         # TODO:  Error on insert
         # insert data from totals into report_test_coverage table
 
+        rows = len(payload)
         for index, row in payload.iterrows():
             """
             # Diagnostic
@@ -644,6 +643,58 @@ class DatabaseTestRail(Database):
             )
             self.session.add(report)
             self.session.commit()
+        print(f'ROWS_INSERTED={rows}')
+    '''
+
+
+    # -----
+    def report_test_coverage_insert(self, projects_id, payload):
+        """
+        Insert data from totals into report_test_coverage table.
+        Uses a single bulk insert for performance.
+        DEBUG ONLY:
+            If you need to troubleshoot dirty rows causing failures,
+            uncomment the row-by-row section at the bottom of this function.
+        """
+        try:
+            reports = [
+                ReportTestCaseCoverage(
+                    projects_id=projects_id,
+                    testrail_test_suites_id=row["suit"],
+                    test_automation_status_id=row["status"],
+                    test_automation_coverage_id=row["cov"],
+                    test_sub_suites_id=row["sub"],
+                    test_count=row["tally"],
+                )
+                for _, row in payload.iterrows()
+            ]
+            self.session.bulk_save_objects(reports)
+            self.session.commit()
+            print("DIAGNOSTIC: batch insert!")
+            print(f"ROWS_INSERTED={len(reports)}")
+        except Exception as e:
+            self.session.rollback()
+            print(f"[error] Bulk insert failed: {e}")
+            # DEBUG ONLY: Uncomment this block to identify bad rows
+            """
+            for idx, row in payload.iterrows():
+                try:
+                    report = ReportTestCaseCoverage(
+                        projects_id=projects_id,
+                        testrail_test_suites_id=row["suit"],
+                        test_automation_status_id=row["status"],
+                        test_automation_coverage_id=row["cov"],
+                        test_sub_suites_id=row["sub"],
+                        test_count=row["tally"],
+                    )
+                    self.session.add(report)
+                    self.session.commit()
+                except Exception as row_e:
+                    self.session.rollback()
+                    print(f"[debug] Row {idx} failed: {row_e}")
+                    break
+            """
+    # -----
 
     def report_testrail_users_insert(self, payload):
         for index, row in payload.iterrows():
