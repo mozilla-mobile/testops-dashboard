@@ -92,24 +92,45 @@ jobs:
 
         continue-on-error: true
 
-      - name: Sentry query
+      - name: Sentry query (iOS)
         run: |
-          python __main__.py --report-type sentry-issues
-          python __main__.py --report-type sentry-rates
+          SENTRY_PLATFORM='ios' python __main__.py --report-type sentry-issues
+          SENTRY_PLATFORM='ios' python __main__.py --report-type sentry-rates
 
         continue-on-error: true
 
       - name: Construct JSON for Slack (Sentry)
         run: |
-          python -m api.sentry.utils ./sentry_rates.csv
+          SENTRY_PLATFORM='ios' python -m api.sentry.utils ./sentry_rates.csv
         continue-on-error: true
-      - name: Send latest Sentry issues to Slack
-        id: slack-sentry
+      - name: Send latest Sentry iOS issues to Slack
+        id: slack-sentry-ios
         uses: slackapi/slack-github-action@v2.1.0
         with:
           payload-file-path: "./sentry-slack.json"
           payload-templated: true 
           webhook:  ${{ secrets.SLACK_WEBHOOK_FIREFOX_IOS_DEV }}
+          webhook-type: incoming-webhook
+        continue-on-error: true
+
+      - name: Sentry query (Android)
+        run: |
+          SENTRY_PLATFORM='android' python __main__.py --report-type sentry-issues
+          SENTRY_PLATFORM='android' python __main__.py --report-type sentry-rates
+
+        continue-on-error: true
+
+      - name: Construct JSON for Slack (Sentry)
+        run: |
+          SENTRY_PLATFORM='android' python -m api.sentry.utils ./sentry_rates.csv
+        continue-on-error: true
+      - name: Send latest Sentry Android issues to Slack
+        id: slack-sentry-android
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./sentry-slack.json"
+          payload-templated: true 
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
         continue-on-error: true
   
