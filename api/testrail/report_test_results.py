@@ -4,6 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import sys
 import inspect
 
 from database import (
@@ -65,7 +66,13 @@ def testrail_test_results():
     # Insert data for beta and refer back to test run table
     db.clean_table(ReportTestRailTestResults)
     types = ("beta", "l10n")
+
+
     for i, type in enumerate(types):
+
+        print("DIAGNOSTIC")
+        print(f"type: {type}, i: {i}, tp_ids[i]: {tp_ids[i]}")
+
         runs = tr.get_test_plan(tp_ids[i])["entries"]
 
         for run in runs:
