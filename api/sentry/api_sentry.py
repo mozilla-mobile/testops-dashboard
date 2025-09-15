@@ -85,7 +85,6 @@ class Sentry:
     # &query=release.package:{{package}}&status=open&summaryStatsPeriod=24h
     # &sort=adoption&adoptionStages=adopted
     def releases_v2(self):
-        # Android TODO: filter out the 170, 169 etc
         return self.client.http_get(
             (
                 '/organizations/mozilla/releases/'
@@ -116,7 +115,6 @@ class Sentry:
 
     # API: Adoption Rate (Users)
     def sentry_adoption_rate(self, release):
-        # Android TODO: Need build number in release number
         health_info_release = self.client.http_get(
             (
                 "organizations/{0}/releases/{1}%40{2}/"
