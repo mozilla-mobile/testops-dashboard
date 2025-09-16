@@ -60,10 +60,10 @@ jobs:
             echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
             echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
 
-      - name: Jira query
+      - name: Jira query QA Requests
         run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
 
-      - name: Jira query
+      - name: Jira query Worklogs
         run: python ./__main__.py --report-type jira-softvision-worklogs
 
       - name: Bugzilla Desktop Bugs
@@ -74,3 +74,6 @@ jobs:
 
       - name: Bugzilla Android UI Tests Bugs Caught
         run: python ./__main__.py --report-type bugzilla-query-by-keyword --bz-keyword "ui-test-bug-auto-found"
+
+      - name: Bitrise builds count
+        run: python3 ./__main__.py --report-type bitrise-builds
