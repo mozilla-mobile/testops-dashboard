@@ -36,6 +36,7 @@ class ReportTestCaseCoverage(Base):
 # class ReportTestRunCounts(Base):
 #    __table__ = Table('report_test_run_counts', Base.metadata, autoload_with=pool)
 
+
 class ReportTestRailTestPlans(Base):
     __table__ = Table('report_testrail_test_plans', Base.metadata, autoload_with=pool)  # noqa
 

@@ -53,7 +53,7 @@ from handlers.testrail import (
     handle_testrail_milestones,
     handle_testrail_users,
     handle_testrail_test_case_coverage,
-    handle_testrail_test_run_counts_update,
+    # handle_testrail_test_run_counts_update,
 )
 
 
@@ -176,7 +176,7 @@ COMMAND_MAP = {
     'testrail-milestones': handle_testrail_milestones,
     'testrail-users': handle_testrail_users,
     'testrail-test-case-coverage': handle_testrail_test_case_coverage,
-    'testrail-test-run-counts': handle_testrail_test_run_counts_update,
+    # 'testrail-test-run-counts': handle_testrail_test_run_counts_update,
     'testrail-test-plans-and-runs': handle_testrail_test_plans_and_runs,
     'testrail-test-results': handle_testrail_test_results,
 }
@@ -185,14 +185,17 @@ COMMAND_MAP = {
 def main():
     args = parse_args(sys.argv[1:])
     args.arg_list = expand_project_args(args.platform, args.project)
-
     report_type = args.report_type
+
+    # DIAGNOSTIC
+    print(f"args: {args}")
+    print(f"args.report_type: {args.report_type}")
+    print(f"args.arg_list: {args.arg_list}")
 
     if report_type not in COMMAND_MAP:
         sys.exit(f"Unknown or unsupported report type: {report_type}")
 
     validate_project(args.platform, args.project, report_type)
-    # args.project_list = expand_project_args(args.platform, args.project)
 
     COMMAND_MAP[report_type](args)
 
