@@ -1,21 +1,26 @@
-name: Desktop Testops Report WEEKLY - Production
+name: Desktop Testops Report DAILY - Production Metrics
 
-# Sat. @4am UTC
+# Daily @4am UTC
 on:
   schedule:
-    - cron:  "0 7 * * 6" 
+    - cron:  "0 4 * * *"
   workflow_dispatch:
+    inputs:
+      branchName:
+        description: 'Default branch'
+        required: true
+        default: 'master'
 
 jobs:
   deploy:
-    name: Desktop TestOps Report (WEEKLY) - Production
+    name: Desktop TestOps Report (DAILY)
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out source repository
         uses: actions/checkout@v5
 
-      - name: Setup python 
+      - name: Setup python
         uses: actions/setup-python@v6
 
       - name: Establish Cloud SQL Proxy
@@ -25,10 +30,10 @@ jobs:
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
 
-      - name: Install requirements 
+      - name: Install requirements
         run: pip install -r requirements.txt
 
-      - name: Set env vars 
+      - name: Set env vars
         run: |
             echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
             echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
@@ -38,35 +43,22 @@ jobs:
             echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
             echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
             echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
+            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
+            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
+
+            echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
+
             echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
             echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
             echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+            
+            echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
+            echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
+            echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
 
       - name: Update DB - test coverage 
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform desktop --project ALL 
 
-        continue-on-error: true
-
       - name: Query Test Plans and Runs
-        run: python ./__main__.py --report-type testrail-test-results --project firefox-desktop
-
-      - name: Set job log URL
-        if: always()
-        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
-      - name: Send custom JSON data to Slack workflow
-        if: always()
-        id: slack
-        uses: slackapi/slack-github-action@v2.1.1
-        env:
-          WORKFLOW_NAME: ${{ github.workflow }}
-          BRANCH: ${{ github.head_ref || github.ref_name }}
-          JOB_STATUS: ${{ job.status == 'success' && ':white_check_mark:' || job.status == 'failure' && ':x:' }}
-          JOB_STATUS_COLOR: ${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#FF0000' }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
-          webhook-type: webhook-trigger
-          payload-templated: true
-          payload-file-path: "./config/payload-slack-content.json"
+        run: python ./__main__.py --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
