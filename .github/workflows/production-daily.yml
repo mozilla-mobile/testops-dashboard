@@ -95,14 +95,14 @@ jobs:
 
       - name: Sentry query (iOS)
         run: |
-          SENTRY_PLATFORM='ios' python __main__.py --report-type sentry-issues
-          SENTRY_PLATFORM='ios' python __main__.py --report-type sentry-rates
+          SENTRY_PROJECT='firefox-ios' python __main__.py --report-type sentry-issues
+          SENTRY_PROJECT='firefox-ios' python __main__.py --report-type sentry-rates
 
         continue-on-error: true
 
       - name: Construct JSON for Slack (Sentry)
         run: |
-          SENTRY_PLATFORM='ios' python -m api.sentry.utils ./sentry_rates.csv
+          SENTRY_PROJECT='firefox-ios' python -m api.sentry.utils ./sentry_rates.csv
         continue-on-error: true
       - name: Send latest Sentry iOS issues to Slack
         id: slack-sentry-ios
@@ -116,17 +116,17 @@ jobs:
 
       - name: Sentry query (Android)
         run: |
-          SENTRY_PLATFORM='android' python __main__.py --report-type sentry-issues
-          SENTRY_PLATFORM='android' python __main__.py --report-type sentry-rates
+          SENTRY_PROJECT='fenix' python __main__.py --report-type sentry-issues
+          SENTRY_PROJECT='fenix' python __main__.py --report-type sentry-rates
 
         continue-on-error: true
 
       - name: Construct JSON for Slack (Sentry)
         run: |
-          SENTRY_PLATFORM='android' python -m api.sentry.utils ./sentry_rates.csv
+          SENTRY_PROJECT='fenix' python -m api.sentry.utils ./sentry_rates.csv
         continue-on-error: true
       - name: Send latest Sentry Android issues to Slack
-        id: slack-sentry-android
+        id: slack-sentry-fenix
         uses: slackapi/slack-github-action@v2.1.0
         with:
           payload-file-path: "./sentry-slack.json"

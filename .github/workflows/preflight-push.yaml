@@ -106,22 +106,22 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Sentry query (iOS)
         run: |
-          SENTRY_PLATFORM='ios' python __main__.py --report-type sentry-issues
-          SENTRY_PLATFORM='ios' python __main__.py --report-type sentry-rates
+          SENTRY_PROJECT='firefox-ios' python __main__.py --report-type sentry-issues
+          SENTRY_PROJECT='firefox-ios' python __main__.py --report-type sentry-rates
       - uses: actions/upload-artifact@v4
         with:
-          name: sentry_issues_ios
-          path: ./sentry_issues_*.csv
-      - run: SENTRY_PLATFORM='ios' python -m api.sentry.utils ./sentry_rates.csv
+          name: sentry_issues_firefox_ios
+          path: ./sentry_issues_firefox-ios_*.csv
+      - run: SENTRY_PROJECT='firefox-ios' python -m api.sentry.utils ./sentry_rates.csv
       - name: Sentry query (Android)
         run: |
-          SENTRY_PLATFORM='android' python __main__.py --report-type sentry-issues
-          SENTRY_PLATFORM='android' python __main__.py --report-type sentry-rates
+          SENTRY_PROJECT='fenix' python __main__.py --report-type sentry-issues
+          SENTRY_PROJECT='fenix' python __main__.py --report-type sentry-rates
       - uses: actions/upload-artifact@v4
         with:
-          name: sentry_issues_android
-          path: ./sentry_issues_*.csv
-      - run: SENTRY_PLATFORM='android' python -m api.sentry.utils ./sentry_rates.csv
+          name: sentry_issues_fenix
+          path: ./sentry_issues_fenix_*.csv
+      - run: SENTRY_PROJECT='fenix' python -m api.sentry.utils ./sentry_rates.csv
 
   notify:
     name: Slack notify

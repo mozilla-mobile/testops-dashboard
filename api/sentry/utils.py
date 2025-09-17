@@ -142,7 +142,7 @@ def insert_json_content(json_data, versions):
 def init_json():
     now = DatetimeUtils.start_date('0')
     platform = ''
-    if os.environ.get('SENTRY_PLATFORM') == 'ios':
+    if os.environ.get('SENTRY_PROJECT') == 'firefox-ios':
         platform = ':apple: iOS'
     else:
         platform = ':android: Android'
