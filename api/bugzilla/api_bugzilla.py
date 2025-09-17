@@ -3,7 +3,9 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
-import re, requests, itertools, time
+import re
+import requests
+import time
 import pandas as pd
 <<<<<<< HEAD
 =======
@@ -29,9 +31,9 @@ from database import (
     ReportBugzillaQueryByKeyword,
 )
 
-#_CF_STATUS_RE = re.compile(r"^cf_status_firefox(\d+)$")
 _CF_REL_RE = re.compile(r"^cf_status_firefox(\d+)$")
 _FIELDS_URL = "https://bugzilla.mozilla.org/rest/field/bug"
+
 
 class Bugz:
 
@@ -58,6 +60,54 @@ class Bugz:
         query = with_retry(self.conn.bz_client.url_to_query, url)
         return query
 
+    def fetch_bug_history(self, bug_id: int, timeout: int = 30) -> list[tuple]:
+        url = f"https://bugzilla.mozilla.org/rest/bug/{bug_id}/history"
+        r = requests.get(url, timeout=timeout)
+        r.raise_for_status()
+        j = r.json()
+
+        hist = []
+        for b in j.get("bugs", []):
+            hist.extend(b.get("history", []))
+
+        out = []
+        for h in hist:
+            when = pd.to_datetime(h.get("when"), errors="coerce")
+            for ch in h.get("changes", []):
+                out.append((
+                    when,
+                    ch.get("field_name"),
+                    (ch.get("added") or "").strip().lower(),
+                    (ch.get("removed") or "").strip().lower(),
+                ))
+        out.sort(key=lambda x: x[0] if pd.notna(x[0]) else pd.Timestamp.min)
+        return out
+
+    # OPTIONAL: multi-bug helper with polite delay + basic retry
+    def fetch_many_bug_histories(
+        self,
+        bug_ids: list[int],
+        sleep_sec: float = 0.2,
+        timeout: int = 30,
+        retries: int = 2,
+    ) -> dict[int, list[tuple]]:
+        out: dict[int, list[tuple]] = {}
+        for bid in bug_ids:
+            err = None
+            for _ in range(retries + 1):
+                try:
+                    out[bid] = self.fetch_bug_history(bid, timeout=timeout)
+                    err = None
+                    break
+                except Exception as e:
+                    err = e
+                    time.sleep(sleep_sec)
+            if err:
+                print(f"[history] bug {bid} error: {err}")
+                out[bid] = []
+            time.sleep(sleep_sec)  # be polite
+        return out
+
 
 class BugzillaHelper:
     def __init__(self) -> None:
@@ -83,6 +133,16 @@ class BugzillaHelper:
         """Get a query from a Bugzilla URL."""
         return self.bugzilla.get_query_from_url(url)
 
+    def fetch_bug_history(self, bug_id: int, timeout: int = 30) -> list[tuple]:
+        return self.bugzilla.fetch_bug_history(bug_id, timeout=timeout)
+
+    def fetch_many_bug_histories(
+            self, bug_ids: list[int], sleep_sec: float = 0.2,
+            timeout: int = 30, retries: int = 2) -> dict[int, list[tuple]]:
+        return self.bugzilla.fetch_many_bug_histories(
+            bug_ids, sleep_sec=sleep_sec, timeout=timeout, retries=retries)
+
+
 class BugzillaClient(Bugz):
     def __init__(self):
         super().__init__()
@@ -90,10 +150,25 @@ class BugzillaClient(Bugz):
         self.BugzillaHelperClient = BugzillaHelper()
 
     def contains_flags(self, entry, criteria):
+        print("CONTAIN_FLAGS")
         return all(entry.get(key) == value for key, value in criteria.items())
 
-    # 1) Discover only release-train fields, keep last N numerically
+    def get_fixed_bug_ids(self) -> list[int]:
+        # Get bugs with resolution is FIXED from DB
+        R = ReportBugzillaSoftvisionBugs
+        norm_res = func.upper(func.trim(R.bugzilla_bug_resolution))
+
+        q = (
+            self.db.session
+            .query(distinct(R.bugzilla_key))
+            .filter(norm_res == 'FIXED')               # robust string compare
+        )
+        bug_ids = [int(row[0]) for row in q.all() if row[0] is not None]
+        print(f"[get_fixed_bug_ids] Found {len(bug_ids)} bugs with resolution=FIXED")
+        return bug_ids
+
     def _discover_release_status_fields(self, keep_last_n: int = 5) -> list[str]:
+        # Get last N release-train fields
         r = requests.get(_FIELDS_URL, timeout=30)
         r.raise_for_status()
         names = [f["name"] for f in r.json().get("fields", []) if "name" in f]
@@ -110,188 +185,89 @@ class BugzillaClient(Bugz):
 
         kept = [name for _, name in releases]
         versions = [v for v, _ in releases]
-        print(f"[version-flags] Keeping last {len(kept)} release trains: {kept} (versions={versions})")
+        print(f"[version-flags] last {len(kept)}: {kept} (versions={versions})")
         return kept
 
-
-    def get_distinct_bug_ids(self) -> list[int]:
+    def first_fixed_verified_by_version(self, history_rows):
         """
-        Efficiently fetch distinct bug_ids you already track.
-        Adjust the ORM model/class name & column to your schema.
+        Parse a bug's history and return {version:int -> first_timestamp: pd.Timestamp}
+        for the earliest time each cf_status_firefox{version} became fixed/verified.
         """
-        # Example ORM model: ReportBugzillaDesktopBugs with .bug_id column
-        q = (
-            self.db.session
-            .query(distinct(ReportBugzillaSoftvisionBugs.bugzilla_key))
-        )
-        # Optional: add where-clauses if you want to scope (e.g., only platform='desktop')
-        # q = q.filter(ReportBugzillaDesktopBugs.platform == 'desktop')
-
-        # Pull as Python ints
-        bug_ids = [int(row[0]) for row in q.all() if row[0] is not None]
-        return bug_ids
-
-    def _chunked(self, iterable, size):
-        it = iter(iterable)
-        while True:
-            batch = list(itertools.islice(it, size))
-            if not batch:
-                break
-            yield batch
-
-    def fetch_bug_history(self, bug_id: int, timeout=30):
-        url = f"https://bugzilla.mozilla.org/rest/bug/{bug_id}/history"
-        r = requests.get(url, timeout=timeout)
-        r.raise_for_status()
-        j = r.json()
-        # history is usually under j["bugs"][0]["history"]
-        hist = []
-        for b in j.get("bugs", []):
-            hist.extend(b.get("history", []))
-        # Normalize to list of (when, field_name, added, removed)
-        out = []
-        for h in hist:
-            when = pd.to_datetime(h.get("when"), errors="coerce")
-            for ch in h.get("changes", []):
-                out.append((when, ch.get("field_name"), (ch.get("added") or "").strip().lower(), (ch.get("removed") or "").strip().lower()))
-        # sort by time
-        out.sort(key=lambda x: x[0] if pd.notna(x[0]) else pd.Timestamp.min)
+        out = {}
+        for when, fname, added, removed in history_rows:
+            m = _CF_REL_RE.match(fname or "")
+            if not m:
+                continue
+            if added in ("fixed", "verified"):
+                v = int(m.group(1))
+                # first occurrence only
+                if v not in out:
+                    out[v] = when
         return out
 
-    def first_time_flag_became_fixed_or_verified(self, history_rows, major: int):
-        """Return the earliest timestamp when cf_status_firefox{major} became fixed/verified, or None."""
-        field = f"cf_status_firefox{major}"
-        first = None
-        for when, fname, added, removed in history_rows:
-            if fname == field and added in ("fixed", "verified"):
-                first = when
-                break
-        return first
+    def bugzilla_collect_version_flags_for_tracked_bugs(
+            self, keep_last_n: int = 5, batch_size: int = 400, save_csv: bool = True):
 
-    def add_fixed_verified_timestamp(self, df: pd.DataFrame, sleep_sec=0.2):
-        # Fast-path: if we already have cf_last_resolved and status fixed/verified, use it.
-        # (cf_last_resolved comes back as string; coerce to Timestamp.)
-        if "cf_last_resolved" in df.columns:
-            df["cf_last_resolved"] = pd.to_datetime(df["cf_last_resolved"], errors="coerce")
-
-        def fast_ts(row):
-            if row["status"] in ("fixed", "verified") and pd.notna(row.get("cf_last_resolved")):
-                return row["cf_last_resolved"]
-            return pd.NaT
-
-        df["flag_fixed_verified_at"] = df.apply(fast_ts, axis=1)
-
-        # Choose bugs that still need history (no fast ts) but are actually fixed/verified
-        need_mask = (
-            (df["flag_fixed_verified_at"].isna()) &
-            (
-                df["status"].isin(["fixed", "verified"]) |
-                (df.get("resolution", "").astype(str).str.lower() == "fixed")
-            )
-        )
-        candidates = df.loc[need_mask, "bug_id"].dropna().astype(int).unique().tolist()
-        if not candidates:
-            return df
-
-        # Fetch history once per bug_id
-        hist_cache = {}
-        for i, bid in enumerate(candidates, 1):
-            try:
-                hist_cache[bid] = self.fetch_bug_history(int(bid))
-            except Exception as e:
-                print(f"[history] bug {bid} error: {e}")
-                hist_cache[bid] = []
-            time.sleep(sleep_sec)  # be polite
-
-        def compute_row_ts(row):
-            # if we already filled from cf_last_resolved, keep it
-            if pd.notna(row["flag_fixed_verified_at"]):
-                return row["flag_fixed_verified_at"]
-            # if not fixed/verified, leave NaT
-            if (row["status"] not in ("fixed", "verified")) and (str(row.get("resolution","")).lower() != "fixed"):
-                return pd.NaT
-            hist = hist_cache.get(int(row["bug_id"]), [])
-            ts = self.first_time_flag_became_fixed_or_verified(hist, int(row["version"]))
-            return ts
-
-        df["flag_fixed_verified_at"] = df.apply(compute_row_ts, axis=1)
-        return df
-
-    def bugzilla_collect_version_flags_for_tracked_bugs(self, keep_last_n: int = 5, batch_size: int = 400, save_csv: bool = True):
-        """
-        - discovers latest N cf_status_firefox* fields
-        - fetches only for bug_ids already in your DB
-        - returns a df with columns: bug_id, version, status, snapshot_date, last_change_time
-        - optionally writes a timestamped CSV you can inspect
-        """
-        # 1) Discover release-train fields (you already have this)
         version_fields = self._discover_release_status_fields(keep_last_n=keep_last_n)
         if not version_fields:
-            print("[version-flags] No cf_status_firefox* release fields found.")
             return pd.DataFrame()
 
-        bug_ids = self.get_distinct_bug_ids()
+        # Get status flags only for FIXED in DB
+        bug_ids = self.get_fixed_bug_ids()
         if not bug_ids:
-            print("[version-flags] No tracked bug ids found in DB.")
             return pd.DataFrame()
 
-        print(f"[version-flags] Collecting fields: {version_fields}")
-        print(f"[version-flags] Tracked bug ids: {len(bug_ids)}")
-
-        include_fields = [
-            "id",
-            "last_change_time",
-            "qa_whiteboard",
-            "cf_qa_whiteboard",
-            "resolution",
-            "cf_last_resolved",
-        ] + version_fields
-        snapshot_date = pd.Timestamp.utcnow().date()
-
+        include_fields = ["id", "cf_qa_whiteboard", "resolution"] + version_fields
         rows = []
-        for batch in self._chunked(bug_ids, batch_size):
+
+        for i in range(0, len(bug_ids), batch_size):
+            batch = bug_ids[i:i + batch_size]
             query = {"id": ",".join(map(str, batch)), "include_fields": include_fields}
             bugs = BugzillaHelper().query(query)
 
             for bug in bugs:
-                bug_last_change = (
-                    pd.to_datetime(str(getattr(bug, "last_change_time", None)))
-                    if getattr(bug, "last_change_time", None)
-                    else pd.Timestamp.utcnow()
-                )
-
-                # capture once (same for all versions)
-                cf_last_resolved = getattr(bug, "cf_last_resolved", None)
-
                 for fname in version_fields:
                     m = _CF_REL_RE.match(fname)
                     if not m:
                         continue
                     version = int(m.group(1))
                     raw = getattr(bug, fname, None)
-                    status = (str(raw).strip().lower() if raw and str(raw).strip() else '---')
+                    status = (str(raw).strip().lower() if raw and str(raw).strip() else '---') # noqa
 
                     rows.append({
                         "bug_id": int(bug.id),
                         "version": version,
                         "status": status,
-                        "snapshot_date": snapshot_date,
-                        "last_change_time": bug_last_change,
-                        "qa-found-in": getattr(bug, "cf_qa_whiteboard", ""),          # <-- renamed, no hyphen
-                        "resolution": getattr(bug, "resolution", None),
-                        "cf_last_resolved": cf_last_resolved, # <-- for fast-path
+                        "qa-found-in": getattr(bug, "cf_qa_whiteboard", ""),
+                        "resolution": getattr(bug, "resolution", None)  # optional
                     })
 
         df = pd.DataFrame(rows)
         if df.empty:
-            print(f"[version-flags] Snapshot {snapshot_date}: no rows")
             return df
 
-        # Enrich with per-flag first-fixed/verified timestamp (fast-path + history where needed)
-        df = self.add_fixed_verified_timestamp(df)
+        # Fetch history only for flags that are fixed/verified
+        need_mask = df["status"].isin(["fixed", "verified"])
+        candidate_ids = df.loc[need_mask, "bug_id"].dropna().astype(int).unique().tolist() # noqa
 
-        print("[version-flags] Full dataframe (first 50 rows):")
-        print(df.head(50).to_string(index=False))
+        if candidate_ids:
+            # Pull histories just for those candidates
+            hist_cache = self.BugzillaHelperClient.fetch_many_bug_histories(candidate_ids, sleep_sec=0.2, timeout=30, retries=2) # noqa
+
+            # Precompute version->first_ts map per bug
+            first_ts_map = {bid: self.first_fixed_verified_by_version(hist_cache.get(bid, [])) # noqa
+                            for bid in candidate_ids}
+
+            def compute_row_ts(row):
+                if row["status"] not in ("fixed", "verified"):
+                    return pd.NaT
+                bug_id = int(row["bug_id"])
+                v = int(row["version"])
+                return first_ts_map.get(bug_id, {}).get(v, pd.NaT)
+
+            df["flag_fixed_verified_at"] = df.apply(compute_row_ts, axis=1)
+        else:
+            df["flag_fixed_verified_at"] = pd.NaT
 
         if save_csv:
             snapshot_ts = pd.Timestamp.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -300,7 +276,6 @@ class BugzillaClient(Bugz):
             print(f"[version-flags] Saved snapshot to {filename}")
 
         print(
-            f"[version-flags] Snapshot {snapshot_date}: {len(df)} rows | "
             f"versions={sorted(df['version'].unique())} | bugs={df['bug_id'].nunique()}"
         )
         return df
@@ -548,7 +523,7 @@ class BugzillaClient(Bugz):
         df_update = pd.DataFrame(rows)
 
         # This method does an UPDATE on conflict (not INSERT)
-        self.db.bugzilla_desktop_bugs_update_insert(df_update)
+        self.db.report_bugzilla_desktop_bugs_update_insert(df_update)
         print(f"Updated {len(df_update)} bugs in database.")
 
     def bugzilla_query_by_keyword(self, keyword: str):
