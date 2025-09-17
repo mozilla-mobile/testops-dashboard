@@ -209,11 +209,12 @@ class SentryClient(Sentry):
                 df_rates = pd.concat(
                     [df_rate, df_rates], axis=0
                 )
-            df_rate.to_csv(
-                "sentry_rates_{0}_{1}.csv"
-                .format(self.sentry_project, short_release_version),
-                index=False
-            )
+
+        # Output for Slack message
+        df_rates.to_csv(
+            "sentry_rates.csv",
+            index=False
+        )
 
         # Insert into database
         self.db.rate_insert(df_rates)
