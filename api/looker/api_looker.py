@@ -16,7 +16,7 @@ LOOKER_CLIENT_ID = os.environ['LOOKER_CLIENT_ID']
 LOOKER_SECRET = os.environ['LOOKER_SECRET']
 
 FOLDER_ID = 1820
-MAX_CONCURRENT_REQUESTS = 100
+MAX_CONCURRENT_REQUESTS = 10
 
 project_root = Path.cwd()
 IMAGES_DIR = project_root / "config" / "confluence" / "images"
