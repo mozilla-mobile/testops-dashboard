@@ -205,7 +205,7 @@ class BugzillaClient(Bugz):
                     out[v] = when
         return out
 
-    def bugzilla_collect_version_flags_for_tracked_bugs(
+    def bugzilla_query_release_flags_for_tracked_bugs(
             self, keep_last_n: int = 5, batch_size: int = 400, save_csv: bool = True):
 
         version_fields = self._discover_release_status_fields(keep_last_n=keep_last_n)
@@ -217,7 +217,7 @@ class BugzillaClient(Bugz):
         if not bug_ids:
             return pd.DataFrame()
 
-        include_fields = ["id", "cf_qa_whiteboard", "resolution"] + version_fields
+        include_fields = ["id", "cf_qa_whiteboard", "resolution", "keywords", "severity"] + version_fields
         rows = []
 
         for i in range(0, len(bug_ids), batch_size):
@@ -236,8 +236,10 @@ class BugzillaClient(Bugz):
 
                     rows.append({
                         "bug_id": int(bug.id),
-                        "version": version,
+                        "flag-version": version,
                         "status": status,
+                        "keywords": ", ".join(bug.keywords),
+                        "severity": bug.severity,
                         "qa-found-in": getattr(bug, "cf_qa_whiteboard", ""),
                         "resolution": getattr(bug, "resolution", None)  # optional
                     })
@@ -262,7 +264,7 @@ class BugzillaClient(Bugz):
                 if row["status"] not in ("fixed", "verified"):
                     return pd.NaT
                 bug_id = int(row["bug_id"])
-                v = int(row["version"])
+                v = int(row["flag-version"])
                 return first_ts_map.get(bug_id, {}).get(v, pd.NaT)
 
             df["flag_fixed_verified_at"] = df.apply(compute_row_ts, axis=1)
@@ -276,7 +278,7 @@ class BugzillaClient(Bugz):
             print(f"[version-flags] Saved snapshot to {filename}")
 
         print(
-            f"versions={sorted(df['version'].unique())} | bugs={df['bug_id'].nunique()}"
+            f"versions={sorted(df['flag-version'].unique())} | bugs={df['bug_id'].nunique()}"
         )
         return df
 

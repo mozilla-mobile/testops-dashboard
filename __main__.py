@@ -22,6 +22,7 @@ from handlers.bitrise import (
 
 from handlers.bugzilla import (
     handle_bugzilla_desktop_bugs,
+    handle_bugzilla_desktop_release_flags_for_bugs,
     handle_bugzilla_meta_bugs,
     handle_bugzilla_qe_verify,
     handle_bugzilla_query_by_keyword,
@@ -162,6 +163,7 @@ def expand_project_args(platform, projects):
 COMMAND_MAP = {
     'bitrise-builds': handle_bitrise_builds,
     'bugzilla-desktop-bugs': handle_bugzilla_desktop_bugs,
+    'bugzilla-desktop-release-flags-for-bugs': handle_bugzilla_desktop_release_flags_for_bugs,
     'bugzilla-meta-bugs': handle_bugzilla_meta_bugs,
     'bugzilla-qe-verify': handle_bugzilla_qe_verify,
     'bugzilla-query-by-keyword': handle_bugzilla_query_by_keyword,
