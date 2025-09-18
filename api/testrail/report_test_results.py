@@ -171,7 +171,7 @@ def testrail_run_counts_update(project, num_days):
     print(totals)
 
     # Insert data in the 'totals' array into DB
-    db.report_test_runs_insert(projects_id, totals)
+    report_test_runs_insert(projects_id, totals)
 
 
 # ===================================================================
@@ -228,3 +228,36 @@ def report_testrail_test_result_insert(db_run_id, payload, type):
         result['id'] = report.id
 
     return payload
+
+
+def report_test_runs_insert(self, db_plan_id, suite_id, runs):
+    db = _db()
+
+    for run in runs:
+        created_on = dt.convert_epoch_to_datetime(run['created_on'])
+        completed_on = (
+            dt.convert_epoch_to_datetime(run['completed_on'])
+            if run['completed_on'] else None
+        )
+        total_count = (
+            run['passed_count']
+            + run['retest_count']
+            + run['failed_count']
+            + run['blocked_count']
+        )
+
+        report_run = ReportTestRailTestRuns(
+            testrail_run_id=run['id'],
+            plan_id=db_plan_id,
+            suite_id=suite_id,
+            name=run['name'],
+            config=run['config'],
+            test_case_passed_count=run['passed_count'],
+            test_case_retest_count=run['retest_count'],
+            test_case_failed_count=run['failed_count'],
+            test_case_blocked_count=run['blocked_count'],
+            test_case_total_count=total_count,
+            testrail_created_on=created_on,
+            testrail_completed_on=completed_on)
+        db.session.add(report_run)
+        db.session.commit()
