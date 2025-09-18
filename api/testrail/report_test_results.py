@@ -171,7 +171,7 @@ def testrail_run_counts_update(project, num_days):
     print(totals)
 
     # Insert data in the 'totals' array into DB
-    db.report_test_runs_insert(projects_id, totals)
+    report_test_runs_insert(projects_id, totals)
 
 
 # ===================================================================
@@ -223,8 +223,8 @@ def report_testrail_test_result_insert(db_run_id, payload, type):
 
         report = ReportTestRailTestResults(**args)
 
-        #db.session.add(report)
-        #db.session.commit()
+        db.session.add(report)
+        db.session.commit()
         result['id'] = report.id
 
     return payload
@@ -256,5 +256,5 @@ def report_test_runs_insert(self, db_plan_id, suite_id, runs):
                 test_case_total_count=total_count,
                 testrail_created_on=created_on,
                 testrail_completed_on=completed_on)
-            #self.session.add(report_run)
-            #self.session.commit()
+            db.session.add(report_run)
+            db.session.commit()
