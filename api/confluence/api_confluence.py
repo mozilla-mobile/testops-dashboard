@@ -6,6 +6,7 @@
 import os
 import glob
 import json
+import re
 import requests
 import sys
 import yaml
@@ -14,7 +15,7 @@ from atlassian import Confluence
 from bs4 import BeautifulSoup
 from jinja2 import Template
 from pathlib import Path
-
+from typing import Literal, Optional
 
 # Confluence ENV vars
 ATLASSIAN_API_TOKEN = os.environ['ATLASSIAN_API_TOKEN']
@@ -29,6 +30,7 @@ confluence = Confluence(
     username=ATLASSIAN_USERNAME,
     password=ATLASSIAN_API_TOKEN
 )
+
 
 """
 # TODO: we should employ pathlib instead for all path declarations
@@ -66,6 +68,81 @@ print(f"PATH_XML_FILES: {PATH_XML_FILES} {'✅ Exists' if PATH_XML_FILES.exists(
 if not PATH_CONFIG.exists():
     raise FileNotFoundError(f"Config path does not exist: {PATH_CONFIG}")
 
+# ------------------------------------------------------------------
+# Managed page region helpers
+# ------------------------------------------------------------------
+
+# Confluence page managed region markers
+START_MARK = "<!-- BEGIN MANAGED:{name} -->"
+END_MARK = "<!-- END MANAGED:{name} -->"
+LEGACY_BLOCK_RE = re.compile(
+    r"\s*<h[1-6][^>]*>.*?</h[1-6]>\s*<table[^>]*>.*?</table>\s*",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+MissingMode = Literal["append", "replace_all"]
+
+
+def split_heading(generated_html: str):
+    # Split the first heading (H1–H6) from the rest.
+    m = re.search(r"</h[1-6]>", generated_html, flags=re.I)
+    if not m:
+        return "", generated_html
+    return generated_html[: m.end()], generated_html[m.end():]
+
+
+def has_managed_block(html: str) -> bool:
+    return "<!-- BEGIN MANAGED" in html and "<!-- END MANAGED" in html
+
+
+def make_managed_block(inner_html: str) -> str:
+    return f"{START_MARK}\n{inner_html}\n{END_MARK}"
+
+
+def upsert_managed_block(
+    existing_html: Optional[str],
+    inner_html: str,
+    on_missing: MissingMode = "append",
+) -> str:
+    """
+    Merge the auto-generated fragment (inner_html) into the existing page HTML:
+    - If the managed markers already exist, replace ONLY the content between them.
+    - If markers are missing:
+        - append: append a new managed block to the end of the page
+        - replace_all: replace the entire page body with just the managed block
+    Params:
+      existing_html: full Confluence storage HTML for the page
+                     (can be None on first run)
+      inner_html: the auto-generated fragment (tables + Looker images),
+                  NOT the whole page
+    Returns:
+      A full HTML string ready to PUT back to Confluence.
+    """
+    # 1) Normalize input
+    existing_html = existing_html or ""
+
+    # 2) Build a regex that finds the markers in a managed block
+    pattern = re.compile(
+        r"<!-- BEGIN MANAGED(?::[^>]*)? -->.*?<!-- END MANAGED(?::[^>]*)? -->",
+        re.DOTALL
+    )
+
+    # 3) Prepare the replacement block (markers + new generated HTML)
+    replacement = make_managed_block(inner_html)
+
+    # 4) If a managed block exists, replace it in-place (preserve all other content)
+    if pattern.search(existing_html):
+        return pattern.sub(replacement, existing_html, count=1)
+
+    # 5) If missing, choose first-run behavior
+    if on_missing == "replace_all":
+        # Clean rollout for pages with no manual edits: no duplication
+        return replacement
+
+    # Default: append to the end (can duplicate on first run if
+    #          page already had generated content)
+    return f"{existing_html}\n{replacement}" if existing_html else replacement
 
 # ------------------------------------------------------------------
 # URL string builders
@@ -84,7 +161,7 @@ def url_attachments(page_id):
 
 def url_page_content_storage(page_id):
     path = url_page(page_id)
-    return f"{path}?expand=body.storage"
+    return f"{path}?status=current&expand=body.storage,version,space"
 
 
 # ------------------------------------------------------------------
@@ -255,8 +332,6 @@ def pages_looker_graphs():
             page_id = config["wiki_page"].get("page_id")
             page_sections = config["wiki_page"]["sections"]
 
-            url = url_page(page_id)
-
             print(f"PROCESS ATTACHMENTS - page_id: {page_id}")
             image_attachments_list(page_id)
             image_attachments_delete(page_id)
@@ -264,11 +339,45 @@ def pages_looker_graphs():
             image_attachments_upload(page_id)
 
             print(f"UPDATE PAGE - page_id: {page_id}")
-            page_data = page_object(url)
+            page_data = page_object(url_page_content_storage(page_id))
+            existing_storage_html = page_data["body"]["storage"]["value"]
             current_version = page_data["version"]["number"]
-            new_content = page_html(page_id, page_sections)
-            payload = page_payload(page_id, page_title, page_data,
-                                   current_version, new_content)
+
+            # Generate only the managed fragment (tables + images)
+            full_generated = page_html(page_id, page_sections)
+            heading_html, table_html = split_heading(full_generated)
+
+            if not has_managed_block(existing_storage_html):
+                # One-time cleanup: remove the all legacy heading+table if present
+                cleaned_html = LEGACY_BLOCK_RE.sub("", existing_storage_html)
+
+                # First run: insert title and a persistent gap above the table
+                extra_html = (
+                    "\n<hr />\n<p><br/></p>\n"
+                    "<hr />\n"
+                )
+
+                base_html = cleaned_html + heading_html + extra_html
+
+                merged_html = upsert_managed_block(
+                    base_html,
+                    table_html,          # manage ONLY the table/images
+                    on_missing="append"  # append the managed block after the gap
+                )
+            else:
+                merged_html = upsert_managed_block(
+                    existing_storage_html,
+                    table_html
+                )
+
+            payload = page_payload(
+                page_id,
+                page_title,
+                page_data,
+                current_version,
+                merged_html
+            )
+
             page_payload_write(page_id, payload)
 
 
