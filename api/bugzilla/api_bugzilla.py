@@ -29,6 +29,7 @@ from database import (
     ReportBugzillaSoftvisionBugs,
     ReportBugzillaMetaBugs,
     ReportBugzillaQueryByKeyword,
+    ReportBugzillaReleaseFlagsBugs,
 )
 
 _CF_REL_RE = re.compile(r"^cf_status_firefox(\d+)$")
@@ -235,7 +236,7 @@ class BugzillaClient(Bugz):
                     status = (str(raw).strip().lower() if raw and str(raw).strip() else '---') # noqa
 
                     rows.append({
-                        "bug_id": int(bug.id),
+                        "bugzilla_key": int(bug.id),
                         "flag-version": version,
                         "status": status,
                         "keywords": ", ".join(bug.keywords),
@@ -250,7 +251,7 @@ class BugzillaClient(Bugz):
 
         # Fetch history only for flags that are fixed/verified
         need_mask = df["status"].isin(["fixed", "verified"])
-        candidate_ids = df.loc[need_mask, "bug_id"].dropna().astype(int).unique().tolist() # noqa
+        candidate_ids = df.loc[need_mask, "bugzilla_key"].dropna().astype(int).unique().tolist() # noqa
 
         if candidate_ids:
             # Pull histories just for those candidates
@@ -263,13 +264,13 @@ class BugzillaClient(Bugz):
             def compute_row_ts(row):
                 if row["status"] not in ("fixed", "verified"):
                     return pd.NaT
-                bug_id = int(row["bug_id"])
+                bugzilla_key = int(row["bugzilla_key"])
                 v = int(row["flag-version"])
-                return first_ts_map.get(bug_id, {}).get(v, pd.NaT)
+                return first_ts_map.get(bugzilla_key, {}).get(v, pd.NaT)
 
-            df["flag_fixed_verified_at"] = df.apply(compute_row_ts, axis=1)
+            df["bugzilla_flag_fixed_at"] = df.apply(compute_row_ts, axis=1)
         else:
-            df["flag_fixed_verified_at"] = pd.NaT
+            df["bugzilla_flag_fixed_at"] = pd.NaT
 
         if save_csv:
             snapshot_ts = pd.Timestamp.utcnow().strftime("%Y%m%d_%H%M%S")
@@ -278,8 +279,11 @@ class BugzillaClient(Bugz):
             print(f"[version-flags] Saved snapshot to {filename}")
 
         print(
-            f"versions={sorted(df['flag-version'].unique())} | bugs={df['bug_id'].nunique()}"
+            f"versions={sorted(df['flag-version'].unique())} | bugs={df['bugzilla_key'].nunique()}"
         )
+        print(df)
+        self.db.clean_table(ReportBugzillaReleaseFlagsBugs)
+        self.db.report_bugzilla_query_release_flags_for_bugs(df)
         return df
 
     def bugzilla_query_desktop_bugs(self):
@@ -647,6 +651,29 @@ class DatabaseBugzilla(Database):
         self.session.add(report)
         self.session.commit()
 
+    def report_bugzilla_query_release_flags_for_bugs(self, payload):
+        print(payload)
+        for index, row in payload.iterrows():
+            try:
+                bugzilla_bug_keyword = (
+                    ", ".join(row["keywords"])
+                    if isinstance(row["keywords"], list)
+                    else None
+                )
+                report = ReportBugzillaReleaseFlagsBugs(
+                    bugzilla_key=row['bugzilla_key'],
+                    bugzilla_release_version=row['flag-version'],
+                    bugzilla_bug_status=row['status'],
+                    bugzilla_bug_keywords=row['keywords'],
+                    bugzilla_bug_severity=row['severity'],
+                    bugzilla_bug_qa_found_in=row['qa-found-in'], 
+                    bugzilla_bug_resolution=row['resolution'],
+                    bugzilla_bug_flag_fixed_at=None if pd.isna(row['bugzilla_flag_fixed_at']) else row['bugzilla_flag_fixed_at'])
+                self.session.add(report)
+            except KeyError as e:
+                print(f"Missing key: {e} in row {index}")
+        self.session.commit()
+
     def report_bugzilla_meta_bug(self, payload):
         for index, row in payload.iterrows():
             print(row)
@@ -665,6 +692,7 @@ class DatabaseBugzilla(Database):
                     bugzilla_bug_parent=row['parent_bug_id'],
                     bugzilla_bug_product=row['product']
                 )
+                
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")
             self.session.add(report)
