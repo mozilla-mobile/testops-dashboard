@@ -9,6 +9,7 @@ import os
 import bugzilla
 
 from constants import BUGZILLA_URL
+from utils.retry_bz import with_retry
 
 
 class BugzillaAPIClient:
@@ -30,4 +31,8 @@ class BugzillaAPIClient:
         if not self.key:
             raise Exception("Missing BUGZILLA_API_KEY")
         if self.key:
-            self.bz_client = bugzilla.Bugzilla(self.URL, api_key=self.key)
+            self.bz_client = with_retry(
+                bugzilla.Bugzilla,
+                self.URL,
+                api_key=self.key,
+            )

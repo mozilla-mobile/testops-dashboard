@@ -4,13 +4,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 import pandas as pd
-from datetime import datetime
-from sqlalchemy import func
 
 from constants import PRODUCTS, FIELDS
 from constants import BUGZILLA_BUGS_FIELDS, BUGZILLA_QA_WHITEBOARD_FILTER
+from datetime import datetime
 from lib.bugzilla_conn import BugzillaAPIClient
+from sqlalchemy import func
 from utils.datetime_utils import DatetimeUtils
+from utils.retry_bz import with_retry
 
 from database import (
     Database,
@@ -28,23 +29,23 @@ class Bugz:
         self.conn = BugzillaAPIClient()
 
     def get_bugs(self, bug_ids: list) -> list:
-        bugs = self.conn.bz_client.getbugs(bug_ids)
+        bugs = with_retry(self.conn.bz_client.getbugs, bug_ids)
         return bugs
 
     def get_bug(self, bug_ids: list) -> list:
-        bugs = self.conn.bz_client.getbug(bug_ids)
+        bugs = with_retry(self.conn.bz_client.getbug, bug_ids)
         return bugs
 
     def build_query(self, query: dict) -> dict:
-        formatted_query = self.conn.bz_client.build_query(query)
+        formatted_query = with_retry(self.conn.bz_client.build_query, query)
         return formatted_query
 
     def query(self, query: dict) -> list:
-        bugs = self.conn.bz_client.query(query)
+        bugs = with_retry(self.conn.bz_client.query, query)
         return bugs
 
     def get_query_from_url(self, url: str) -> dict:
-        query = self.conn.bz_client.url_to_query(url)
+        query = with_retry(self.conn.bz_client.url_to_query, url)
         return query
 
 
@@ -428,7 +429,7 @@ class DatabaseBugzilla(Database):
                             bugzilla_bug_priority=row['bugzilla_bug_priority'],
                             bugzilla_bug_status=row['bugzilla_bug_status'],
                             bugzilla_bug_resolution=row['bugzilla_bug_resolution'] # noqa
-                    )
+                )
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")
             self.session.add(report)
@@ -441,7 +442,8 @@ class DatabaseBugzilla(Database):
 
     def report_bugzilla_qa_needed_count_insert(self, payload):
         report = ReportBugzillaQEVerifyCount(
-                        bugzilla_total_qa_needed=payload[0])
+            bugzilla_total_qa_needed=payload[0]
+        )
 
         self.session.add(report)
         self.session.commit()
