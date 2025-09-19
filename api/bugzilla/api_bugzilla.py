@@ -3,9 +3,13 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+import re
+import requests
+import time
 import pandas as pd
 from datetime import datetime
-from sqlalchemy import func
+from sqlalchemy import func, distinct
+
 
 from constants import PRODUCTS, FIELDS
 from constants import BUGZILLA_BUGS_FIELDS, BUGZILLA_QA_WHITEBOARD_FILTER
@@ -19,7 +23,11 @@ from database import (
     ReportBugzillaSoftvisionBugs,
     ReportBugzillaMetaBugs,
     ReportBugzillaQueryByKeyword,
+    ReportBugzillaReleaseFlagsBugs,
 )
+
+_CF_REL_RE = re.compile(r"^cf_status_firefox(\d+)$")
+_FIELDS_URL = "https://bugzilla.mozilla.org/rest/field/bug"
 
 
 class Bugz:
@@ -47,6 +55,54 @@ class Bugz:
         query = self.conn.bz_client.url_to_query(url)
         return query
 
+    def fetch_bug_history(self, bug_id: int, timeout: int = 30) -> list[tuple]:
+        url = f"https://bugzilla.mozilla.org/rest/bug/{bug_id}/history"
+        r = requests.get(url, timeout=timeout)
+        r.raise_for_status()
+        j = r.json()
+
+        hist = []
+        for b in j.get("bugs", []):
+            hist.extend(b.get("history", []))
+
+        out = []
+        for h in hist:
+            when = pd.to_datetime(h.get("when"), errors="coerce")
+            for ch in h.get("changes", []):
+                out.append((
+                    when,
+                    ch.get("field_name"),
+                    (ch.get("added") or "").strip().lower(),
+                    (ch.get("removed") or "").strip().lower(),
+                ))
+        out.sort(key=lambda x: x[0] if pd.notna(x[0]) else pd.Timestamp.min)
+        return out
+
+    # OPTIONAL: multi-bug helper with polite delay + basic retry
+    def fetch_many_bug_histories(
+        self,
+        bug_ids: list[int],
+        sleep_sec: float = 0.2,
+        timeout: int = 30,
+        retries: int = 2,
+    ) -> dict[int, list[tuple]]:
+        out: dict[int, list[tuple]] = {}
+        for bid in bug_ids:
+            err = None
+            for _ in range(retries + 1):
+                try:
+                    out[bid] = self.fetch_bug_history(bid, timeout=timeout)
+                    err = None
+                    break
+                except Exception as e:
+                    err = e
+                    time.sleep(sleep_sec)
+            if err:
+                print(f"[history] bug {bid} error: {err}")
+                out[bid] = []
+            time.sleep(sleep_sec)  # be polite
+        return out
+
 
 class BugzillaHelper:
     def __init__(self) -> None:
@@ -72,6 +128,15 @@ class BugzillaHelper:
         """Get a query from a Bugzilla URL."""
         return self.bugzilla.get_query_from_url(url)
 
+    def fetch_bug_history(self, bug_id: int, timeout: int = 30) -> list[tuple]:
+        return self.bugzilla.fetch_bug_history(bug_id, timeout=timeout)
+
+    def fetch_many_bug_histories(
+            self, bug_ids: list[int], sleep_sec: float = 0.2,
+            timeout: int = 30, retries: int = 2) -> dict[int, list[tuple]]:
+        return self.bugzilla.fetch_many_bug_histories(
+            bug_ids, sleep_sec=sleep_sec, timeout=timeout, retries=retries)
+
 
 class BugzillaClient(Bugz):
     def __init__(self):
@@ -80,7 +145,140 @@ class BugzillaClient(Bugz):
         self.BugzillaHelperClient = BugzillaHelper()
 
     def contains_flags(self, entry, criteria):
+        print("CONTAIN_FLAGS")
         return all(entry.get(key) == value for key, value in criteria.items())
+
+    def get_fixed_bug_ids(self) -> list[int]:
+        # Get bugs with resolution is FIXED from DB
+        R = ReportBugzillaSoftvisionBugs
+        norm_res = func.upper(func.trim(R.bugzilla_bug_resolution))
+
+        q = (
+            self.db.session
+            .query(distinct(R.bugzilla_key))
+            .filter(norm_res == 'FIXED')               # robust string compare
+        )
+        bug_ids = [int(row[0]) for row in q.all() if row[0] is not None]
+        print(f"[get_fixed_bug_ids] Found {len(bug_ids)} bugs with resolution=FIXED")
+        return bug_ids
+
+    def _discover_release_status_fields(self, keep_last_n: int = 5) -> list[str]:
+        # Get last N release-train fields
+        r = requests.get(_FIELDS_URL, timeout=30)
+        r.raise_for_status()
+        names = [f["name"] for f in r.json().get("fields", []) if "name" in f]
+
+        releases = []
+        for n in names:
+            m = _CF_REL_RE.match(n)
+            if m:
+                releases.append((int(m.group(1)), n))
+        releases.sort(key=lambda t: t[0])  # sort by version number
+
+        if keep_last_n and len(releases) > keep_last_n:
+            releases = releases[-keep_last_n:]  # keep the 5 most recent trains
+
+        kept = [name for _, name in releases]
+        versions = [v for v, _ in releases]
+        print(f"[version-flags] last {len(kept)}: {kept} (versions={versions})")
+        return kept
+
+    def first_fixed_verified_by_version(self, history_rows):
+        """
+        Parse a bug's history and return {version:int -> first_timestamp: pd.Timestamp}
+        for the earliest time each cf_status_firefox{version} became fixed/verified.
+        """
+        out = {}
+        for when, fname, added, removed in history_rows:
+            m = _CF_REL_RE.match(fname or "")
+            if not m:
+                continue
+            if added in ("fixed", "verified"):
+                v = int(m.group(1))
+                # first occurrence only
+                if v not in out:
+                    out[v] = when
+        return out
+
+    def bugzilla_query_release_flags_for_tracked_bugs(
+            self, keep_last_n: int = 5, batch_size: int = 400, save_csv: bool = True):
+
+        version_fields = self._discover_release_status_fields(keep_last_n=keep_last_n)
+        if not version_fields:
+            return pd.DataFrame()
+
+        # Get status flags only for FIXED in DB
+        bug_ids = self.get_fixed_bug_ids()
+        if not bug_ids:
+            return pd.DataFrame()
+
+        include_fields = ["id", "cf_qa_whiteboard", "resolution", "keywords", "severity"] + version_fields
+        rows = []
+
+        for i in range(0, len(bug_ids), batch_size):
+            batch = bug_ids[i:i + batch_size]
+            query = {"id": ",".join(map(str, batch)), "include_fields": include_fields}
+            bugs = BugzillaHelper().query(query)
+
+            for bug in bugs:
+                for fname in version_fields:
+                    m = _CF_REL_RE.match(fname)
+                    if not m:
+                        continue
+                    version = int(m.group(1))
+                    raw = getattr(bug, fname, None)
+                    status = (str(raw).strip().lower() if raw and str(raw).strip() else '---') # noqa
+
+                    rows.append({
+                        "bugzilla_key": int(bug.id),
+                        "flag-version": version,
+                        "status": status,
+                        "keywords": ", ".join(bug.keywords),
+                        "severity": bug.severity,
+                        "qa-found-in": getattr(bug, "cf_qa_whiteboard", ""),
+                        "resolution": getattr(bug, "resolution", None)  # optional
+                    })
+
+        df = pd.DataFrame(rows)
+        if df.empty:
+            return df
+
+        # Fetch history only for flags that are fixed/verified
+        need_mask = df["status"].isin(["fixed", "verified"])
+        candidate_ids = df.loc[need_mask, "bugzilla_key"].dropna().astype(int).unique().tolist() # noqa
+
+        if candidate_ids:
+            # Pull histories just for those candidates
+            hist_cache = self.BugzillaHelperClient.fetch_many_bug_histories(candidate_ids, sleep_sec=0.2, timeout=30, retries=2) # noqa
+
+            # Precompute version->first_ts map per bug
+            first_ts_map = {bid: self.first_fixed_verified_by_version(hist_cache.get(bid, [])) # noqa
+                            for bid in candidate_ids}
+
+            def compute_row_ts(row):
+                if row["status"] not in ("fixed", "verified"):
+                    return pd.NaT
+                bugzilla_key = int(row["bugzilla_key"])
+                v = int(row["flag-version"])
+                return first_ts_map.get(bugzilla_key, {}).get(v, pd.NaT)
+
+            df["bugzilla_flag_fixed_at"] = df.apply(compute_row_ts, axis=1)
+        else:
+            df["bugzilla_flag_fixed_at"] = pd.NaT
+
+        if save_csv:
+            snapshot_ts = pd.Timestamp.utcnow().strftime("%Y%m%d_%H%M%S")
+            filename = f"version_flags_snapshot_{snapshot_ts}.csv"
+            df.to_csv(filename, index=False)
+            print(f"[version-flags] Saved snapshot to {filename}")
+
+        print(
+            f"versions={sorted(df['flag-version'].unique())} | bugs={df['bugzilla_key'].nunique()}"
+        )
+        print(df)
+        self.db.clean_table(ReportBugzillaReleaseFlagsBugs)
+        self.db.report_bugzilla_query_release_flags_for_bugs(df)
+        return df
 
     def bugzilla_query_desktop_bugs(self):
         # Get latest entry in database to update bugs
@@ -325,7 +523,7 @@ class BugzillaClient(Bugz):
         df_update = pd.DataFrame(rows)
 
         # This method does an UPDATE on conflict (not INSERT)
-        self.db.bugzilla_desktop_bugs_update_insert(df_update)
+        self.db.report_bugzilla_desktop_bugs_update_insert(df_update)
         print(f"Updated {len(df_update)} bugs in database.")
 
     def bugzilla_query_by_keyword(self, keyword: str):
@@ -446,6 +644,29 @@ class DatabaseBugzilla(Database):
         self.session.add(report)
         self.session.commit()
 
+    def report_bugzilla_query_release_flags_for_bugs(self, payload):
+        print(payload)
+        for index, row in payload.iterrows():
+            try:
+                bugzilla_bug_keyword = (
+                    ", ".join(row["keywords"])
+                    if isinstance(row["keywords"], list)
+                    else None
+                )
+                report = ReportBugzillaReleaseFlagsBugs(
+                    bugzilla_key=row['bugzilla_key'],
+                    bugzilla_release_version=row['flag-version'],
+                    bugzilla_bug_status=row['status'],
+                    bugzilla_bug_keywords=row['keywords'],
+                    bugzilla_bug_severity=row['severity'],
+                    bugzilla_bug_qa_found_in=row['qa-found-in'], 
+                    bugzilla_bug_resolution=row['resolution'],
+                    bugzilla_bug_flag_fixed_at=None if pd.isna(row['bugzilla_flag_fixed_at']) else row['bugzilla_flag_fixed_at'])
+                self.session.add(report)
+            except KeyError as e:
+                print(f"Missing key: {e} in row {index}")
+        self.session.commit()
+
     def report_bugzilla_meta_bug(self, payload):
         for index, row in payload.iterrows():
             print(row)
@@ -464,6 +685,7 @@ class DatabaseBugzilla(Database):
                     bugzilla_bug_parent=row['parent_bug_id'],
                     bugzilla_bug_product=row['product']
                 )
+                
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")
             self.session.add(report)
