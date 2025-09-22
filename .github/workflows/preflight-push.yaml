@@ -112,7 +112,8 @@ jobs:
         with:
           name: sentry_issues_firefox_ios
           path: ./sentry_issues_firefox-ios_*.csv
-      - run: SENTRY_PROJECT='firefox-ios' python -m api.sentry.utils ./sentry_rates.csv
+      - name: Construct JSON for Slack (Sentry)
+        run: SENTRY_PROJECT='firefox-ios' python -m api.sentry.utils ./sentry_rates.csv
       - name: Sentry query (Android)
         run: |
           SENTRY_PROJECT='fenix' python __main__.py --report-type sentry-issues
@@ -121,7 +122,8 @@ jobs:
         with:
           name: sentry_issues_fenix
           path: ./sentry_issues_fenix_*.csv
-      - run: SENTRY_PROJECT='fenix' python -m api.sentry.utils ./sentry_rates.csv
+      - name: Construct JSON for Slack (Sentry)
+        run: SENTRY_PROJECT='fenix' python -m api.sentry.utils ./sentry_rates.csv
 
   notify:
     name: Slack notify
