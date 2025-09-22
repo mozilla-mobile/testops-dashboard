@@ -163,7 +163,7 @@ def expand_project_args(platform, projects):
 COMMAND_MAP = {
     'bitrise-builds': handle_bitrise_builds,
     'bugzilla-desktop-bugs': handle_bugzilla_desktop_bugs,
-    'bugzilla-desktop-release-flags-for-bugs': handle_bugzilla_desktop_release_flags_for_bugs,
+    'bugzilla-desktop-release-flags-for-bugs': handle_bugzilla_desktop_release_flags_for_bugs, # noqa
     'bugzilla-meta-bugs': handle_bugzilla_meta_bugs,
     'bugzilla-qe-verify': handle_bugzilla_qe_verify,
     'bugzilla-query-by-keyword': handle_bugzilla_query_by_keyword,

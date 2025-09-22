@@ -96,8 +96,10 @@ class ReportSentryRates(Base):
 class ReportBugzillaSoftvisionBugs(Base):
     __table__ = Table('report_bugzilla_softvision_bugs', Base.metadata, autoload_with=pool)  # noqa
 
+
 class ReportBugzillaReleaseFlagsBugs(Base):
-    __table__ = Table('report_bugzilla_query_release_flags_for_bugs', Base.metadata, autoload_with=pool)
+    __table__ = Table('report_bugzilla_query_release_flags_for_bugs', Base.metadata, autoload_with=pool) # noqa
+
 
 class ReportTestRailTestResults(Base):
     __table__ = Table('report_testrail_test_results', Base.metadata, autoload_with=pool)  # noqa
