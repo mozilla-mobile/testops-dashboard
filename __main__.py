@@ -115,8 +115,9 @@ def validate_project(platform, project, report_type):
             print("--project is required for the report selected")
         if not platform:
             print("--platform is required for the report selected")
-    
-    if report_type in ('sentry-issues', 'sentry-rates') and project not in PROJECTS_SENTRY:
+
+    if (report_type in ('sentry-issues', 'sentry-rates')
+            and project not in PROJECTS_SENTRY):
         print(
             f"Error: Invalid project '{project}' for Sentry reports. "
             f"Valid options are {PROJECTS_SENTRY}"
