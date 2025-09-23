@@ -1,7 +1,5 @@
-import os
 import json
 import csv
-import sys
 import argparse
 from pathlib import Path
 import requests
@@ -143,7 +141,7 @@ def insert_json_content(json_data, versions):
 def init_json(project):
     now = DatetimeUtils.start_date('0')
     platform = ''
-    if project == 'firefox-ios': # here we go
+    if project == 'firefox-ios':
         platform = ':apple: iOS'
     else:
         platform = ':android: Android'
@@ -174,10 +172,11 @@ def main(file_csv, project):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Generate Slack message from Sentry CSV data')
+    parser = argparse.ArgumentParser(
+        description='Generate Slack message from Sentry CSV data')
     parser.add_argument('--file', required=True, help='Path to the input CSV file')
-    parser.add_argument('--project', required=True, 
+    parser.add_argument('--project', required=True,
                         help='Sentry project name (firefox-ios or fenix)')
-    
+
     args = parser.parse_args()
     main(args.file, args.project)
