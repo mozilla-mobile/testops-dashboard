@@ -102,7 +102,7 @@ jobs:
 
       - name: Construct JSON for Slack (Sentry)
         run: |
-          SENTRY_PROJECT='firefox-ios' python -m api.sentry.utils ./sentry_rates.csv
+          python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
         continue-on-error: true
       - name: Send latest Sentry iOS issues to Slack
         id: slack-sentry-ios
@@ -123,7 +123,7 @@ jobs:
 
       - name: Construct JSON for Slack (Sentry)
         run: |
-          SENTRY_PROJECT='fenix' python -m api.sentry.utils ./sentry_rates.csv
+          python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
         continue-on-error: true
       - name: Send latest Sentry Android issues to Slack
         id: slack-sentry-fenix
