@@ -25,7 +25,7 @@ NUM_MAJOR_VERSIONS = 2
 
 class Sentry:
 
-    def __init__(self):
+    def __init__(self, sentry_project = ''):
         try:
             self.client = APIClient(os.environ['SENTRY_HOST'])
             self.client.api_token = os.environ['SENTRY_API_TOKEN']
@@ -35,7 +35,7 @@ class Sentry:
             self.sentry_project_id = ""
             self.environment = ""
             self.package = ""
-            self.sentry_project = os.environ['SENTRY_PROJECT'] or 'fenix'
+            self.sentry_project = sentry_project
             if self.sentry_project == 'firefox-ios':
                 self.sentry_project_id = os.environ['SENTRY_IOS_PROJECT_ID']
                 self.environment = "Production"
@@ -126,11 +126,11 @@ class Sentry:
 
 class SentryClient(Sentry):
 
-    def __init__(self):
+    def __init__(self, sentry_project=''):
         print("SentryClient.__init__()")
-        super().__init__()
+        super().__init__(sentry_project = sentry_project)
         self.db = DatabaseSentry(project_id=self.sentry_project_id,
-                                 sentry_project=self.sentry_project)
+                                 sentry_project=sentry_project)
 
     def data_pump():
         # Let's leave this to stay consistent with other

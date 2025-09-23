@@ -106,8 +106,8 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Sentry query (iOS)
         run: |
-          SENTRY_PROJECT='firefox-ios' python __main__.py --report-type sentry-issues
-          SENTRY_PROJECT='firefox-ios' python __main__.py --report-type sentry-rates
+          python __main__.py --report-type sentry-issues --project firefox-ios
+          python __main__.py --report-type sentry-rates --project firefox-ios
       - uses: actions/upload-artifact@v4
         with:
           name: sentry_issues_firefox_ios
@@ -116,8 +116,8 @@ jobs:
         run: SENTRY_PROJECT='firefox-ios' python -m api.sentry.utils ./sentry_rates.csv
       - name: Sentry query (Android)
         run: |
-          SENTRY_PROJECT='fenix' python __main__.py --report-type sentry-issues
-          SENTRY_PROJECT='fenix' python __main__.py --report-type sentry-rates
+          python __main__.py --report-type sentry-issues --project fenix
+          python __main__.py --report-type sentry-rates --project fenix
       - uses: actions/upload-artifact@v4
         with:
           name: sentry_issues_fenix

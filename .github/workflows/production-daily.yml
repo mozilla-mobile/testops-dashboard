@@ -95,8 +95,8 @@ jobs:
 
       - name: Sentry query (iOS)
         run: |
-          SENTRY_PROJECT='firefox-ios' python __main__.py --report-type sentry-issues
-          SENTRY_PROJECT='firefox-ios' python __main__.py --report-type sentry-rates
+          python __main__.py --report-type sentry-issues --project firefox-ios
+          python __main__.py --report-type sentry-rates --project firefox-ios
 
         continue-on-error: true
 
@@ -116,8 +116,8 @@ jobs:
 
       - name: Sentry query (Android)
         run: |
-          SENTRY_PROJECT='fenix' python __main__.py --report-type sentry-issues
-          SENTRY_PROJECT='fenix' python __main__.py --report-type sentry-rates
+          python __main__.py --report-type sentry-issues --project fenix
+          python __main__.py --report-type sentry-rates --project fenix
 
         continue-on-error: true
 
