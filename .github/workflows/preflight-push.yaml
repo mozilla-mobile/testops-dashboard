@@ -112,7 +112,7 @@ jobs:
         with:
           name: sentry_issues_firefox_ios
           path: ./sentry_issues_firefox-ios_*.csv
-      - name: Construct JSON for Slack (Sentry)
+      - name: Construct JSON for Slack
         run: python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
       - name: Sentry query (Android)
         run: |

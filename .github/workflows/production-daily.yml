@@ -100,7 +100,7 @@ jobs:
 
         continue-on-error: true
 
-      - name: Construct JSON for Slack (Sentry)
+      - name: Construct JSON for Slack
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
         continue-on-error: true
@@ -108,7 +108,7 @@ jobs:
         id: slack-sentry-ios
         uses: slackapi/slack-github-action@v2.1.0
         with:
-          payload-file-path: "./sentry-slack.json"
+          payload-file-path: "./sentry-slack-firefox-ios.json"
           payload-templated: true 
           webhook:  ${{ secrets.SLACK_WEBHOOK_FIREFOX_IOS_DEV }}
           webhook-type: incoming-webhook
@@ -121,7 +121,7 @@ jobs:
 
         continue-on-error: true
 
-      - name: Construct JSON for Slack (Sentry)
+      - name: Construct JSON for Slack
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
         continue-on-error: true
@@ -129,7 +129,7 @@ jobs:
         id: slack-sentry-fenix
         uses: slackapi/slack-github-action@v2.1.0
         with:
-          payload-file-path: "./sentry-slack.json"
+          payload-file-path: "./sentry-slack-fenix.json"
           payload-templated: true 
           webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
