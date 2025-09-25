@@ -69,6 +69,9 @@ jobs:
       - name: Bugzilla Desktop Bugs
         run: python ./__main__.py --report-type bugzilla-desktop-bugs
 
+      - name: Bugzilla Release Flags for Bugs
+        run: python ./__main__.py --report-type bugzilla-desktop-release-flags-for-bugs
+
       - name: Bugzilla Metabug Android Memory Leaks
         run: python  ./__main__.py --report-type bugzilla-meta-bugs --meta-bug-id 1935100
 
