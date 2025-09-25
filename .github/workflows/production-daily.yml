@@ -94,14 +94,14 @@ jobs:
 
       - name: Sentry query
         run: |
-          python __main__.py --report-type sentry-issues
-          python __main__.py --report-type sentry-rates
+          python __main__.py --report-type sentry-issues --project firefox-ios
+          python __main__.py --report-type sentry-rates --project firefox-ios
 
         continue-on-error: true
 
       - name: Construct JSON for Slack (Sentry)
         run: |
-          python -m api.sentry.utils ./sentry_rates.csv
+          python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
         continue-on-error: true
       - name: Send latest Sentry issues to Slack
         id: slack-sentry

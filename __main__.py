@@ -12,6 +12,7 @@ from constants import (
     PROJECTS_MOBILE,
     PROJECTS_ECOSYSTEM,
     PROJECTS_DESKTOP,
+    PROJECTS_SENTRY,
     PLATFORMS,
     REPORT_TYPES,
 )
@@ -114,6 +115,14 @@ def validate_project(platform, project, report_type):
             print("--project is required for the report selected")
         if not platform:
             print("--platform is required for the report selected")
+
+    if (report_type in ('sentry-issues', 'sentry-rates')
+            and project not in PROJECTS_SENTRY):
+        print(
+            f"Error: Invalid project '{project}' for Sentry reports. "
+            f"Valid options are {PROJECTS_SENTRY}"
+        )
+        sys.exit(1)
 
     if platform == 'mobile' and project not in PROJECTS_MOBILE:
         print(
