@@ -59,8 +59,7 @@ jobs:
             echo "SENTRY_HOST=${{ secrets.SENTRY_HOST }}" >> $GITHUB_ENV
             echo "SENTRY_API_TOKEN=${{ secrets.SENTRY_API_TOKEN_CSO }}" >> $GITHUB_ENV
             echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
-            echo "SENTRY_IOS_PROJECT_ID=${{ secrets.SENTRY_IOS_PROJECT_ID }}" >> $GITHUB_ENV
-            echo "SENTRY_FENIX_PROJECT_ID=${{ secrets.SENTRY_FENIX_PROJECT_ID }}" >> $GITHUB_ENV
+            echo "SENTRY_PROJECT_ID=${{ secrets.SENTRY_PROJECT_ID }}" >> $GITHUB_ENV
 
       - name: Jira query
         run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
@@ -93,45 +92,24 @@ jobs:
 
         continue-on-error: true
 
-      - name: Sentry query (iOS)
+      - name: Sentry query
         run: |
-          python __main__.py --report-type sentry-issues --project firefox-ios
-          python __main__.py --report-type sentry-rates --project firefox-ios
+          python __main__.py --report-type sentry-issues
+          python __main__.py --report-type sentry-rates
 
         continue-on-error: true
 
-      - name: Construct JSON for Slack
+      - name: Construct JSON for Slack (Sentry)
         run: |
-          python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
+          python -m api.sentry.utils ./sentry_rates.csv
         continue-on-error: true
-      - name: Send latest Sentry iOS issues to Slack
-        id: slack-sentry-ios
+      - name: Send latest Sentry issues to Slack
+        id: slack-sentry
         uses: slackapi/slack-github-action@v2.1.0
         with:
-          payload-file-path: "./sentry-slack-firefox-ios.json"
+          payload-file-path: "./sentry-slack.json"
           payload-templated: true 
           webhook:  ${{ secrets.SLACK_WEBHOOK_FIREFOX_IOS_DEV }}
-          webhook-type: incoming-webhook
-        continue-on-error: true
-
-      - name: Sentry query (Android)
-        run: |
-          python __main__.py --report-type sentry-issues --project fenix
-          python __main__.py --report-type sentry-rates --project fenix
-
-        continue-on-error: true
-
-      - name: Construct JSON for Slack
-        run: |
-          python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
-        continue-on-error: true
-      - name: Send latest Sentry Android issues to Slack
-        id: slack-sentry-fenix
-        uses: slackapi/slack-github-action@v2.1.0
-        with:
-          payload-file-path: "./sentry-slack-fenix.json"
-          payload-templated: true 
-          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
         continue-on-error: true
   

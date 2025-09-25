@@ -77,3 +77,25 @@ jobs:
 
       - name: Bitrise builds count
         run: python3 ./__main__.py --report-type bitrise-builds
+
+      - name: Sentry query (iOS)
+        run: |
+          python __main__.py --report-type sentry-issues --project firefox-ios
+          python __main__.py --report-type sentry-rates --project firefox-ios
+        continue-on-error: true
+      - name: Construct JSON for Slack (iOS)
+        run: |
+          python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
+          ls sentry-slack-firefox-ios.json
+        continue-on-error: true
+
+      - name: Sentry query (Android)
+        run: |
+          python __main__.py --report-type sentry-issues --project fenix
+          python __main__.py --report-type sentry-rates --project fenix
+        continue-on-error: true
+      - name: Construct JSON for Slack (Android)
+        run: |
+          python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
+          ls sentry-slack-fenix.json
+        continue-on-error: true        
