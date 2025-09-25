@@ -8,16 +8,14 @@ import re
 import requests
 import time
 import pandas as pd
-
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from requests.exceptions import HTTPError, RequestException
-from sqlalchemy import func, distinct
+from sqlalchemy import func, select
+
 from constants import PRODUCTS, FIELDS
 from constants import BUGZILLA_BUGS_FIELDS, BUGZILLA_QA_WHITEBOARD_FILTER
-from datetime import datetime
 from lib.bugzilla_conn import BugzillaAPIClient
-from sqlalchemy import func
 from utils.datetime_utils import DatetimeUtils
 from utils.retry_bz import with_retry
 
@@ -31,7 +29,7 @@ from database import (
     ReportBugzillaReleaseFlagsBugs,
 )
 
-_CF_REL_RE = re.compile(r"^cf_status_firefox(\d+)$")
+FIREFOX_FLAG_STATUS_VERSION = re.compile(r"^cf_status_firefox(\d+)$")
 BUGZILLA_API_BASE = "https://bugzilla.mozilla.org/rest"
 
 
@@ -211,13 +209,7 @@ class BugzillaHelper:
 
     def fetch_bug_history(self, bug_id: int, timeout: int = 30) -> list[tuple]:
         return self.bugzilla.fetch_bug_history(bug_id, timeout=timeout)
-    '''
-    def fetch_many_bug_histories(
-            self, bug_ids: list[int], sleep_sec: float = 0.2,
-            timeout: int = 30, retries: int = 2) -> dict[int, list[tuple]]:
-        return self.bugzilla.fetch_many_bug_histories(
-            bug_ids)
-    '''
+
     def fetch_many_bug_histories(
                 self,
                 bug_ids: list[int],
@@ -255,19 +247,35 @@ class BugzillaClient(Bugz):
         print("CONTAIN_FLAGS")
         return all(entry.get(key) == value for key, value in criteria.items())
 
-    def get_fixed_bug_ids(self) -> list[int]:
-        # Get bugs with resolution FIXED from DB
-        # only those will have status flags
+    def get_bugs_from_database(self, chunk_size: int = 10_000) -> str:
+        """
+        Export bugs from ReportBugzillaSoftvisionBugs where resolution is not in
+        the filter, only those bugs will have status flags
+        """
         R = ReportBugzillaSoftvisionBugs
+
+        excluded_resolutions = [
+                                "WONTFIX", "INVALID",
+                                "WORKSFORME", "DUPLICATE", "MOVED"
+                                ]
+
         norm_res = func.upper(func.trim(R.bugzilla_bug_resolution))
 
-        q = (
-            self.db.session
-            .query(distinct(R.bugzilla_key))
-            .filter(norm_res == 'FIXED')
-        )
-        bug_ids = [int(row[0]) for row in q.all() if row[0] is not None]
-        print(f"[get_fixed_bug_ids] Found {len(bug_ids)} bugs with resolution=FIXED")
+        filter_condition = (R.bugzilla_bug_resolution.is_(None)) | \
+                           (func.trim(R.bugzilla_bug_resolution) == "") | \
+                           (~norm_res.in_(excluded_resolutions))
+
+        stmt = select(R.__table__).where(filter_condition)
+
+        # Engine/connection bound to the session
+        engine = self.db.session.get_bind()
+        bug_ids: list[int] = []
+
+        for chunk in pd.read_sql(stmt, engine, chunksize=chunk_size):
+            # Collect bug IDs from bugzilla_key column
+            bug_ids.extend(chunk["bugzilla_key"].dropna().astype(int).tolist())
+
+        print(f"[export_filtered_bugs_to_csv_and_ids] Found {len(bug_ids)} bug IDs")
         return bug_ids
 
     def _discover_release_status_fields(self, keep_last_n: int = 5) -> list[str]:
@@ -279,7 +287,7 @@ class BugzillaClient(Bugz):
 
         releases = []
         for n in names:
-            m = _CF_REL_RE.match(n)
+            m = FIREFOX_FLAG_STATUS_VERSION.match(n)
             if m:
                 releases.append((int(m.group(1)), n))
         releases.sort(key=lambda t: t[0])  # sort by version number
@@ -299,7 +307,7 @@ class BugzillaClient(Bugz):
         """
         out = {}
         for when, fname, added, removed in history_rows:
-            m = _CF_REL_RE.match(fname or "")
+            m = FIREFOX_FLAG_STATUS_VERSION.match(fname or "")
             if not m:
                 continue
             if added in ("fixed", "verified"):
@@ -324,11 +332,11 @@ class BugzillaClient(Bugz):
         if not version_fields:
             return pd.DataFrame()
 
-        bug_ids = self.get_fixed_bug_ids()
+        bug_ids = self.get_bugs_from_database()
         if not bug_ids:
             return pd.DataFrame()
 
-        include_fields = ["id", "cf_qa_whiteboard", "resolution",
+        include_fields = ["id", "type", "cf_qa_whiteboard", "resolution",
                           "keywords", "severity"] + version_fields
         rows = []
 
@@ -339,7 +347,7 @@ class BugzillaClient(Bugz):
 
             for bug in bugs:
                 for fname in version_fields:
-                    m = _CF_REL_RE.match(fname)
+                    m = FIREFOX_FLAG_STATUS_VERSION.match(fname)
                     if not m:
                         continue
                     version = int(m.group(1))
@@ -348,6 +356,7 @@ class BugzillaClient(Bugz):
 
                     rows.append({
                         "bugzilla_key": int(bug.id),
+                        "type": bug.type,
                         "flag-version": version,
                         "status": status,
                         "keywords": ", ".join(bug.keywords),
@@ -786,9 +795,9 @@ class DatabaseBugzilla(Database):
                 )
                 report = ReportBugzillaReleaseFlagsBugs(
                     bugzilla_key=row['bugzilla_key'],
+                    bugzilla_bug_type=row['type'],
                     bugzilla_release_version=row['flag-version'],
                     bugzilla_bug_status=row['status'],
-                    # bugzilla_bug_keywords=row['keywords'],
                     bugzilla_bug_keywords=bugzilla_bug_keywords,
                     bugzilla_bug_severity=row['severity'],
                     bugzilla_bug_qa_found_in=row['qa-found-in'],
