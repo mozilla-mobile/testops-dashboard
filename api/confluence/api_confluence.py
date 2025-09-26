@@ -6,6 +6,7 @@
 import os
 import glob
 import json
+import re
 import requests
 import sys
 import yaml
@@ -14,7 +15,7 @@ from atlassian import Confluence
 from bs4 import BeautifulSoup
 from jinja2 import Template
 from pathlib import Path
-
+from typing import Literal, Optional
 
 # Confluence ENV vars
 ATLASSIAN_API_TOKEN = os.environ['ATLASSIAN_API_TOKEN']
@@ -29,6 +30,7 @@ confluence = Confluence(
     username=ATLASSIAN_USERNAME,
     password=ATLASSIAN_API_TOKEN
 )
+
 
 """
 # TODO: we should employ pathlib instead for all path declarations
@@ -55,17 +57,173 @@ PATH_IMAGES = PATH_CONFIG / 'images'
 PATH_YAML_FILES = PATH_CONFIG / 'yaml'
 PATH_XML_FILES = PATH_CONFIG / 'xml'
 
+
+def _exists_status(p: Path) -> str:
+    return "Exists" if p.exists() else "NOT FOUND"
+
+
 # Diagnostic: Debug printouts to confirm paths
 print(f"ROOT_DIR: {ROOT_DIR}")
-print(f"PATH_CONFIG: {PATH_CONFIG} {'✅ Exists' if PATH_CONFIG.exists() else '❌ NOT FOUND'}") # noqa
-print(f"PATH_IMAGES: {PATH_IMAGES} {'✅ Exists' if PATH_IMAGES.exists() else '❌ NOT FOUND'}") # noqa
-print(f"PATH_YAML_FILES: {PATH_YAML_FILES} {'✅ Exists' if PATH_YAML_FILES.exists() else '❌ NOT FOUND'}") # noqa
-print(f"PATH_XML_FILES: {PATH_XML_FILES} {'✅ Exists' if PATH_XML_FILES.exists() else '❌ NOT FOUND'}") # noqa
+print(f"PATH_CONFIG: {PATH_CONFIG} [{_exists_status(PATH_CONFIG)}]")
+print(f"PATH_IMAGES: {PATH_IMAGES} [{_exists_status(PATH_IMAGES)}]")
+print(
+    f"PATH_YAML_FILES: {PATH_YAML_FILES} [{_exists_status(PATH_YAML_FILES)}]"
+)
+print(f"PATH_XML_FILES: {PATH_XML_FILES} [{_exists_status(PATH_XML_FILES)}]")
 
 # Diagnostic: Fail fast if config folder is missing
 if not PATH_CONFIG.exists():
     raise FileNotFoundError(f"Config path does not exist: {PATH_CONFIG}")
 
+# ------------------------------------------------------------------
+# Managed page region helpers
+# ------------------------------------------------------------------
+
+# Confluence page managed region markers (single managed region per page)
+# Use a wrapper div that Confluence preserves in storage format.
+MANAGED_ATTR = {"data-managed-region": "true"}
+GENERATED_ATTR = {"data-generated-content": "true"}
+START_MARK = '<div data-managed-region="true">'
+END_MARK = "</div>"
+LEGACY_BLOCK_RE = re.compile(
+    r"\s*<h[1-6][^>]*>.*?</h[1-6]>\s*<table[^>]*>.*?</table>\s*",
+    re.IGNORECASE | re.DOTALL,
+)
+
+# Flexible match for the spacer we insert between the heading and managed region
+SPACER_RE = re.compile(
+    r"<hr\b[^>]*>.*?<hr\b[^>]*>",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+MissingMode = Literal["append", "replace_all"]
+
+
+def split_heading(generated_html: str):
+    # Split the first heading (H1–H6) from the rest.
+    m = re.search(r"</h[1-6]>", generated_html, flags=re.I)
+    if not m:
+        return "", generated_html
+    return generated_html[: m.end()], generated_html[m.end():]
+
+
+def has_managed_block(html: str) -> bool:
+    if not html:
+        return False
+    # Fast path substring checks (support both div wrapper and legacy comments)
+    if 'data-managed-region="true"' in html:
+        return True
+    if "<!-- BEGIN MANAGED" in html and "<!-- END MANAGED" in html:
+        return True
+    # Fallback parse (handles attribute reordering/formatting)
+    try:
+        soup = BeautifulSoup(html, "html.parser")
+        return soup.find(attrs={"data-managed-region": True}) is not None
+    except Exception:
+        return False
+
+
+def make_managed_block(inner_html: str) -> str:
+    # Build a managed wrapper with a nested generated-content region we control.
+    return (
+        "<!-- BEGIN MANAGED -->\n"
+        f"{START_MARK}\n"
+        f"  <div data-generated-content=\"true\">\n{inner_html}\n  </div>\n"
+        f"{END_MARK}\n"
+        "<!-- END MANAGED -->"
+    )
+
+
+def upsert_managed_block(
+    existing_html: Optional[str],
+    inner_html: str,
+    on_missing: MissingMode = "append",
+) -> str:
+    """
+    Merge the auto-generated fragment (inner_html) into the existing page HTML:
+    - If the managed markers already exist, replace ONLY the content between them.
+    - If markers are missing:
+        - append: append a new managed block to the end of the page
+        - replace_all: replace the entire page body with just the managed block
+    Params:
+      existing_html: full Confluence storage HTML for the page
+                     (can be None on first run)
+      inner_html: the auto-generated fragment (tables + Looker images),
+                  NOT the whole page
+    Returns:
+      A full HTML string ready to PUT back to Confluence.
+    """
+    # 1) Normalize input
+    existing_html = existing_html or ""
+
+    # 2) If a managed block exists, replace its inner HTML using BeautifulSoup
+    try:
+        soup = BeautifulSoup(existing_html, "html.parser")
+    except Exception:
+        soup = None
+
+    if soup is not None:
+        container = soup.find(attrs={"data-managed-region": True})
+        if container is not None:
+            # Find or create the generated-content child
+            gen = container.find(attrs={"data-generated-content": True})
+            if gen is None:
+                gen = soup.new_tag("div")
+                gen.attrs.update(GENERATED_ATTR)
+                # Put generated-content at top of the managed region
+                container.insert(0, gen)
+            # Replace inner content of the generated block
+            gen.clear()
+            inner_soup = BeautifulSoup(inner_html, "html.parser")
+            for child in list(inner_soup.contents):
+                gen.append(child)
+            return str(soup)
+
+    # Fallback: legacy comment markers present? Replace them with div wrapper
+    legacy_pattern = re.compile(
+        r"<!-- BEGIN MANAGED(?::[^>]*)? -->.*?<!-- END MANAGED(?::[^>]*)? -->",
+        re.DOTALL,
+    )
+    replacement = make_managed_block(inner_html)
+    if legacy_pattern.search(existing_html):
+        # Try to preserve non-table user edits when migrating from legacy block
+        def migrate_legacy_to_managed(match: re.Match) -> str:
+            legacy_inner = match.group(0)
+            # Extract the inner part between the comments
+            inner = re.sub(
+                r"^<!-- BEGIN MANAGED.*?-->\\s*|\\s*<!-- END MANAGED.*?-->$",
+                "",
+                legacy_inner,
+                flags=re.DOTALL,
+            )
+
+            try:
+                legacy_soup = BeautifulSoup(inner, "html.parser")
+                preserved = []
+                for node in list(legacy_soup.contents):
+                    if getattr(node, "name", None) == "table":
+                        # skip old generated tables
+                        continue
+                    preserved.append(node)
+                # Build new managed wrapper with fresh generated content
+                new_soup = BeautifulSoup(make_managed_block(inner_html), "html.parser")
+                container = new_soup.find(attrs={"data-managed-region": True})
+                # Append preserved nodes after the generated-content block
+                for node in preserved:
+                    container.append(node)
+                return str(new_soup)
+            except Exception:
+                # Fallback: no migration, just replace
+                return replacement
+
+        return legacy_pattern.sub(migrate_legacy_to_managed, existing_html, count=1)
+
+    # 3) If missing, choose first-run behavior
+    replacement = make_managed_block(inner_html)
+    if on_missing == "replace_all":
+        return replacement
+    return f"{existing_html}\n{replacement}" if existing_html else replacement
 
 # ------------------------------------------------------------------
 # URL string builders
@@ -84,7 +242,7 @@ def url_attachments(page_id):
 
 def url_page_content_storage(page_id):
     path = url_page(page_id)
-    return f"{path}?expand=body.storage"
+    return f"{path}?status=current&expand=body.storage,version,space"
 
 
 # ------------------------------------------------------------------
@@ -155,13 +313,20 @@ def image_attachments_delete(page_id):
             attachment_id = attachment['id']
             delete_url = f"{URL_WIKI_REST_API}/content/{attachment_id}"
 
-            delete_response = requests.delete(delete_url, headers=headers, auth=auth) # noqa
+            delete_response = requests.delete(
+                delete_url,
+                headers=headers,
+                auth=auth,
+            )
             if delete_response.status_code == 204:
                 print(f"Attachment {attachment_id} deleted successfully.")
             else:
                 print(f"Failed to delete attachment {attachment_id}.")
     else:
-        print(f"Failed to fetch attachments: {response.status_code}, {response.text}") # noqa
+        print(
+            f"Failed to fetch attachments: {response.status_code}"
+        )
+        print(response.text)
 
 
 def image_attachments_list(page_id):
@@ -185,7 +350,16 @@ def image_attachments_upload(page_id):
 
     # upload image files 1 by 1
     for filename in os.listdir(image_dir):
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')): # noqa
+        if filename.lower().endswith(
+            (
+                '.png',
+                '.jpg',
+                '.jpeg',
+                '.gif',
+                '.bmp',
+                '.webp',
+            )
+        ):
             file_path = os.path.join(image_dir, filename)
             print(f"Uploading: {filename}...")
 
@@ -209,14 +383,18 @@ def image_attachments_upload(page_id):
 
 def table_row_write(report_title, report_description,
                     attachment_filename, looker_graph_url):
-    return f"""
+    return (
+        f"""
             <row>
         <td><b>{report_title}</b></td>
         <td>{report_description}</td>
         <td>
-        <a href="{looker_graph_url}"><ac:image><ri:attachment ri:filename="{attachment_filename}"/></ac:image></a></td>
+        <a href="{looker_graph_url}"><ac:image>
+            <ri:attachment ri:filename="{attachment_filename}"/>
+        </ac:image></a></td>
         </row>
-        """ # noqa
+        """
+    )
 
 
 def page_html(page_id, sections):
@@ -255,8 +433,6 @@ def pages_looker_graphs():
             page_id = config["wiki_page"].get("page_id")
             page_sections = config["wiki_page"]["sections"]
 
-            url = url_page(page_id)
-
             print(f"PROCESS ATTACHMENTS - page_id: {page_id}")
             image_attachments_list(page_id)
             image_attachments_delete(page_id)
@@ -264,11 +440,67 @@ def pages_looker_graphs():
             image_attachments_upload(page_id)
 
             print(f"UPDATE PAGE - page_id: {page_id}")
-            page_data = page_object(url)
+            page_data = page_object(url_page_content_storage(page_id))
+            existing_storage_html = page_data["body"]["storage"]["value"]
             current_version = page_data["version"]["number"]
-            new_content = page_html(page_id, page_sections)
-            payload = page_payload(page_id, page_title, page_data,
-                                   current_version, new_content)
+
+            # Generate only the managed fragment (tables + images)
+            full_generated = page_html(page_id, page_sections)
+            heading_html, table_html = split_heading(full_generated)
+
+            if not has_managed_block(existing_storage_html):
+                # If the spacer exists, treat as already-seeded
+                # and replace content after it
+                spacer_match = SPACER_RE.search(existing_storage_html)
+                if spacer_match:
+                    prefix_html = existing_storage_html[: spacer_match.end()]
+                    # Preserve everything after the spacer (including existing Notes)
+                    remaining_html = existing_storage_html[spacer_match.end():]
+                    # Just insert the managed block and keep the rest
+                    merged_html = (
+                        prefix_html
+                        + make_managed_block(table_html)
+                        + remaining_html
+                    )
+                else:
+                    # One-time cleanup: remove legacy heading+table blocks if present
+                    cleaned_html = LEGACY_BLOCK_RE.sub("", existing_storage_html)
+
+                    # First run: insert title and a persistent gap above
+                    # the managed region
+                    extra_html = (
+                        "\n<hr />\n<p><br/></p>\n"
+                        "<hr />\n"
+                    )
+
+                    # Build the full page body with a managed wrapper so we
+                    # don't append repeatedly
+                    notes_html = (
+                        "<hr />\n"
+                        "<p><em>Notes</em></p>\n"
+                        "<hr />\n"
+                        "<div data-notes-region=\"true\"><p><br/></p></div>\n"
+                    )
+                    merged_html = "".join([
+                        f"{cleaned_html}{heading_html}{extra_html}",
+                        make_managed_block(table_html),
+                        notes_html,
+                    ])
+            else:
+                # Managed wrapper exists; replace its contents only
+                merged_html = upsert_managed_block(
+                    existing_storage_html,
+                    table_html
+                )
+
+            payload = page_payload(
+                page_id,
+                page_title,
+                page_data,
+                current_version,
+                merged_html
+            )
+
             page_payload_write(page_id, payload)
 
 
@@ -330,7 +562,13 @@ def page_content_insert_xml(page_id, params):
     page_data = page_object(page_url)
     current_version = page_data["version"]["number"]
 
-    payload = page_payload(page_id, page_title, page_data, current_version, output_xml) # noqa
+    payload = page_payload(
+        page_id,
+        page_data["title"],
+        page_data,
+        current_version,
+        output_xml,
+    )
     page_payload_write(page_id, payload)
 
 
@@ -359,7 +597,10 @@ def page_report_build_validation(
         'release_date': signoff_date,
         'build_version': build_version,
         'build_version_commit_hash': '12345',
-        'testrail_report_url': 'https://mozilla.testrail.io/index.php?/runs/view/108599&group_by=cases:section_id&group_order=asc', # noqa
+        'testrail_report_url': (
+            'https://mozilla.testrail.io/index.php?/runs/view/108599'
+            '&group_by=cases:section_id&group_order=asc'
+        ),
         'testrail_report_summary': test_summary,
         'testrail_run_1_result': 'PASS3D',
         'testrail_run_1_build_type': 'ARM64',
@@ -390,7 +631,13 @@ def page_report_build_validation(
     current_version = page_data["version"]["number"]
 
     # new_content = page_html(page_id, page_sections)
-    payload = page_payload(page_id, page_title, page_data, current_version, output_xml) # noqa
+    payload = page_payload(
+        page_id,
+        page_data["title"],
+        page_data,
+        current_version,
+        output_xml,
+    )
     page_payload_write(page_id, payload)
 
 
