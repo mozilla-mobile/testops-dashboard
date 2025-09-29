@@ -36,16 +36,25 @@ class Sentry:
             self.environment = ""
             self.package = ""
             self.sentry_project = project
-            if self.sentry_project == 'firefox-ios':
-                self.sentry_project_id = os.environ['SENTRY_IOS_PROJECT_ID']
-                self.environment = "Production"
-                self.package = "org.mozilla.ios.Firefox"
-            if self.sentry_project == 'fenix':
-                self.sentry_project_id = os.environ['SENTRY_FENIX_PROJECT_ID']
-                self.environment = "release"
-                self.package = "org.mozilla.firefox"
-        except KeyError:
-            print("ERROR: Missing sentry env var")
+            project_config = {
+                "firefox-ios": {
+                    "id": os.environ["SENTRY_IOS_PROJECT_ID"],
+                    "env": "Production",
+                    "pkg": "org.mozilla.ios.Firefox",
+                },
+                "fenix": {
+                    "id": os.environ["SENTRY_FENIX_PROJECT_ID"],
+                    "env": "release",
+                    "pkg": "org.mozilla.firefox",
+                },                
+            }
+            if project in project_config.keys():
+                self.sentry_project_id = project_config[project]["id"]
+                self.environment = project_config[project]["env"]
+                self.package = project_config[project]["pkg"]
+        except KeyError as e:
+            missing = e.args[0]
+            print(f"ERROR: Missing environment variable {missing}")
             sys.exit(1)
 
     # API: Issues
@@ -63,25 +72,11 @@ class Sentry:
         )
 
     # API: Releases
-    # The most recent releases of the project:
-    # projects/mozilla/firefox-ios/releases/
-    # ?per_page=100&project=1111111111
-    # &statsPeriod=1d&environment=Production
-    def releases(self):
-        return self.client.http_get(
-            (
-                'projects/{0}/firefox-ios/releases/'
-                '?&project={1}&statsPeriod=1d'
-                '&environment=Production'
-            ).format(self.organization_slug, self.sentry_project_id)
-        )
-
-    # API: Releases (with filtering)
     # /organizations/{{organization_slug}}/releases/
     # ?adoptionStages=1&environment={{environment}}&project={{project_id}}
     # &query=release.package:{{package}}&status=open&summaryStatsPeriod=24h
     # &sort=adoption&adoptionStages=adopted
-    def releases_v2(self):
+    def releases(self):
         return self.client.http_get(
             (
                 '/organizations/mozilla/releases/'
@@ -92,7 +87,7 @@ class Sentry:
         )
 
     # Workaround: Get the largest/latest version through whattrainisitnow
-    def what_train_is_it_now(self):
+    def get_latest_train_release(self):
         response = requests.get('https://whattrainisitnow.com/api/firefox/releases/')
         return list(response.json().keys())
 
@@ -140,13 +135,13 @@ class SentryClient(Sentry):
     # Now output the "long" version. Example: org.mozilla.firefox@142.0.1+2016110936
     def sentry_releases(self):
         print("SentryClient.sentry_releases()")
-        releases = self.releases_v2()
+        releases = self.releases()
         # Workaround: Do not use Fenix versions that are "too new".
         # Query whattrainisitnow.com for the latest version.
         # (Example: v170 exists while nightly now is only at v144.)
-        what_train_is_it_now = self.what_train_is_it_now()[-1]
+        get_latest_train_release = self.get_latest_train_release()[-1]
         release_versions = self._report_version_strings(
-            releases, what_train_is_it_now)
+            releases, get_latest_train_release)
         print(release_versions)
         return release_versions
 

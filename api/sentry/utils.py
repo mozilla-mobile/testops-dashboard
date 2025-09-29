@@ -2,6 +2,7 @@ import json
 import csv
 import argparse
 from pathlib import Path
+from platform import platform
 import requests
 
 from utils.datetime_utils import DatetimeUtils
@@ -140,11 +141,11 @@ def insert_json_content(json_data, versions):
 
 def init_json(project):
     now = DatetimeUtils.start_date('0')
-    platform = ''
-    if project == 'firefox-ios':
-        platform = ':apple: iOS'
-    else:
-        platform = ':android: Android'
+    project_config = {
+        "firefox-ios": ":apple: iOS",
+        "fenix": ":android: Android"               
+    }
+    platform = project_config.get(project, ":android: Android")
     json_data = {
         "blocks": [
             {
@@ -161,7 +162,7 @@ def init_json(project):
     return json_data
 
 
-def main(file_csv, project):
+def main(file_csv: str, project: str) -> None:
     json_data = init_json(project)
     insert_rates(json_data, file_csv)
 
