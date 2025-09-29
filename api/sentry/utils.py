@@ -142,7 +142,7 @@ def init_json(project):
     now = DatetimeUtils.start_date('0')
     project_config = {
         "firefox-ios": ":apple: iOS",
-        "fenix": ":android: Android"   
+        "fenix": ":android: Android"
     }
     platform = project_config.get(project, ":android: Android")
     json_data = {
