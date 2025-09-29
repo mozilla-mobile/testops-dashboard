@@ -46,7 +46,7 @@ class Sentry:
                     "id": os.environ["SENTRY_FENIX_PROJECT_ID"],
                     "env": "release",
                     "pkg": "org.mozilla.firefox",
-                },                
+                },
             }
             if project in project_config.keys():
                 self.sentry_project_id = project_config[project]["id"]
