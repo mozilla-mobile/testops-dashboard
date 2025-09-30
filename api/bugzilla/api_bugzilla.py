@@ -32,6 +32,11 @@ from database import (
 FIREFOX_FLAG_STATUS_VERSION = re.compile(r"^cf_status_firefox(\d+)$")
 BUGZILLA_API_BASE = "https://bugzilla.mozilla.org/rest"
 
+BZ_FETCH_MAX_WORKERS = 5
+BZ_FETCH_BATCH_SIZE = 100
+TIMEOUT: int = 30,
+RETRY: int = 2,
+SLEEP_SEC: float = 0.2,
 
 class Bugz:
 
@@ -61,7 +66,7 @@ class Bugz:
     """
     Fetch the history of a Bugzilla bug safely
     """
-    def fetch_bug_history(self, bug_id: int, timeout: int = 30) -> list[tuple]:
+    def fetch_bug_history(self, bug_id: int, timeout: int = TIMEOUT) -> list[tuple]:
         url = f"{BUGZILLA_API_BASE}/bug/{bug_id}/history"
         r = requests.get(url, timeout=timeout)
         r.raise_for_status()
@@ -92,11 +97,11 @@ class Bugz:
         bug_ids: list[int],
         *,
         session: requests.Session | None = None,
-        max_workers: int = 5,
-        batch_size: int = 100,
-        timeout: int = 30,
-        retries: int = 2,
-        sleep_sec: float = 0.2,
+        max_workers: int = BZ_FETCH_MAX_WORKERS,
+        batch_size: int = BZ_FETCH_BATCH_SIZE,
+        timeout: int = TIMEOUT,
+        retries: int = RETRY,
+        sleep_sec: float = SLEEP_SEC,
         stream_callback=None,
     ) -> dict[int, list[tuple]] | None:
         """
@@ -215,11 +220,11 @@ class BugzillaHelper:
                 bug_ids: list[int],
                 *,
                 session: requests.Session | None = None,
-                max_workers: int = 5,
-                batch_size: int = 100,
-                timeout: int = 30,
-                retries: int = 2,
-                sleep_sec: float = 0.2,
+                max_workers: int = BZ_FETCH_MAX_WORKERS,
+                batch_size: int = BZ_FETCH_BATCH_SIZE,
+                timeout: int = TIMEOUT,
+                retries: int = RETRY,
+                sleep_sec: float = SLEEP_SEC,
                 stream_callback=None,
             ) -> dict[int, list[tuple]] | None:
         """
@@ -359,7 +364,7 @@ class BugzillaClient(Bugz):
                         "type": bug.type,
                         "flag-version": version,
                         "status": status,
-                        "keywords": ", ".join(bug.keywords),
+                        "keywords": bug.keywords,
                         "severity": bug.severity,
                         "qa-found-in": getattr(bug, "cf_qa_whiteboard", ""),
                         "resolution": getattr(bug, "resolution", None)
@@ -413,8 +418,6 @@ class BugzillaClient(Bugz):
             print(f"[version-flags] Saved snapshot to {filename}")
 
         print(f"versions={sorted(df['flag-version'].unique())} | bugs={df['bugzilla_key'].nunique()}") # noqa
-        print(df)
-
         self.db.clean_table(ReportBugzillaReleaseFlagsBugs)
         self.db.report_bugzilla_query_release_flags_for_bugs(df)
         return df
@@ -785,7 +788,6 @@ class DatabaseBugzilla(Database):
         self.session.commit()
 
     def report_bugzilla_query_release_flags_for_bugs(self, payload):
-        print(payload)
         for index, row in payload.iterrows():
             try:
                 bugzilla_bug_keywords = (
