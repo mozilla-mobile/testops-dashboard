@@ -34,9 +34,11 @@ BUGZILLA_API_BASE = "https://bugzilla.mozilla.org/rest"
 
 BZ_FETCH_MAX_WORKERS = 5
 BZ_FETCH_BATCH_SIZE = 100
-TIMEOUT: int = 30,
-RETRY: int = 2,
-SLEEP_SEC: float = 0.2,
+BZ_HIST_BATCH_SIZE = 200
+TIMEOUT = 30
+RETRY = 2
+SLEEP_SEC: float = 0.2
+
 
 class Bugz:
 
@@ -252,7 +254,7 @@ class BugzillaClient(Bugz):
         print("CONTAIN_FLAGS")
         return all(entry.get(key) == value for key, value in criteria.items())
 
-    def get_bugs_from_database(self, chunk_size: int = 10_000) -> str:
+    def fetch_bugs_from_database(self, chunk_size: int = 10_000) -> str:
         """
         Export bugs from ReportBugzillaSoftvisionBugs where resolution is not in
         the filter, only those bugs will have status flags
@@ -260,9 +262,12 @@ class BugzillaClient(Bugz):
         R = ReportBugzillaSoftvisionBugs
 
         excluded_resolutions = [
-                                "WONTFIX", "INVALID",
-                                "WORKSFORME", "DUPLICATE", "MOVED"
-                                ]
+            "WONTFIX",
+            "INVALID",
+            "WORKSFORME",
+            "DUPLICATE",
+            "MOVED"
+        ]
 
         norm_res = func.upper(func.trim(R.bugzilla_bug_resolution))
 
@@ -280,7 +285,7 @@ class BugzillaClient(Bugz):
             # Collect bug IDs from bugzilla_key column
             bug_ids.extend(chunk["bugzilla_key"].dropna().astype(int).tolist())
 
-        print(f"[export_filtered_bugs_to_csv_and_ids] Found {len(bug_ids)} bug IDs")
+        print(f"[export_filtered_bugs_and_ids] Found {len(bug_ids)} bug IDs")
         return bug_ids
 
     def _discover_release_status_fields(self, keep_last_n: int = 5) -> list[str]:
@@ -325,24 +330,29 @@ class BugzillaClient(Bugz):
     def bugzilla_query_release_flags_for_tracked_bugs(
         self,
         keep_last_n: int = 5,
-        batch_size: int = 400,
-        save_csv: bool = True,
+        batch_size: int = BZ_FETCH_BATCH_SIZE,
         *,
-        hist_workers: int = 6,
-        hist_batch_size: int = 200,
-        hist_timeout: int = 30,
-        hist_retries: int = 2,
+        hist_workers: int = BZ_FETCH_MAX_WORKERS,
+        hist_batch_size: int = BZ_HIST_BATCH_SIZE,
+        hist_timeout: int = TIMEOUT,
+        hist_retries: int = RETRY,
     ):
         version_fields = self._discover_release_status_fields(keep_last_n=keep_last_n)
         if not version_fields:
             return pd.DataFrame()
 
-        bug_ids = self.get_bugs_from_database()
+        bug_ids = self.fetch_bugs_from_database()
         if not bug_ids:
             return pd.DataFrame()
 
-        include_fields = ["id", "type", "cf_qa_whiteboard", "resolution",
-                          "keywords", "severity"] + version_fields
+        include_fields = [
+            "id",
+            "type",
+            "cf_qa_whiteboard",
+            "resolution",
+            "keywords",
+            "severity"
+        ] + version_fields
         rows = []
 
         for i in range(0, len(bug_ids), batch_size):
@@ -410,12 +420,6 @@ class BugzillaClient(Bugz):
             df["bugzilla_flag_fixed_at"] = df.apply(compute_row_ts, axis=1)
         else:
             df["bugzilla_flag_fixed_at"] = pd.NaT
-
-        if save_csv:
-            snapshot_ts = pd.Timestamp.utcnow().strftime("%Y%m%d_%H%M%S")
-            filename = f"version_flags_snapshot_{snapshot_ts}.csv"
-            df.to_csv(filename, index=False)
-            print(f"[version-flags] Saved snapshot to {filename}")
 
         print(f"versions={sorted(df['flag-version'].unique())} | bugs={df['bugzilla_key'].nunique()}") # noqa
         self.db.clean_table(ReportBugzillaReleaseFlagsBugs)
