@@ -1,6 +1,6 @@
 import json
 import csv
-import sys
+import argparse
 from pathlib import Path
 import requests
 
@@ -138,8 +138,13 @@ def insert_json_content(json_data, versions):
         json_data["blocks"].append(this_version)
 
 
-def init_json():
+def init_json(project):
     now = DatetimeUtils.start_date('0')
+    project_config = {
+        "firefox-ios": ":apple: iOS",
+        "fenix": ":android: Android"
+    }
+    platform = project_config.get(project, ":android: Android")
     json_data = {
         "blocks": [
             {
@@ -147,8 +152,8 @@ def init_json():
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        "*:health: iOS Health Report ({0}) :sentry:*"
-                    ).format(now)
+                        "*:health: {0} Health Report ({1}) :sentry:*"
+                    ).format(platform, now)
                 }
             }
         ]
@@ -156,18 +161,22 @@ def init_json():
     return json_data
 
 
-def main(filename_csv):
-    json_data = init_json()
-    insert_rates(json_data, filename_csv)
+def main(file_csv: str, project: str) -> None:
+    json_data = init_json(project)
+    insert_rates(json_data, file_csv)
 
-    output_path = Path('sentry-slack.json')
+    output_path = Path('sentry-slack-{0}.json'.format(project))
     output_path.write_text(json.dumps(json_data, indent=4))
 
     print(f"Slack message written to {output_path.resolve()}")
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print("Usage: python utils.py <csv_filename>")
-        sys.exit(1)
-    main(sys.argv[1])
+    parser = argparse.ArgumentParser(
+        description='Generate Slack message from Sentry CSV data')
+    parser.add_argument('--file', required=True, help='Path to the input CSV file')
+    parser.add_argument('--project', required=True,
+                        help='Sentry project name (firefox-ios or fenix)')
+
+    args = parser.parse_args()
+    main(args.file, args.project)

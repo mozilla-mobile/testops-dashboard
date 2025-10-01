@@ -30,6 +30,11 @@ PROJECTS_MOBILE = [
     'ALL',
 ]
 
+PROJECTS_SENTRY = [
+    'fenix',
+    'firefox-ios',
+]
+
 REPORT_TYPES = [
     'bitrise-builds',
     'bugzilla-desktop-bugs',
