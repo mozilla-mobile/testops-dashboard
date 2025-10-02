@@ -1,10 +1,13 @@
 # Bugzilla API
+
 The purpose of this document is to highlight key aspects of the Bugzilla API related to the fields, filters, and queries that are most relevant when fetching data and generating metrics for bug tracking and release analysis.
 
 # Bugs per Release
-  To determine the different metrics needed, the bugs are fetched using the QA Withboard field. That is the primary filter, then depending on the value of other fields, the data is generated.
+
+To determine the different metrics needed, the bugs are fetched using the QA Witheboard field. That is the primary filter, then depending on the value of other fields, the data is generated.
 
 ## Filter
+
 1. **QA Whiteboard field**  
    - The QA Whiteboard is used to identify bugs that were open in a given release cycle.  
    - Example values:  
@@ -14,6 +17,7 @@ The purpose of this document is to highlight key aspects of the Bugzilla API rel
    - These values indicate that the bug was open in release **141**, either in Nightly (c) or Beta (b).
 
 ## Fields Tracked
+
 1. **Keywords**
    - Regression information is added here
 2. **Status**
