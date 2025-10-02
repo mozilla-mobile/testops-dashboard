@@ -94,6 +94,15 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
           ls sentry-slack-firefox-ios.json
         continue-on-error: true
+      - name: Send iOS health notification to Slack
+        id: slack-sentry-ios
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./sentry-slack-firefox-ios.json"
+          payload-templated: true 
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        continue-on-error: true
 
       - name: Sentry query (Android)
         run: |
@@ -104,4 +113,13 @@ jobs:
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
           ls sentry-slack-fenix.json
-        continue-on-error: true        
+        continue-on-error: true
+      - name: Send Android health notification to Slack
+        id: slack-sentry-fenix
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./sentry-slack-fenix.json"
+          payload-templated: true 
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        continue-on-error: true
