@@ -108,7 +108,7 @@ jobs:
         id: slack-sentry
         uses: slackapi/slack-github-action@v2.1.0
         with:
-          payload-file-path: "./sentry-slack.json"
+          payload-file-path: "./sentry-slack-firefox-ios.json"
           payload-templated: true 
           webhook:  ${{ secrets.SLACK_WEBHOOK_FIREFOX_IOS_DEV }}
           webhook-type: incoming-webhook
