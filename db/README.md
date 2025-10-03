@@ -12,37 +12,34 @@ You can use the scripts in this directory (`db`, `run-proxy`) to connect and int
 
 `db` depends on `mysql` v8.
 
-### Required Environment Variables
-
-Before starting, ensure you have set the following environment variables. The credentials and the cloud SQL database info are available from 1Password's team vault.
-
-- `GCLOUD_AUTH`
-- `CLOUD_SQL_CONNECTION_NAME`
-- `CLOUD_SQL_DATABASE_PORT`
-- `CLOUD_SQL_DATABASE_USERNAME`
-- `CLOUD_SQL_DATABASE_PASSWORD`
-- `CLOUD_SQL_DATABASE_NAME`: The name of the database to use currently. Example: `preflight`.
-- `CLOUD_SQL_CREDENTIALS`: The location of cloud-sql-proxy.json file, which is available from 1Password.
-
 ### Setup Instructions
 
-1. Download the dependencies: Google Cloud CLI and MySQL v8.
+1. Open `Cloud SQL auth credentials / config` from 1Password's team vault. Save the following variables in 
+   your shell's `rc` file (or a file that your `rc` file imports)
+   * `CLOUD_SQL_DATABASE_USERNAME`
+   * `CLOUD_SQL_DATABASE_PASSWORD`
+   * `CLOUD_SQL_DATABASE_NAME` (use `preflight`)
+   * `CLOUD_SQL_DATABASE_HOST`
+   * `CLOUD_SQL_DATABASE_PORT`
+2. Download `cloud-sql-proxy.json` from 1Password. Save the file somewhere under your home directory. Note the path.
+3. Add `CLOUD_SQL_CREDENTIALS` to the `rc` file. The value the path of `cloud-sql-proxy.json`.
+4. Download the dependencies: Google Cloud CLI and MySQL v8.
    ```
-   brew install gcloud
+   brew install gcloud-cli
    brew install mysql@8.4
    ```
-2. Log in to Google Cloud and configure the project name.
+5. Log in to Google Cloud and configure the project name.
    ```
    gcloud auth login
    gcloud config set project [GCP project name]
    ```
-3. Download the [Cloud SQL Auth Proxy](https://cloud.google.com/sql/docs/mysql/connect-auth-proxy#install) appropriate for your OS.
-4. Place the binary in this `DB/` directory.
-5. Open a terminal tab and run:
+6. Download the [Cloud SQL Auth Proxy](https://cloud.google.com/sql/docs/mysql/connect-auth-proxy#install) appropriate for your OS.
+7. Place the binary in this `DB/` directory.
+8. Open a terminal tab and run:
    ```
    ./run-proxy
    ```
-6. In another terminal tab, run:
+9. In another terminal tab, run:
    ```
    ./db -h
    ```
