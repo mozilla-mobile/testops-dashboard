@@ -172,6 +172,7 @@ DROP TABLE IF EXISTS `report_bugzilla_softvision_bugs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `report_bugzilla_softvision_bugs` (
+  `id` int NOT NULL AUTO_INCREMENT,
   `bugzilla_key` int NOT NULL,
   `bugzilla_summary` text,
   `bugzilla_product` varchar(255) DEFAULT NULL,
@@ -185,7 +186,9 @@ CREATE TABLE `report_bugzilla_softvision_bugs` (
   `bugzilla_bug_whiteboard` varchar(100) DEFAULT NULL,
   `bugzilla_bug_keyword` varchar(100) DEFAULT NULL,
   `bugzilla_bug_resolved_at` datetime DEFAULT NULL,
-  PRIMARY KEY (`bugzilla_key`)
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `bugzilla_key` (`bugzilla_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -722,5 +725,28 @@ CREATE TABLE `test_suites` (
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+--
+-- Table structure for table `report_bugzilla_query_release_flags_for_bugs`
+--
+
+DROP TABLE IF EXISTS `report_bugzilla_query_release_flags_for_bugs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_bugzilla_query_release_flags_for_bugs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `bugzilla_key` int NOT NULL,
+  `bugzilla_release_version` int NOT NULL,
+  `bugzilla_bug_status` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_keywords` varchar(250) DEFAULT NULL,
+  `bugzilla_bug_severity` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_qa_found_in` varchar(500) DEFAULT NULL,
+  `bugzilla_bug_resolution` varchar(100) DEFAULT NULL,
+  `bugzilla_bug_flag_fixed_at` datetime DEFAULT NULL,
+  `bugzilla_bug_type` varchar(100) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=6441 DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 -- Dump completed on 2025-09-04 11:35:53

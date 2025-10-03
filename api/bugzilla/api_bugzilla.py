@@ -3,13 +3,19 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+import logging
+import re
+import requests
+import time
 import pandas as pd
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+from requests.exceptions import HTTPError, RequestException
+from sqlalchemy import func, select
 
 from constants import PRODUCTS, FIELDS
 from constants import BUGZILLA_BUGS_FIELDS, BUGZILLA_QA_WHITEBOARD_FILTER
-from datetime import datetime
 from lib.bugzilla_conn import BugzillaAPIClient
-from sqlalchemy import func
 from utils.datetime_utils import DatetimeUtils
 from utils.retry_bz import with_retry
 
@@ -20,7 +26,18 @@ from database import (
     ReportBugzillaSoftvisionBugs,
     ReportBugzillaMetaBugs,
     ReportBugzillaQueryByKeyword,
+    ReportBugzillaReleaseFlagsBugs,
 )
+
+FIREFOX_FLAG_STATUS_VERSION = re.compile(r"^cf_status_firefox(\d+)$")
+BUGZILLA_API_BASE = "https://bugzilla.mozilla.org/rest"
+
+BZ_FETCH_MAX_WORKERS = 5
+BZ_FETCH_BATCH_SIZE = 100
+BZ_HIST_BATCH_SIZE = 200
+TIMEOUT = 30
+RETRY = 2
+SLEEP_SEC: float = 0.2
 
 
 class Bugz:
@@ -48,6 +65,130 @@ class Bugz:
         query = with_retry(self.conn.bz_client.url_to_query, url)
         return query
 
+    """
+    Fetch the history of a Bugzilla bug safely
+    """
+    def fetch_bug_history(self, bug_id: int, timeout: int = TIMEOUT) -> list[tuple]:
+        url = f"{BUGZILLA_API_BASE}/bug/{bug_id}/history"
+        r = requests.get(url, timeout=timeout)
+        r.raise_for_status()
+        j = r.json()
+
+        hist = []
+        for b in j.get("bugs", []):
+            hist.extend(b.get("history", []))
+
+        out = []
+        for h in hist:
+            when = pd.to_datetime(h.get("when"), errors="coerce")
+            for ch in h.get("changes", []):
+                out.append((
+                    when,
+                    ch.get("field_name"),
+                    (ch.get("added") or "").strip().lower(),
+                    (ch.get("removed") or "").strip().lower(),
+                ))
+        out.sort(key=lambda x: x[0] if pd.notna(x[0]) else pd.Timestamp.min)
+        return out
+
+    """
+    Fetch the history several bugs safely
+    """
+    def fetch_many_bug_histories(
+        self,
+        bug_ids: list[int],
+        *,
+        session: requests.Session | None = None,
+        max_workers: int = BZ_FETCH_MAX_WORKERS,
+        batch_size: int = BZ_FETCH_BATCH_SIZE,
+        timeout: int = TIMEOUT,
+        retries: int = RETRY,
+        sleep_sec: float = SLEEP_SEC,
+        stream_callback=None,
+    ) -> dict[int, list[tuple]] | None:
+        """
+        Concurrently fetch histories for many Bugzilla bugs.
+
+        - Uses ThreadPoolExecutor for concurrency (default 5 workers).
+        - Processes IDs in batches to limit memory/pressure.
+        - Retries with exponential backoff; honors Retry-After on 429.
+        - If stream_callback is provided, calls stream_callback(bug_id, history)
+          as results arrive and returns None. Otherwise returns {bug_id: history}.
+        """
+
+        results = {} if stream_callback is None else None
+        # s = session or requests.Session()
+
+        def _sleep_backoff(attempt: int, retry_after: float | None = None):
+            if retry_after is not None and retry_after > 0:
+                time.sleep(retry_after)
+            else:
+                time.sleep(sleep_sec * (2 ** attempt))
+
+        def _fetch_one(bug_id: int) -> tuple[int, list[tuple]]:
+            err: Exception | None = None
+            for attempt in range(retries + 1):
+                try:
+                    # Reuse same session by temporarily swapping in self.fetch_bug_history's call # noqa
+                    # fetch_bug_history accepts timeout; it constructs and uses requests.get directly. # noqa
+                    # Keep using that method for consistency and single parsing logic.
+                    history = self.fetch_bug_history(bug_id, timeout=timeout)
+                    return bug_id, history
+                except HTTPError as e:
+                    err = e
+                    retry_after = None
+                    try:
+                        # If the server rate-limits, honor Retry-After if available
+                        retry_after_hdr = getattr(e.response, "headers", {}).get("Retry-After") # noqa
+                        if retry_after_hdr:
+                            try:
+                                retry_after = float(retry_after_hdr)
+                            except ValueError:
+                                retry_after = None
+                    except Exception:
+                        retry_after = None
+                    logging.warning(f"[history] {bug_id} HTTP error: {e}. attempt={attempt}/{retries}") # noqa
+                    if attempt < retries:
+                        _sleep_backoff(attempt, retry_after)
+                except RequestException as e:
+                    err = e
+                    logging.warning(f"[history] {bug_id} request error: {e}. attempt={attempt}/{retries}") # noqa
+                    if attempt < retries:
+                        _sleep_backoff(attempt)
+                except Exception as e:
+                    err = e
+                    logging.warning(f"[history] {bug_id} unexpected error: {e}. attempt={attempt}/{retries}") # noqa
+                    if attempt < retries:
+                        _sleep_backoff(attempt)
+
+            # Final failure
+            logging.warning(f"[history] failed permanently for bug {bug_id}: {err}")
+            return bug_id, []
+
+        # Work in batches to control memory and API pressure
+        total = len(bug_ids)
+        for i in range(0, total, batch_size):
+            batch = bug_ids[i: i + batch_size]
+            logging.info(f"[history] Fetching bug histories {i+1}–{i+len(batch)} of {total}" # noqa
+                         f"(workers={max_workers}, batch_size={batch_size})")
+
+            # Small politeness delay between batches
+            if i > 0:
+                time.sleep(sleep_sec)
+
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = [executor.submit(_fetch_one, bid) for bid in batch]
+                for fut in as_completed(futures):
+                    bug_id, history = fut.result()
+                    if stream_callback:
+                        try:
+                            stream_callback(bug_id, history)
+                        except Exception as cb_err:
+                            logging.error(f"[history] stream_callback failed for bug {bug_id}: {cb_err}") # noqa
+                    else:
+                        results[bug_id] = history
+        return results
+
 
 class BugzillaHelper:
     def __init__(self) -> None:
@@ -73,6 +214,35 @@ class BugzillaHelper:
         """Get a query from a Bugzilla URL."""
         return self.bugzilla.get_query_from_url(url)
 
+    def fetch_bug_history(self, bug_id: int, timeout: int = 30) -> list[tuple]:
+        return self.bugzilla.fetch_bug_history(bug_id, timeout=timeout)
+
+    def fetch_many_bug_histories(
+                self,
+                bug_ids: list[int],
+                *,
+                session: requests.Session | None = None,
+                max_workers: int = BZ_FETCH_MAX_WORKERS,
+                batch_size: int = BZ_FETCH_BATCH_SIZE,
+                timeout: int = TIMEOUT,
+                retries: int = RETRY,
+                sleep_sec: float = SLEEP_SEC,
+                stream_callback=None,
+            ) -> dict[int, list[tuple]] | None:
+        """
+        Helper passthrough callers use workers/streaming without touching Bugz directly # noqa
+        """
+        return self.bugzilla.fetch_many_bug_histories(
+            bug_ids=bug_ids,
+            session=session,
+            max_workers=max_workers,
+            batch_size=batch_size,
+            timeout=timeout,
+            retries=retries,
+            sleep_sec=sleep_sec,
+            stream_callback=stream_callback,
+        )
+
 
 class BugzillaClient(Bugz):
     def __init__(self):
@@ -81,7 +251,180 @@ class BugzillaClient(Bugz):
         self.BugzillaHelperClient = BugzillaHelper()
 
     def contains_flags(self, entry, criteria):
+        print("CONTAIN_FLAGS")
         return all(entry.get(key) == value for key, value in criteria.items())
+
+    def fetch_bugs_from_database(self, chunk_size: int = 10_000) -> str:
+        """
+        Export bugs from ReportBugzillaSoftvisionBugs where resolution is not in
+        the filter, only those bugs will have status flags
+        """
+        R = ReportBugzillaSoftvisionBugs
+
+        excluded_resolutions = [
+            "WONTFIX",
+            "INVALID",
+            "WORKSFORME",
+            "DUPLICATE",
+            "MOVED"
+        ]
+
+        norm_res = func.upper(func.trim(R.bugzilla_bug_resolution))
+
+        filter_condition = (R.bugzilla_bug_resolution.is_(None)) | \
+                           (func.trim(R.bugzilla_bug_resolution) == "") | \
+                           (~norm_res.in_(excluded_resolutions))
+
+        stmt = select(R.__table__).where(filter_condition)
+
+        # Engine/connection bound to the session
+        engine = self.db.session.get_bind()
+        bug_ids: list[int] = []
+
+        for chunk in pd.read_sql(stmt, engine, chunksize=chunk_size):
+            # Collect bug IDs from bugzilla_key column
+            bug_ids.extend(chunk["bugzilla_key"].dropna().astype(int).tolist())
+
+        print(f"[export_filtered_bugs_and_ids] Found {len(bug_ids)} bug IDs")
+        return bug_ids
+
+    def _discover_release_status_fields(self, keep_last_n: int = 5) -> list[str]:
+        # Get last N release-train fields
+        url = f"{BUGZILLA_API_BASE}/field/bug"
+        r = requests.get(url, timeout=30)
+        r.raise_for_status()
+        names = [f["name"] for f in r.json().get("fields", []) if "name" in f]
+
+        releases = []
+        for n in names:
+            m = FIREFOX_FLAG_STATUS_VERSION.match(n)
+            if m:
+                releases.append((int(m.group(1)), n))
+        releases.sort(key=lambda t: t[0])  # sort by version number
+
+        if keep_last_n and len(releases) > keep_last_n:
+            releases = releases[-keep_last_n:]  # keep the 5 most recent trains
+
+        kept = [name for _, name in releases]
+        versions = [v for v, _ in releases]
+        print(f"[version-flags] last {len(kept)}: {kept} (versions={versions})")
+        return kept
+
+    def first_fixed_verified_by_version(self, history_rows):
+        """
+        Parse a bug's history and return {version:int -> first_timestamp: pd.Timestamp}
+        for the earliest time each cf_status_firefox{version} became fixed/verified.
+        """
+        out = {}
+        for when, fname, added, removed in history_rows:
+            m = FIREFOX_FLAG_STATUS_VERSION.match(fname or "")
+            if not m:
+                continue
+            if added in ("fixed", "verified"):
+                v = int(m.group(1))
+                # first occurrence only
+                if v not in out:
+                    out[v] = when
+        return out
+
+    def bugzilla_query_release_flags_for_tracked_bugs(
+        self,
+        keep_last_n: int = 5,
+        batch_size: int = BZ_FETCH_BATCH_SIZE,
+        *,
+        hist_workers: int = BZ_FETCH_MAX_WORKERS,
+        hist_batch_size: int = BZ_HIST_BATCH_SIZE,
+        hist_timeout: int = TIMEOUT,
+        hist_retries: int = RETRY,
+    ):
+        version_fields = self._discover_release_status_fields(keep_last_n=keep_last_n)
+        if not version_fields:
+            return pd.DataFrame()
+
+        bug_ids = self.fetch_bugs_from_database()
+        if not bug_ids:
+            return pd.DataFrame()
+
+        include_fields = [
+            "id",
+            "type",
+            "cf_qa_whiteboard",
+            "resolution",
+            "keywords",
+            "severity"
+        ] + version_fields
+        rows = []
+
+        for i in range(0, len(bug_ids), batch_size):
+            batch = bug_ids[i:i + batch_size]
+            query = {"id": ",".join(map(str, batch)), "include_fields": include_fields}
+            bugs = BugzillaHelper().query(query)
+
+            for bug in bugs:
+                for fname in version_fields:
+                    m = FIREFOX_FLAG_STATUS_VERSION.match(fname)
+                    if not m:
+                        continue
+                    version = int(m.group(1))
+                    raw = getattr(bug, fname, None)
+                    status = (str(raw).strip().lower() if raw and str(raw).strip() else '---') # noqa
+
+                    rows.append({
+                        "bugzilla_key": int(bug.id),
+                        "type": bug.type,
+                        "flag-version": version,
+                        "status": status,
+                        "keywords": bug.keywords,
+                        "severity": bug.severity,
+                        "qa-found-in": getattr(bug, "cf_qa_whiteboard", ""),
+                        "resolution": getattr(bug, "resolution", None)
+                    })
+
+        df = pd.DataFrame(rows)
+        if df.empty:
+            return df
+
+        # Only fetch histories for fixed/verified flags
+        need_mask = df["status"].isin(["fixed", "verified"])
+        candidate_ids = (
+            df.loc[need_mask, "bugzilla_key"]
+              .dropna().astype(int).unique().tolist()
+        )
+
+        if candidate_ids:
+            # Concurrent history fetch (keeps results in memory)
+            with requests.Session() as sess:
+                hist_cache = self.BugzillaHelperClient.fetch_many_bug_histories(
+                    candidate_ids,
+                    session=sess,
+                    max_workers=hist_workers,
+                    batch_size=hist_batch_size,
+                    timeout=hist_timeout,
+                    retries=hist_retries,
+                    stream_callback=None,  # return dict
+                )
+
+            # Precompute version->first_ts per bug
+            first_ts_map = {
+                bid: self.first_fixed_verified_by_version(hist_cache.get(bid, []))
+                for bid in candidate_ids
+            }
+
+            def compute_row_ts(row):
+                if row["status"] not in ("fixed", "verified"):
+                    return pd.NaT
+                bid = int(row["bugzilla_key"])
+                v = int(row["flag-version"])
+                return first_ts_map.get(bid, {}).get(v, pd.NaT)
+
+            df["bugzilla_flag_fixed_at"] = df.apply(compute_row_ts, axis=1)
+        else:
+            df["bugzilla_flag_fixed_at"] = pd.NaT
+
+        print(f"versions={sorted(df['flag-version'].unique())} | bugs={df['bugzilla_key'].nunique()}") # noqa
+        self.db.clean_table(ReportBugzillaReleaseFlagsBugs)
+        self.db.report_bugzilla_query_release_flags_for_bugs(df)
+        return df
 
     def bugzilla_query_desktop_bugs(self):
         # Get latest entry in database to update bugs
@@ -326,7 +669,7 @@ class BugzillaClient(Bugz):
         df_update = pd.DataFrame(rows)
 
         # This method does an UPDATE on conflict (not INSERT)
-        self.db.bugzilla_desktop_bugs_update_insert(df_update)
+        self.db.report_bugzilla_desktop_bugs_update_insert(df_update)
         print(f"Updated {len(df_update)} bugs in database.")
 
     def bugzilla_query_by_keyword(self, keyword: str):
@@ -448,6 +791,29 @@ class DatabaseBugzilla(Database):
         self.session.add(report)
         self.session.commit()
 
+    def report_bugzilla_query_release_flags_for_bugs(self, payload):
+        for index, row in payload.iterrows():
+            try:
+                bugzilla_bug_keywords = (
+                    ", ".join(row["keywords"])
+                    if isinstance(row["keywords"], list)
+                    else None
+                )
+                report = ReportBugzillaReleaseFlagsBugs(
+                    bugzilla_key=row['bugzilla_key'],
+                    bugzilla_bug_type=row['type'],
+                    bugzilla_release_version=row['flag-version'],
+                    bugzilla_bug_status=row['status'],
+                    bugzilla_bug_keywords=bugzilla_bug_keywords,
+                    bugzilla_bug_severity=row['severity'],
+                    bugzilla_bug_qa_found_in=row['qa-found-in'],
+                    bugzilla_bug_resolution=row['resolution'],
+                    bugzilla_bug_flag_fixed_at=None if pd.isna(row['bugzilla_flag_fixed_at']) else row['bugzilla_flag_fixed_at']) # noqa
+                self.session.add(report)
+            except KeyError as e:
+                print(f"Missing key: {e} in row {index}")
+        self.session.commit()
+
     def report_bugzilla_meta_bug(self, payload):
         for index, row in payload.iterrows():
             print(row)
@@ -466,6 +832,7 @@ class DatabaseBugzilla(Database):
                     bugzilla_bug_parent=row['parent_bug_id'],
                     bugzilla_bug_product=row['product']
                 )
+
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")
             self.session.add(report)

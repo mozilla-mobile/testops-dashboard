@@ -38,6 +38,7 @@ PROJECTS_SENTRY = [
 REPORT_TYPES = [
     'bitrise-builds',
     'bugzilla-desktop-bugs',
+    'bugzilla-desktop-release-flags-for-bugs',
     'bugzilla-meta-bugs',
     'bugzilla-qe-verify',
     'bugzilla-query-by-keyword',
