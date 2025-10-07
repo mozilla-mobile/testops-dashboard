@@ -18,6 +18,8 @@ def get_all_future_versions():
 def insert_rates(json_data, csv_file):
     all_future_versions = get_all_future_versions()
     print(all_future_versions)
+    LOW_CRASH_FREE_RATE_THRESHOLD = 99.5
+    flag_low_crash_free_rate_detected = False
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
         for row in rows:
@@ -39,6 +41,9 @@ def insert_rates(json_data, csv_file):
                 if all_future_versions is not None:
                     if release_version in all_future_versions:
                         release_version = release_version + " (Beta)"
+                if float(crash_free_rate_session) < LOW_CRASH_FREE_RATE_THRESHOLD or \
+                   float(crash_free_rate_user) < LOW_CRASH_FREE_RATE_THRESHOLD:
+                    flag_low_crash_free_rate_detected = True
                 json_data["blocks"].append(
                     {
                         "type": "section",
@@ -103,6 +108,18 @@ def insert_rates(json_data, csv_file):
                 ]
             }
         )
+        if flag_low_crash_free_rate_detected:
+            json_data["blocks"].append(
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "⚠️ Low crash-free rate(s) (<{0}%) detected ⚠️".format(LOW_CRASH_FREE_RATE_THRESHOLD)
+                        }
+                    ]
+                }
+            )
         json_data["blocks"].append(
             {
                 "type": "divider"
