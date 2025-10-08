@@ -22,7 +22,8 @@ def insert_rates(json_data, csv_file, project):
     low_crash_free_rate_threshold = None
     with open('config/sentry/rules.yml', 'r') as rules_file:
         rules = yaml.safe_load(rules_file)
-        low_crash_free_rate_threshold = rules.get(project).get('LOW_CRASH_FREE_RATE_THRESHOLD', 99.5)
+        low_crash_free_rate_threshold = rules.get(project).get(
+            'LOW_CRASH_FREE_RATE_THRESHOLD', 99.5)
     flag_low_crash_free_rate_detected = False
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
