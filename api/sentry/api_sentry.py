@@ -95,9 +95,10 @@ class Sentry:
     def get_latest_train_release(self):
         response = requests.get('https://whattrainisitnow.com/api/firefox/releases/')
         return list(response.json().keys())
-    
+
     def get_future_train_release(self):
-        response = requests.get('https://whattrainisitnow.com/api/firefox/releases/esr/future/')
+        response = requests.get(
+            'https://whattrainisitnow.com/api/firefox/releases/esr/future/')
         return list(response.json().keys())
 
     # API: Session (crash free rate (session) and crash free rate (user))
@@ -149,7 +150,7 @@ class SentryClient(Sentry):
         # Query whattrainisitnow.com for the latest version.
         # (Example: v170 exists while nightly now is only at v144.)
         if self.sentry_project == 'fenix-beta':
-            get_train_release = self.get_future_train_release()[0] 
+            get_train_release = self.get_future_train_release()[0]
         else:
             get_train_release = self.get_latest_train_release()[-1]
         release_versions = self._report_version_strings(
