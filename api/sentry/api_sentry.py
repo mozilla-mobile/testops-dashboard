@@ -47,7 +47,7 @@ class Sentry:
                     "env": "release",
                     "pkg": "org.mozilla.firefox",
                 },
-                "fenix-nightly": {
+                "fenix-beta": {
                     "id": os.environ["SENTRY_FENIX_BETA_PROJECT_ID"],
                     "env": "beta",
                     "pkg": "org.mozilla.firefox_beta",
@@ -148,7 +148,7 @@ class SentryClient(Sentry):
         # Workaround: Do not use Fenix versions that are "too new".
         # Query whattrainisitnow.com for the latest version.
         # (Example: v170 exists while nightly now is only at v144.)
-        if self.sentry_project == 'fenix-nightly':
+        if self.sentry_project == 'fenix-beta':
             get_train_release = self.get_future_train_release()[0] 
         else:
             get_train_release = self.get_latest_train_release()[-1]
@@ -237,7 +237,7 @@ class SentryClient(Sentry):
             raw_version = version['raw']
             major_version = int(version['major'])
             build_code = version['buildCode']
-            if self.sentry_project == 'fenix-nightly':
+            if self.sentry_project == 'fenix-beta':
                 if major_version >= latest_major_version and int(build_code) % 2 == 1:
                     payload.append(raw_version)
             else:
