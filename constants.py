@@ -32,7 +32,7 @@ PROJECTS_MOBILE = [
 
 PROJECTS_SENTRY = [
     'fenix',
-    'fenix-nightly',
+    'fenix-beta',
     'firefox-ios',
 ]
 
