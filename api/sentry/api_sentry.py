@@ -249,7 +249,9 @@ class SentryClient(Sentry):
                     if self.sentry_project == 'fenix' and build_code is not None:
                         if int(build_code) % 2 == 1:
                             payload.append(raw_version)
-        payload = sorted(set(payload))
+
+        if not self.sentry_project == 'fenix-beta':
+            payload.sort()
 
         # Just a list of released versions, not a dataframe
         return payload
