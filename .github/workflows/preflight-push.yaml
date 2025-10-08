@@ -124,6 +124,17 @@ jobs:
           path: ./sentry_issues_fenix_*.csv
       - name: Construct JSON for Slack (Sentry)
         run: python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
+      - name: Sentry query (Android Beta)
+        run: |
+          python __main__.py --report-type sentry-issues --project fenix-beta
+          python __main__.py --report-type sentry-rates --project fenix-beta
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sentry_issues_fenix
+          path: ./sentry_issues_fenix-beta_*.csv
+      - name: Construct JSON for Slack (Sentry)
+        run: python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
   notify:
     name: Slack notify
     runs-on: ubuntu-latest
