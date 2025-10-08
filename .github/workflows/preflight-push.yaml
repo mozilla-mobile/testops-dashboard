@@ -132,7 +132,7 @@ jobs:
         continue-on-error: true
       - uses: actions/upload-artifact@v4
         with:
-          name: sentry_issues_fenix
+          name: sentry_issues_fenix-beta
           path: ./sentry_issues_fenix-beta_*.csv
       - name: Construct JSON for Slack (Sentry)
         run: python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
