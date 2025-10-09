@@ -32,6 +32,7 @@ PROJECTS_MOBILE = [
 
 PROJECTS_SENTRY = [
     'fenix',
+    'fenix-beta',
     'firefox-ios',
 ]
 

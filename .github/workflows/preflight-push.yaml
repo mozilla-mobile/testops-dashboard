@@ -35,6 +35,7 @@ env:
   SENTRY_ORGANIZATION_SLUG: ${{ secrets.SENTRY_ORGANIZATION_SLUG }}
   SENTRY_IOS_PROJECT_ID: ${{ secrets.SENTRY_IOS_PROJECT_ID }}
   SENTRY_FENIX_PROJECT_ID: ${{ secrets.SENTRY_FENIX_PROJECT_ID }}
+  SENTRY_FENIX_BETA_PROJECT_ID: ${{ secrets.SENTRY_FENIX_BETA_PROJECT_ID }}
 
 jobs:
   reports:
@@ -112,7 +113,7 @@ jobs:
         with:
           name: sentry_issues_firefox_ios
           path: ./sentry_issues_firefox-ios_*.csv
-      - name: Construct JSON for Slack
+      - name: Construct JSON for Slack (iOS)
         run: python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
       - name: Sentry query (Android)
         run: |
@@ -122,8 +123,19 @@ jobs:
         with:
           name: sentry_issues_fenix
           path: ./sentry_issues_fenix_*.csv
-      - name: Construct JSON for Slack (Sentry)
+      - name: Construct JSON for Slack (Android)
         run: python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
+      - name: Sentry query (Android Beta)
+        run: |
+          python __main__.py --report-type sentry-issues --project fenix-beta
+          python __main__.py --report-type sentry-rates --project fenix-beta
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sentry_issues_fenix-beta
+          path: ./sentry_issues_fenix-beta_*.csv
+      - name: Construct JSON for Slack (Android Beta)
+        run: python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
   notify:
     name: Slack notify
     runs-on: ubuntu-latest

@@ -47,6 +47,11 @@ class Sentry:
                     "env": "release",
                     "pkg": "org.mozilla.firefox",
                 },
+                "fenix-beta": {
+                    "id": os.environ["SENTRY_FENIX_BETA_PROJECT_ID"],
+                    "env": "beta",
+                    "pkg": "org.mozilla.firefox_beta",
+                },
             }
             if project in project_config.keys():
                 self.sentry_project_id = project_config[project]["id"]
@@ -89,6 +94,11 @@ class Sentry:
     # Workaround: Get the largest/latest version through whattrainisitnow
     def get_latest_train_release(self):
         response = requests.get('https://whattrainisitnow.com/api/firefox/releases/')
+        return list(response.json().keys())
+
+    def get_future_train_release(self):
+        response = requests.get(
+            'https://whattrainisitnow.com/api/firefox/releases/esr/future/')
         return list(response.json().keys())
 
     # API: Session (crash free rate (session) and crash free rate (user))
@@ -139,9 +149,12 @@ class SentryClient(Sentry):
         # Workaround: Do not use Fenix versions that are "too new".
         # Query whattrainisitnow.com for the latest version.
         # (Example: v170 exists while nightly now is only at v144.)
-        get_latest_train_release = self.get_latest_train_release()[-1]
+        if self.sentry_project == 'fenix-beta':
+            get_train_release = self.get_future_train_release()[0]
+        else:
+            get_train_release = self.get_latest_train_release()[-1]
         release_versions = self._report_version_strings(
-            releases, get_latest_train_release)
+            releases, get_train_release)
         print(release_versions)
         return release_versions
 
@@ -225,14 +238,20 @@ class SentryClient(Sentry):
             raw_version = version['raw']
             major_version = int(version['major'])
             build_code = version['buildCode']
-            if oldest_major_version < major_version and \
-               major_version <= latest_major_version:
-                if self.sentry_project == 'firefox-ios' and build_code is None:
+            if self.sentry_project == 'fenix-beta':
+                if major_version >= latest_major_version and int(build_code) % 2 == 1:
                     payload.append(raw_version)
-                if self.sentry_project == 'fenix' and build_code is not None:
-                    if int(build_code) % 2 == 1:
+            else:
+                if oldest_major_version < major_version and \
+                   major_version <= latest_major_version:
+                    if self.sentry_project == 'firefox-ios' and build_code is None:
                         payload.append(raw_version)
-        payload.sort()
+                    if self.sentry_project == 'fenix' and build_code is not None:
+                        if int(build_code) % 2 == 1:
+                            payload.append(raw_version)
+
+        if not self.sentry_project == 'fenix-beta':
+            payload.sort()
 
         # Just a list of released versions, not a dataframe
         return payload
