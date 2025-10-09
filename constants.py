@@ -102,8 +102,11 @@ FIELDS = ["id", "summary", "flags", "severity",
           "priority", "status", "resolution"]
 
 BUGZILLA_QA_WHITEBOARD_FILTER = {
-    "cf_qa_whiteboard_type": "substring",
-    "cf_qa_whiteboard": "qa-found-in-"
+    #"cf_qa_whiteboard_type": "regexp",
+    #"cf_qa_whiteboard": "qa-found-in-"
+    #"cf_qa_whiteboard": "(qa-investig|qa-ver)"
+    "cf_qa_whiteboard_type": "anywordssubstr",
+    "cf_qa_whiteboard": "qa-investig qa-ver qa-triage",
 }
 
 BUGZILLA_BUGS_FIELDS = [

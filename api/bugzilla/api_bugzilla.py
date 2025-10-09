@@ -542,6 +542,40 @@ class BugzillaClient(Bugz):
 
         return all_bugs
 
+    def bugzilla_overall_bugs(self):
+        print("overall")
+
+        query = {
+            **BUGZILLA_QA_WHITEBOARD_FILTER,
+            "include_fields": BUGZILLA_BUGS_FIELDS
+        }
+        print(query)
+        rows = []
+        bugs = BugzillaHelper().query(query)
+        for bug in bugs:
+            resolved_raw = getattr(bug, "cf_last_resolved", None)
+            resolved_at = pd.to_datetime(str(resolved_raw)) if resolved_raw else None # noqa
+
+            rows.append({
+                "bug_id": bug.id,
+                "summary": bug.summary,
+                "product": bug.product,
+                "qa_whiteboard": getattr(bug, "cf_qa_whiteboard", ""),
+                "severity": bug.severity,
+                "priority": bug.priority,
+                "status": bug.status,
+                "resolution": bug.resolution,
+                "created_at": pd.to_datetime(str(bug.creation_time)),
+                "last_change_time": pd.to_datetime(str(bug.last_change_time)),
+                "whiteboard": bug.whiteboard,
+                "keyword": bug.keywords,
+                "resolved_at": resolved_at
+            })
+
+        # Convert to DataFrame
+        df_update = pd.DataFrame(rows)
+        df_update.to_csv("bugzilla_update.csv", index=False)
+
     def bugzilla_meta_bug(self, meta_bug_id: int):
         bug = self.BugzillaHelperClient.get_bug(meta_bug_id)
         print(f"Bug {bug.id}: {bug.summary}")
