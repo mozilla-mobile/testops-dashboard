@@ -12,91 +12,100 @@ on:
         required: true
         default: 'master'
 
+env:
+  CLOUD_SQL_DATABASE_NAME: staging
+  CLOUD_SQL_DATABASE_USERNAME: ${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}
+  CLOUD_SQL_DATABASE_PASSWORD: ${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}
+  CLOUD_SQL_DATABASE_PORT: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+  TESTRAIL_HOST: ${{ secrets.TESTRAIL_HOST }}
+  TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USERNAME }}
+  TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_PASSWORD }}
+  ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
+  ATLASSIAN_HOST: ${{ secrets.ATLASSIAN_HOST }}
+  ATLASSIAN_USERNAME: ${{ secrets.ATLASSIAN_USERNAME }}
+  JIRA_HOST: ${{ secrets.JIRA_HOST }}
+  JIRA_USER: ${{ secrets.JIRA_USER }}
+  JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  BUGZILLA_API_KEY: ${{ secrets.BUGZILLA_API_KEY }}
+  BITRISE_HOST: ${{ secrets.BITRISE_HOST }}
+  BITRISE_APP_SLUG: ${{ secrets.BITRISE_APP_SLUG }}
+  BITRISE_TOKEN: ${{ secrets.BITRISE_TOKEN }}
+  SENTRY_HOST: ${{ secrets.SENTRY_HOST }}
+  SENTRY_API_TOKEN: ${{ secrets.SENTRY_API_TOKEN_CSO }}
+  SENTRY_ORGANIZATION_SLUG: ${{ secrets.SENTRY_ORGANIZATION_SLUG }}
+  SENTRY_IOS_PROJECT_ID: ${{ secrets.SENTRY_IOS_PROJECT_ID }}
+  SENTRY_FENIX_PROJECT_ID: ${{ secrets.SENTRY_FENIX_PROJECT_ID }}
+
 jobs:
-  deploy:
-    name: Mobile TestOps Report (DAILY) 
+  reports:
+    name: Daily reports (${{ matrix.name }})
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Check out source repository
-        uses: actions/checkout@v5
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        include:
+          - name: Jira QA Requests
+            args: --platform mobile --project ALL --report-type jira-qa-requests
+          - name: Jira Worklogs
+            args: --report-type jira-softvision-worklogs
+          - name: Bugzilla Desktop Bugs
+            args: --report-type bugzilla-desktop-bugs
+          - name: Bugzilla Release Flags
+            args: --report-type bugzilla-desktop-release-flags-for-bugs
+          - name: Bugzilla Android Memory Leaks
+            args: --report-type bugzilla-meta-bugs --meta-bug-id 1935100
+          - name: Bugzilla Android UI Tests
+            args: --report-type bugzilla-query-by-keyword --bz-keyword "ui-test-bug-auto-found"
+          - name: Bitrise Builds Count
+            args: --report-type bitrise-builds
 
-      - name: Setup python 
-        uses: actions/setup-python@v6
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
-
-      - name: Establish Cloud SQL Proxy
-        uses: mattes/gce-cloudsql-proxy-action@v1
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - uses: mattes/gce-cloudsql-proxy-action@v1
         with:
           creds: ${{ secrets.GCLOUD_AUTH }}
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+      - run: pip install -r requirements.txt
+      - run: python ./__main__.py ${{ matrix.args }}
 
-      - name: Install requirements 
-        run: pip install -r requirements.txt
-
-      - name: Set env vars 
-        run: |
-            echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_NAME=staging" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
-            echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
-            echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
-            echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
-            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
-            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
-            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
-
-            echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
-
-            echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
-            echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
-            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
-            
-            echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
-            echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
-            echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
-
-            echo "SENTRY_HOST=${{ secrets.SENTRY_HOST }}" >> $GITHUB_ENV
-            echo "SENTRY_API_TOKEN=${{ secrets.SENTRY_API_TOKEN_CSO }}" >> $GITHUB_ENV
-            echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
-            echo "SENTRY_IOS_PROJECT_ID=${{ secrets.SENTRY_IOS_PROJECT_ID }}" >> $GITHUB_ENV
-            echo "SENTRY_FENIX_PROJECT_ID=${{ secrets.SENTRY_FENIX_PROJECT_ID }}" >> $GITHUB_ENV
-
-      - name: Jira query QA Requests
-        run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
-
-      - name: Jira query Worklogs
-        run: python ./__main__.py --report-type jira-softvision-worklogs
-
-      - name: Bugzilla Desktop Bugs
-        run: python ./__main__.py --report-type bugzilla-desktop-bugs
-
-      - name: Bugzilla Release Flags for Bugs
-        run: python ./__main__.py --report-type bugzilla-desktop-release-flags-for-bugs
-
-      - name: Bugzilla Metabug Android Memory Leaks
-        run: python  ./__main__.py --report-type bugzilla-meta-bugs --meta-bug-id 1935100
-
-      - name: Bugzilla Android UI Tests Bugs Caught
-        run: python ./__main__.py --report-type bugzilla-query-by-keyword --bz-keyword "ui-test-bug-auto-found"
-
-      - name: Bitrise builds count
-        run: python3 ./__main__.py --report-type bitrise-builds
-
+  sentry:
+    name: Sentry reports and notifications
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GCLOUD_AUTH }}
+          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+      - run: pip install -r requirements.txt
+      
       - name: Sentry query (iOS)
         run: |
           python __main__.py --report-type sentry-issues --project firefox-ios
           python __main__.py --report-type sentry-rates --project firefox-ios
         continue-on-error: true
+
       - name: Construct JSON for Slack (iOS)
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
           ls sentry-slack-firefox-ios.json
         continue-on-error: true
+
       - name: Send iOS health notification to Slack
         id: slack-sentry-ios
         uses: slackapi/slack-github-action@v2.1.0
@@ -112,11 +121,13 @@ jobs:
           python __main__.py --report-type sentry-issues --project fenix
           python __main__.py --report-type sentry-rates --project fenix
         continue-on-error: true
+
       - name: Construct JSON for Slack (Android)
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
           ls sentry-slack-fenix.json
         continue-on-error: true
+
       - name: Send Android health notification to Slack
         id: slack-sentry-fenix
         uses: slackapi/slack-github-action@v2.1.0
