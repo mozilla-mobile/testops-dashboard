@@ -3,6 +3,7 @@ import csv
 import argparse
 from pathlib import Path
 import requests
+import yaml
 
 from utils.datetime_utils import DatetimeUtils
 
@@ -15,9 +16,15 @@ def get_all_future_versions():
         return sorted(list(response.json().keys()))
 
 
-def insert_rates(json_data, csv_file):
+def insert_rates(json_data, csv_file, project):
     all_future_versions = get_all_future_versions()
     print(all_future_versions)
+    low_crash_free_rate_threshold = None
+    with open('config/sentry/rules.yml', 'r') as rules_file:
+        rules = yaml.safe_load(rules_file)
+        low_crash_free_rate_threshold = rules.get(project).get(
+            'LOW_CRASH_FREE_RATE_THRESHOLD', 99.5)
+    flag_low_crash_free_rate_detected = False
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
         for row in rows:
@@ -39,6 +46,9 @@ def insert_rates(json_data, csv_file):
                 if all_future_versions is not None:
                     if release_version in all_future_versions:
                         release_version = release_version + " (Beta)"
+                if float(crash_free_rate_session) < low_crash_free_rate_threshold or \
+                   float(crash_free_rate_user) < low_crash_free_rate_threshold:
+                    flag_low_crash_free_rate_detected = True
                 json_data["blocks"].append(
                     {
                         "type": "section",
@@ -103,6 +113,19 @@ def insert_rates(json_data, csv_file):
                 ]
             }
         )
+        if flag_low_crash_free_rate_detected:
+            json_data["blocks"].append(
+                {
+                    "type": "context",
+                    "elements": [
+                        {
+                            "type": "mrkdwn",
+                            "text": "⚠️ Low crash-free rate(s) (<{0}%) detected ⚠️"
+                            .format(low_crash_free_rate_threshold)
+                        }
+                    ]
+                }
+            )
         json_data["blocks"].append(
             {
                 "type": "divider"
@@ -163,7 +186,7 @@ def init_json(project):
 
 def main(file_csv: str, project: str) -> None:
     json_data = init_json(project)
-    insert_rates(json_data, file_csv)
+    insert_rates(json_data, file_csv, project)
 
     output_path = Path('sentry-slack-{0}.json'.format(project))
     output_path.write_text(json.dumps(json_data, indent=4))
