@@ -22,7 +22,7 @@ wiki_page:
         - report-title: "Firefox-iOS Releases Tested"
           report-description: "Number of releases tested for Firefox-iOS"
           attachment-filename: "firefox-ios-verified-builds-pie-chart.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2719"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2797"
 
         - report-title: "Focus-android Releases Tested"
           report-description: "Number of releases tested for Focus-android"
@@ -36,11 +36,16 @@ wiki_page:
     - name: "Mobile Incidents"
       reports:
         - report-title: "Mobile Incidents by Platform"
-          report-description: "Number of incidents by platform"
+          report-description: "Number of incidents by platform - 2025"
           attachment-filename: "mobile-incidents-2025-pie-chart.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2811"
 
         - report-title: "Mobile Incidents Severity - 2025"
-          report-description: "Incidents by Severity"
+          report-description: "Incidents by Severity - 2025"
           attachment-filename: "mobile-incidents-severity-2025.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2867"
+
+        - report-title: "Mobile Incidents by Month - 2025"
+          report-description: "Mobile Incidents by Month - 2025"
+          attachment-filename: "mobile-incidents-month-2025.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3057"
