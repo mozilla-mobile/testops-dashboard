@@ -45,7 +45,7 @@ wiki_page:
           attachment-filename: "mobile-incidents-severity-2025.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/2867"
 
-        - report-title: "Mobile Incidents by Month- 2025"
-          report-description: "Mobile Incidents by Month- 2025"
+        - report-title: "Mobile Incidents by Month - 2025"
+          report-description: "Mobile Incidents by Month - 2025"
           attachment-filename: "mobile-incidents-month-2025.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3057"
