@@ -113,6 +113,10 @@ class ReportBugzillaQueryByKeyword(Base):
     __table__ = Table('report_bugzilla_query_by_keyword', Base.metadata, autoload_with=pool)  # noqa
 
 
+class ReportBugzillaOverallBugs(Base):
+    __table__ = Table('report_bugzilla_overall_bugs', Base.metadata, autoload_with=pool)  # noqa
+
+
 class Database:
     def __init__(self):
         self.session = Session()
