@@ -120,7 +120,7 @@ def insert_rates(json_data, csv_file, project):
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": "🟡❗ Low crash-free rate(s) (<{0}%) detected"
+                            "text": "❗ Low crash-free rate(s) (<{0}%) detected"
                             .format(low_crash_free_rate_threshold)
                         }
                     ]
