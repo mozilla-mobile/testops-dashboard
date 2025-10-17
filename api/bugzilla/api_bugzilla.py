@@ -15,6 +15,7 @@ from sqlalchemy import func, select
 
 from constants import PRODUCTS, FIELDS
 from constants import BUGZILLA_BUGS_FIELDS, BUGZILLA_QA_WHITEBOARD_FILTER
+from constants import BUGZILLA_QA_WHITEBOARD_OVERALL_FILTER
 from lib.bugzilla_conn import BugzillaAPIClient
 from utils.datetime_utils import DatetimeUtils
 from utils.retry_bz import with_retry
@@ -27,6 +28,7 @@ from database import (
     ReportBugzillaMetaBugs,
     ReportBugzillaQueryByKeyword,
     ReportBugzillaReleaseFlagsBugs,
+    ReportBugzillaOverallBugs,
 )
 
 FIREFOX_FLAG_STATUS_VERSION = re.compile(r"^cf_status_firefox(\d+)$")
@@ -542,11 +544,11 @@ class BugzillaClient(Bugz):
 
         return all_bugs
 
-    def bugzilla_overall_bugs(self):
+    def bugzilla_fetch_overall_bugs(self):
         print("overall")
 
         query = {
-            **BUGZILLA_QA_WHITEBOARD_FILTER,
+            **BUGZILLA_QA_WHITEBOARD_OVERALL_FILTER,
             "include_fields": BUGZILLA_BUGS_FIELDS
         }
         print(query)
@@ -573,8 +575,10 @@ class BugzillaClient(Bugz):
             })
 
         # Convert to DataFrame
-        df_update = pd.DataFrame(rows)
-        df_update.to_csv("bugzilla_update.csv", index=False)
+        df = pd.DataFrame(rows)
+        self.db.clean_table(ReportBugzillaOverallBugs)
+
+        self.db.report_bugzilla_overall_bugs(df)
 
     def bugzilla_meta_bug(self, meta_bug_id: int):
         bug = self.BugzillaHelperClient.get_bug(meta_bug_id)
@@ -972,4 +976,33 @@ class DatabaseBugzilla(Database):
             except KeyError as e:
                 print(f"Missing key: {e} in row {index}")
 
+        self.session.commit()
+
+    def report_bugzilla_overall_bugs(self, payload):
+        for index, row in payload.iterrows():
+            try:
+                bugzilla_bug_keyword = (
+                    ", ".join(row["keyword"])
+                    if isinstance(row["keyword"], list)
+                    else None
+                )
+                report = ReportBugzillaOverallBugs(
+                        bugzilla_key=row['bug_id'],
+                        bugzilla_summary=row['summary'],
+                        bugzilla_product=row['product'],
+                        bugzilla_qa_whiteboard=row['qa_whiteboard'],
+                        bugzilla_bug_severity=row['severity'],
+                        bugzilla_bug_priority=row['priority'],
+                        bugzilla_bug_status=row['status'],
+                        bugzilla_bug_resolution=None if pd.isna(row['resolution']) else row['resolution'], # noqa
+                        bugzilla_bug_created_at=row['created_at'],
+                        bugzilla_bug_last_change_time=row['last_change_time'],
+                        bugzilla_bug_whiteboard=None if pd.isna(row['whiteboard']) else row['whiteboard'], # noqa
+                        bugzilla_bug_keyword=bugzilla_bug_keyword,
+                        bugzilla_bug_resolved_at=None if pd.isna(row['resolved_at']) else row['resolved_at'] # noqa
+                    )
+                self.session.add(report)
+
+            except KeyError as e:
+                print(f"Missing key: {e} in row {index}")
         self.session.commit()

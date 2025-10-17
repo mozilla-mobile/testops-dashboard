@@ -3,13 +3,17 @@ from api.bugzilla.api_bugzilla import BugzillaClient
 
 def handle_bugzilla_desktop_bugs(args):
     client = BugzillaClient()
-    #client.bugzilla_query_desktop_bugs()
-    client.bugzilla_overall_bugs()
+    client.bugzilla_query_desktop_bugs()
 
 
 def handle_bugzilla_desktop_release_flags_for_bugs(args):
     client = BugzillaClient()
     client.bugzilla_query_release_flags_for_tracked_bugs(5, 100)
+
+
+def handle_bugzilla_desktop_overall_bugs(args):
+    client = BugzillaClient()
+    client.bugzilla_fetch_overall_bugs()
 
 
 def handle_bugzilla_meta_bugs(args):
