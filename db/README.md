@@ -22,8 +22,8 @@ You can use the scripts in this directory (`db`, `run-proxy`) to connect and int
    * `CLOUD_SQL_DATABASE_HOST`
    * `CLOUD_SQL_DATABASE_PORT`
 2. Download `cloud-sql-proxy.json` from 1Password. Save the file somewhere under your home directory. Note the path.
-3. Add `CLOUD_SQL_CREDENTIALS` to the `rc` file. The value the path of `cloud-sql-proxy.json`.
-4. Download the dependencies: Google Cloud CLI and MySQL v8.
+3. Add `CLOUD_SQL_CREDENTIALS` to the `rc` file. The value is the path of `cloud-sql-proxy.json`.
+4. Download the dependencies: Google Cloud CLI and MySQL v8. Ensure both `glcoud` and `mysql` are covered by `$PATH`.
    ```
    brew install gcloud-cli
    brew install mysql@8.4
@@ -33,16 +33,18 @@ You can use the scripts in this directory (`db`, `run-proxy`) to connect and int
    gcloud auth login
    gcloud config set project [GCP project name]
    ```
+   Please see a member of Mobile Test Engineering for the GCP project name.
 6. Download the [Cloud SQL Auth Proxy](https://cloud.google.com/sql/docs/mysql/connect-auth-proxy#install) appropriate for your OS.
-7. Place the binary in this `DB/` directory.
+7. Place the binary in the `db/` directory.
 8. Open a terminal tab and run:
    ```
    ./run-proxy
    ```
-9. In another terminal tab, run:
+9. In another terminal tab, verify if `./db` can be run successfully:
    ```
    ./db -h
    ```
+   You should see the help page of the `./db` script.
 
 ### `db` Script Options
 
