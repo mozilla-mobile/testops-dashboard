@@ -18,6 +18,11 @@ def handle_testrail_milestones(args):
     milestones.testrail_milestones(args.arg_list)
 
 
+def handle_testrail_milestones_closed(args):
+    milestone_validate_closed = True
+    milestones.testrail_milestones(args.arg_list, milestone_validate_closed)
+
+
 def handle_testrail_users(args):
     users.testrail_users()
 

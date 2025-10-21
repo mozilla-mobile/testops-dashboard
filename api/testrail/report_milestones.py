@@ -42,7 +42,7 @@ def _tr() -> TestRail():
 # ORCHESTRATOR (BATCH)
 # ===================================================================
 
-def testrail_milestones(project):
+def testrail_milestones(project, milestone_validate_closed: bool = False):
 
     tr = _tr()
 
@@ -140,6 +140,11 @@ def testrail_milestones(project):
                 df_selected['build_version'] = df_selected['build_name'].apply(
                     pl.extract_build_version
                 )
+
+            import sys
+            print(f"milestone_validate_closed: {milestone_validate_closed}")
+            sys.exit()
+
 
             # Insert into database only if there is data
             if not df_selected.empty:
