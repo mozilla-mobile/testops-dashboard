@@ -112,7 +112,7 @@ jobs:
         with:
           payload-file-path: "./sentry-slack-firefox-ios.json"
           payload-templated: true 
-          webhook:  ${{ secrets.SLACK_WEBHOOK_FIREFOX_IOS_DEV }}
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
         continue-on-error: true
 
@@ -134,7 +134,7 @@ jobs:
           JOB_STATUS: ${{ (needs.reports.result == 'success' && needs.sentry.result == 'success') && ':white_check_mark:' || ':x:' }}
           JOB_STATUS_COLOR: ${{ (needs.reports.result == 'success' && needs.sentry.result == 'success') && '#36a64f' || '#FF0000' }}
         with:
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: webhook-trigger
           payload-templated: true
           payload-file-path: "./config/payload-slack-content.json"
