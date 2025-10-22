@@ -52,7 +52,7 @@ def run(project, milestone_validate_closed: bool = False):
     for project_ids in project_ids_list:
 
         # fetch - begin
-        projects_id, df_selected = _fetch(projects_ids, milestones_all)
+        df_selected = _fetch(projects_ids, milestones_all)
 
         print(f"milestone_validate_closed: {milestone_validate_closed}")
 
@@ -160,6 +160,8 @@ def _fetch(projects_ids, milestones_all):
             df_selected['build_version'] = df_selected['build_name'].apply(
                 pl.extract_build_version
             )
+
+    return df_selected
 
 
 #def _db_upsert(projects_id, payload):
