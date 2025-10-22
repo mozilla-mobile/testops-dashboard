@@ -40,7 +40,6 @@ def _tr() -> TestRail():
 
 def run(project, milestone_validate_closed: bool = False):
 
-    tr = _tr()
 
     testrail_milestones_delete()
 
@@ -72,6 +71,8 @@ def run(project, milestone_validate_closed: bool = False):
                 )
 
 def _fetch(project_ids, milestones_all):
+
+    tr = _tr()
     projects_id = project_ids[0]
     testrail_project_id = project_ids[1]
     payload = tr.milestones(testrail_project_id)
