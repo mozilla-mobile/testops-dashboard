@@ -51,7 +51,7 @@ def run(project, milestone_validate_closed: bool = False):
     for project_ids in project_ids_list:
 
         # fetch - begin
-        df_selected = _fetch(project_ids, milestones_all)
+        payload, df_selected = _fetch(project_ids, milestones_all)
 
         print(f"milestone_validate_closed: {milestone_validate_closed}")
 
@@ -60,11 +60,12 @@ def run(project, milestone_validate_closed: bool = False):
             sys.exit()
             # TODO: initiate follow-on reporting here
         else:
-            print("INSERTING INTO DB")
             # Insert into database only if there is data
             if not df_selected.empty:
-                _db_upsert(projects_id, df_selected, testrail_project_id)
+                print("DB_UPSERT")
+                _db_upsert(projects_id, payload, df_selected, testrail_project_id)
             else:
+                print("DB_UPSERT - NO DATA")
                 print(
                     f"No milestones data to insert into database for project "
                     f"{testrail_project_id}."
@@ -162,7 +163,7 @@ def _fetch(project_ids, milestones_all):
                 pl.extract_build_version
             )
 
-    return df_selected
+    return payload, df_selected
 
 
 #def _db_upsert(projects_id, payload):
