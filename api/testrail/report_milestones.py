@@ -40,6 +40,10 @@ def _tr() -> TestRail():
 
 def run(project, milestone_validate_closed: bool = False):
 
+
+    # TEMP
+    testrail_project_id = "75"
+
     testrail_milestones_delete()
     project_ids_list = testrail_project_ids(project)
 
@@ -71,6 +75,8 @@ def run(project, milestone_validate_closed: bool = False):
                     f"No milestones data to insert into database for project "
                     f"{testrail_project_id}."
                 )
+        # TEMP
+        sys.exit()
 
 def _fetch(project_ids, milestones_all):
 
@@ -78,6 +84,8 @@ def _fetch(project_ids, milestones_all):
     projects_id = project_ids[0]
     testrail_project_id = project_ids[1]
     payload = tr.milestones(testrail_project_id)
+
+    print("TESTRAIL_PROJECT_ID: {testrail_project_id}")
 
     if not payload:
         print(
