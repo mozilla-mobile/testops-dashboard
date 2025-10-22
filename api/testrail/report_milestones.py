@@ -52,7 +52,7 @@ def run(project, milestone_validate_closed: bool = False):
     for project_ids in project_ids_list:
 
         # fetch - begin
-        df_selected = _fetch(projects_ids, milestones_all)
+        df_selected = _fetch(project_ids, milestones_all)
 
         print(f"milestone_validate_closed: {milestone_validate_closed}")
 
@@ -71,7 +71,7 @@ def run(project, milestone_validate_closed: bool = False):
                     f"{testrail_project_id}."
                 )
 
-def _fetch(projects_ids, milestones_all):
+def _fetch(project_ids, milestones_all):
     projects_id = project_ids[0]
     testrail_project_id = project_ids[1]
     payload = tr.milestones(testrail_project_id)
