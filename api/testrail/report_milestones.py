@@ -40,9 +40,7 @@ def _tr() -> TestRail():
 
 def run(project, milestone_validate_closed: bool = False):
 
-
     testrail_milestones_delete()
-
     project_ids_list = testrail_project_ids(project)
 
     # TODO: this gets overwritten in conditional below (remove)
@@ -51,19 +49,18 @@ def run(project, milestone_validate_closed: bool = False):
     for project_ids in project_ids_list:
 
         # fetch - begin
-        payload, df_selected = _fetch(project_ids, milestones_all)
+        payload, df_selected, testrail_project_id = _fetch(project_ids, milestones_all)
 
         print(f"milestone_validate_closed: {milestone_validate_closed}")
 
         if milestone_validate_closed:
             print("NO DB INSERT")
-            sys.exit()
             # TODO: initiate follow-on reporting here
         else:
             # Insert into database only if there is data
             if not df_selected.empty:
                 print("DB_UPSERT")
-                _db_upsert(projects_id, payload, df_selected, testrail_project_id)
+                _db_upsert(projects_id, payload, df_selected)
             else:
                 print("DB_UPSERT - NO DATA")
                 print(
@@ -163,11 +160,10 @@ def _fetch(project_ids, milestones_all):
                 pl.extract_build_version
             )
 
-    return payload, df_selected
+    return payload, df_selected, testrail_project_id
 
 
-#def _db_upsert(projects_id, payload):
-def _db_upsert(projects_id, payload, df_selected, testrail_project_id):
+def _db_upsert(projects_id, payload, df_selected):
 
     # DIAGNOSTIC
     print("--------------------------------------")
