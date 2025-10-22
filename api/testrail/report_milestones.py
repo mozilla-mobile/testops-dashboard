@@ -49,9 +49,12 @@ def run(project, milestone_validate_closed: bool = False):
     for project_ids in project_ids_list:
 
         # fetch - begin
-        payload, df_selected, testrail_project_id = _fetch(project_ids, milestones_all)
+        payload, df_selected, testrail_project_id, projects_id = _fetch(project_ids, milestones_all)
 
         print(f"milestone_validate_closed: {milestone_validate_closed}")
+
+        if df_selected is None:
+            df_selected = pd.DataFrame()
 
         if milestone_validate_closed:
             print("NO DB INSERT")
@@ -60,7 +63,8 @@ def run(project, milestone_validate_closed: bool = False):
             # Insert into database only if there is data
             if not df_selected.empty:
                 print("DB_UPSERT")
-                _db_upsert(projects_id, payload, df_selected)
+                #_db_upsert(projects_id, payload, df_selected)
+                _db_upsert(projects_id, df_selected)
             else:
                 print("DB_UPSERT - NO DATA")
                 print(
@@ -87,6 +91,10 @@ def _fetch(project_ids, milestones_all):
     else:
         # Convert JSON to DataFrame
         milestones_all = pd.json_normalize(payload)
+
+
+    # Always define df_selected
+    df_selected = pd.DataFrame()
 
     # Ensure DataFrame is not empty before processing
     if milestones_all.empty:
@@ -160,10 +168,11 @@ def _fetch(project_ids, milestones_all):
                 pl.extract_build_version
             )
 
-    return payload, df_selected, testrail_project_id
+    return payload, df_selected, testrail_project_id, projects_id
 
 
-def _db_upsert(projects_id, payload, df_selected):
+#def _db_upsert(projects_id, payload, df_selected):
+def _db_upsert(projects_id, df_selected):
 
     # DIAGNOSTIC
     print("--------------------------------------")
@@ -173,7 +182,8 @@ def _db_upsert(projects_id, payload, df_selected):
 
     db = _db()
 
-    for index, row in payload.iterrows():
+    #for index, row in payload.iterrows():
+    for _, row in df_selected.iterrows():
 
         report = ReportTestRailMilestones(
             testrail_milestone_id=row['testrail_milestone_id'],
