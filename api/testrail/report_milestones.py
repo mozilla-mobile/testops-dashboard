@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-
+import sys
 import pandas as pd
 import numpy as np
 
@@ -40,131 +40,130 @@ def _tr() -> TestRail():
 
 def run(project, milestone_validate_closed: bool = False):
 
-
-
     tr = _tr()
 
     testrail_milestones_delete()
 
     project_ids_list = testrail_project_ids(project)
+
+    # TODO: this gets overwritten in conditional below (remove)
     milestones_all = pd.DataFrame()
 
     for project_ids in project_ids_list:
-        projects_id = project_ids[0]
-        testrail_project_id = project_ids[1]
 
-        payload = tr.milestones(testrail_project_id)
-        if not payload:
-            print(
-                f"No milestones found for project {testrail_project_id}."
-                f" Skipping..."
-            )
+        # fetch - begin
+        projects_id, df_selected = _fetch(projects_ids, milestones_all)
 
-            # Empty DataFrame to avoid errors
-            milestones_all = pd.DataFrame()
+        print(f"milestone_validate_closed: {milestone_validate_closed}")
 
+        if milestone_validate_closed:
+            print("NO DB INSERT")
+            sys.exit()
+            # TODO: initiate follow-on reporting here
         else:
-            # Convert JSON to DataFrame
-            milestones_all = pd.json_normalize(payload)
-
-        # Ensure DataFrame is not empty before processing
-        if milestones_all.empty:
-            print(
-                f"Milestones DataFrame is empty for project {testrail_project_id}."
-                f"Skipping..."
-            )
-            # Continue to next project (if inside a loop)
-        else:
-            # Define selected columns
-            selected_columns = {
-                "id": "testrail_milestone_id",
-                "name": "name",
-                "started_on": "started_on",
-                "is_completed": "is_completed",
-                "description": "description",
-                "completed_on": "completed_on",
-                "url": "url"
-            }
-
-            # Select specific columns (only if they exist)
-            existing_columns = [
-                col for col in selected_columns.keys()
-                if col in milestones_all.columns
-            ]
-
-            df_selected = milestones_all[existing_columns].rename(
-                columns={
-                    k: v
-                    for k, v in selected_columns.items()
-                    if k in milestones_all.columns
-                }
-            )
-
-            # Convert valid timestamps, leave empty ones as NaT
-            if 'started_on' in df_selected.columns:
-                df_selected['started_on'] = pd.to_datetime(
-                    df_selected['started_on'], unit='s', errors='coerce'
-                )
-                df_selected['started_on'] = df_selected['started_on'].replace(
-                    {np.nan: None}
-                )
-
-            if 'completed_on' in df_selected.columns:
-                df_selected['completed_on'] = pd.to_datetime(
-                    df_selected['completed_on'], unit='s', errors='coerce'
-                )
-                df_selected['completed_on'] = df_selected['completed_on'].replace(
-                    {np.nan: None}
-                )
-
-            # Apply transformations only if description column exists
-            if 'description' in df_selected.columns:
-                df_selected['testing_status'] = df_selected['description'].apply(
-                    pl.extract_testing_status
-                )
-
-                desc_series = df_selected['description']
-                df_selected['testing_recommendation'] = desc_series.apply(
-                    pl.extract_testing_recommendation
-                )
-
-            # Apply transformations only if name column exists
-            if 'name' in df_selected.columns:
-
-                df_selected['build_name'] = df_selected['name'].apply(
-                    pl.extract_build_name
-                )
-
-                df_selected['build_version'] = df_selected['build_name'].apply(
-                    pl.extract_build_version
-                )
-
-            import sys
-            print(f"milestone_validate_closed: {milestone_validate_closed}")
-            if milestone_validate_closed:
-                print("NO DB INSERT")
-                sys.exit()
+            print("INSERTING INTO DB")
+            # Insert into database only if there is data
+            if not df_selected.empty:
+                _db_upsert(projects_id, df_selected, testrail_project_id)
             else:
-                print("INSERTING INTO DB")
-                # Insert into database only if there is data
-                if not df_selected.empty:
-                    _db_upsert(projects_id, df_selected)
-                else:
-                    print(
-                        f"No milestones data to insert into database for project "
-                        f"{testrail_project_id}."
-                    )
+                print(
+                    f"No milestones data to insert into database for project "
+                    f"{testrail_project_id}."
+                )
+
+def _fetch(projects_ids, milestones_all):
+    projects_id = project_ids[0]
+    testrail_project_id = project_ids[1]
+    payload = tr.milestones(testrail_project_id)
+
+    if not payload:
+        print(
+            f"No milestones found for project {testrail_project_id}."
+            f" Skipping..."
+        )
+
+        # Empty DataFrame to avoid errors
+        milestones_all = pd.DataFrame()
+
+    else:
+        # Convert JSON to DataFrame
+        milestones_all = pd.json_normalize(payload)
+
+    # Ensure DataFrame is not empty before processing
+    if milestones_all.empty:
+        print(
+            f"Milestones DataFrame is empty for project {testrail_project_id}."
+            f"Skipping..."
+        )
+        # Continue to next project (if inside a loop)
+    else:
+        # Define selected columns
+        selected_columns = {
+            "id": "testrail_milestone_id",
+            "name": "name",
+            "started_on": "started_on",
+            "is_completed": "is_completed",
+            "description": "description",
+            "completed_on": "completed_on",
+            "url": "url"
+        }
+
+        # Select specific columns (only if they exist)
+        existing_columns = [
+            col for col in selected_columns.keys()
+            if col in milestones_all.columns
+        ]
+
+        df_selected = milestones_all[existing_columns].rename(
+            columns={
+                k: v
+                for k, v in selected_columns.items()
+                if k in milestones_all.columns
+            }
+        )
+
+        # Convert valid timestamps, leave empty ones as NaT
+        if 'started_on' in df_selected.columns:
+            df_selected['started_on'] = pd.to_datetime(
+                df_selected['started_on'], unit='s', errors='coerce'
+            )
+            df_selected['started_on'] = df_selected['started_on'].replace(
+                {np.nan: None}
+            )
+
+        if 'completed_on' in df_selected.columns:
+            df_selected['completed_on'] = pd.to_datetime(
+                df_selected['completed_on'], unit='s', errors='coerce'
+            )
+            df_selected['completed_on'] = df_selected['completed_on'].replace(
+                {np.nan: None}
+            )
+
+        # Apply transformations only if description column exists
+        if 'description' in df_selected.columns:
+            df_selected['testing_status'] = df_selected['description'].apply(
+                pl.extract_testing_status
+            )
+
+            desc_series = df_selected['description']
+            df_selected['testing_recommendation'] = desc_series.apply(
+                pl.extract_testing_recommendation
+            )
+
+        # Apply transformations only if name column exists
+        if 'name' in df_selected.columns:
+
+            df_selected['build_name'] = df_selected['name'].apply(
+                pl.extract_build_name
+            )
+
+            df_selected['build_version'] = df_selected['build_name'].apply(
+                pl.extract_build_version
+            )
 
 
-def _fetch(project, milestone_validate_closed):
-    pass
-
-
-# ===================================================================
-# DB UPSERT 
-# ===================================================================
-
-def _db_upsert(projects_id, payload):
+#def _db_upsert(projects_id, payload):
+def _db_upsert(projects_id, payload, df_selected, testrail_project_id):
 
     # DIAGNOSTIC
     print("--------------------------------------")
