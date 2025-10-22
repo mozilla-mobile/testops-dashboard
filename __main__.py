@@ -21,7 +21,6 @@ from handlers.bitrise import (
     handle_bitrise_builds,
 )
 
-"""
 from handlers.bugzilla import (
     handle_bugzilla_desktop_bugs,
     handle_bugzilla_desktop_release_flags_for_bugs,
@@ -29,7 +28,6 @@ from handlers.bugzilla import (
     handle_bugzilla_qe_verify,
     handle_bugzilla_query_by_keyword,
 )
-"""
 
 from handlers.confluence import (
     handle_confluence_build_validation,
@@ -174,11 +172,11 @@ def expand_project_args(platform, projects):
 # === DISPATCH MAP ===
 COMMAND_MAP = {
     'bitrise-builds': handle_bitrise_builds,
-    #'bugzilla-desktop-bugs': handle_bugzilla_desktop_bugs,
-    #'bugzilla-desktop-release-flags-for-bugs': handle_bugzilla_desktop_release_flags_for_bugs, # noqa
-    #'bugzilla-meta-bugs': handle_bugzilla_meta_bugs,
-    #'bugzilla-qe-verify': handle_bugzilla_qe_verify,
-    #'bugzilla-query-by-keyword': handle_bugzilla_query_by_keyword,
+    'bugzilla-desktop-bugs': handle_bugzilla_desktop_bugs,
+    'bugzilla-desktop-release-flags-for-bugs': handle_bugzilla_desktop_release_flags_for_bugs, # noqa
+    'bugzilla-meta-bugs': handle_bugzilla_meta_bugs,
+    'bugzilla-qe-verify': handle_bugzilla_qe_verify,
+    'bugzilla-query-by-keyword': handle_bugzilla_query_by_keyword,
     'confluence-updates': handle_confluence_updates,
     'confluence-build-validation': handle_confluence_build_validation,
     'github-issue-regression': handle_github_issue_regression,

@@ -38,15 +38,9 @@ def _tr() -> TestRail():
     return _TR
 
 
-# ===================================================================
-# ORCHESTRATOR (BATCH)
-# ===================================================================
-
 def run(project, milestone_validate_closed: bool = False):
-    _fetch(project, milestone_validate_closed)
 
 
-def _fetch(project, milestone_validate_closed):
 
     tr = _tr()
 
@@ -147,21 +141,27 @@ def _fetch(project, milestone_validate_closed):
 
             import sys
             print(f"milestone_validate_closed: {milestone_validate_closed}")
-            sys.exit()
-
-
-            # Insert into database only if there is data
-            if not df_selected.empty:
-                _db_upsert(projects_id, df_selected)
+            if milestone_validate_closed:
+                print("NO DB INSERT")
+                sys.exit()
             else:
-                print(
-                    f"No milestones data to insert into database for project "
-                    f"{testrail_project_id}."
-                )
+                print("INSERTING INTO DB")
+                # Insert into database only if there is data
+                if not df_selected.empty:
+                    _db_upsert(projects_id, df_selected)
+                else:
+                    print(
+                        f"No milestones data to insert into database for project "
+                        f"{testrail_project_id}."
+                    )
+
+
+def _fetch(project, milestone_validate_closed):
+    pass
 
 
 # ===================================================================
-# DB INSERT
+# DB UPSERT 
 # ===================================================================
 
 def _db_upsert(projects_id, payload):
