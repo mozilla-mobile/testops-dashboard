@@ -42,6 +42,7 @@ def run(project, milestone_validate_closed: bool = False):
 
 
     # TEMP
+    print("SET PROJECT ID to: Test Project - Mobile = 75")
     testrail_project_id = "75"
 
     testrail_milestones_delete()
