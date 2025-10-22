@@ -15,7 +15,7 @@ def handle_testrail_test_results(args):
 
 
 def handle_testrail_milestones(args):
-    milestones.testrail_milestones(args.arg_list)
+    milestones.run(args.arg_list)
 
 
 def handle_testrail_milestones_closed(args):
