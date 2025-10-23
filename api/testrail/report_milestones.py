@@ -64,6 +64,10 @@ def run(project, milestone_validate_closed: bool = False):
         if milestone_validate_closed:
             print("NO DB INSERT")
             # TODO: initiate follow-on reporting here
+            print("------------------------------------")
+            print(df_selected.to_string(index=False))
+            print("------------------------------------")
+
         else:
             # Insert into database only if there is data
             if not df_selected.empty:
