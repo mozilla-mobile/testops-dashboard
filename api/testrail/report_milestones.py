@@ -57,6 +57,10 @@ def select_latest_open(df):
     open_df = open_df.sort_values(sort_cols, ascending=True)
     print("open_df set again")
 
+    if open_df.empty:
+        print("open_df is empty 2")
+        return None
+
     return open_df.iloc[-1].to_dict()
 
 def run(project, milestone_validate_closed: bool = False):
@@ -90,6 +94,9 @@ def run(project, milestone_validate_closed: bool = False):
             print("------------------------------------")
 
             latest_open = select_latest_open(df_selected)
+
+            print("latest_open set")
+            print(f"{latest_open}")
             if latest_open is None:
                 print("There is no open milestone in this DataFrame.")
             else:
