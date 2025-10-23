@@ -42,11 +42,20 @@ def select_latest_open(df):
     if df.empty:
         return None
 
+
+    # Select rows where not is_completed
     open_df = df[df["is_completed"] == False]
+
+    print("open_df set")
+
     if open_df.empty:
+        print("open_df empty")
         return None
     sort_cols = [c for c in ("started_on", "testrail_milestone_id") if c in open_df.columns]
+    print("sort_cols set")
+
     open_df = open_df.sort_values(sort_cols, ascending=True)
+    print("open_df set again")
 
     return open_df.iloc[-1].to_dict()
 
