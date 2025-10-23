@@ -37,41 +37,36 @@ def _tr() -> TestRail():
         _TR = TestRail()
     return _TR
 
+
 def select_latest_open(df):
-    print("BEGIN: select_latest_open")
     if df.empty:
         return None
-
 
     # Select rows where not is_completed
     open_df = df[df["is_completed"] == False]
 
-    print("open_df set")
-
     if open_df.empty:
-        print("open_df empty")
         return None
-    sort_cols = [c for c in ("started_on", "testrail_milestone_id") if c in open_df.columns]
-    print("sort_cols set")
 
+    # Sort by start date (or fallback to ID)
+    sort_cols = [c for c in ("started_on", "testrail_milestone_id") if c in open_df.columns]
     open_df = open_df.sort_values(sort_cols, ascending=True)
-    print("open_df set again")
 
     if open_df.empty:
-        print("open_df is empty 2")
         return None
 
     return open_df.iloc[-1].to_dict()
+
 
 def run(project, milestone_validate_closed: bool = False):
 
 
     # TEMP
-    print("SET PROJECT ID to: Test Project - Mobile = 75")
-    testrail_project_id = "75"
 
     testrail_milestones_delete()
     project_ids_list = testrail_project_ids(project)
+    print("SET PROJECT ID to: Test Project - Mobile = 75")
+    project_ids_list = [75] 
 
     # TODO: this gets overwritten in conditional below (remove)
     milestones_all = pd.DataFrame()
@@ -95,8 +90,6 @@ def run(project, milestone_validate_closed: bool = False):
 
             latest_open = select_latest_open(df_selected)
 
-            print("latest_open set")
-            print(f"{latest_open}")
             if latest_open is None:
                 print("There is no open milestone in this DataFrame.")
             else:
