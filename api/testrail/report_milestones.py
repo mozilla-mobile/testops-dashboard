@@ -100,7 +100,7 @@ def run(project, milestone_validate_closed: bool = False):
             if latest_open is None:
                 print("There is no open milestone in this DataFrame.")
             else:
-                print(f"Latest OPEN milestone: {latest_open['name']} (id={latest_open['id']})")
+                print(f"Latest OPEN milestone: {latest_open['name']} (id={latest_open['testrail_milestone_id']})")
             print("------------------------------------")
             sys.exit()
 
