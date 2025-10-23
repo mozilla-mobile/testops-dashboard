@@ -77,7 +77,6 @@ def run(project, milestone_validate_closed: bool = False):
             print("------------------------------------")
             print(df_selected.columns)
             print("------------------------------------")
-            sys.exit()
 
             latest_open = select_latest_open(df_selected)
             if latest_open is None:
