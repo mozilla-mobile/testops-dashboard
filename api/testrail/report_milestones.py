@@ -76,11 +76,11 @@ def run(project, milestone_validate_closed: bool = False):
             print("NO DB INSERT")
             # TODO: initiate follow-on reporting here
             print("------------------------------------")
-			latest_open = select_latest_open(df_selected)
-			if latest_open is None:
-				print("There is no open milestone in this DataFrame.")
-			else:
-				print(f"Latest OPEN milestone: {latest_open['name']} (id={latest_open['id']})")
+            latest_open = select_latest_open(df_selected)
+            if latest_open is None:
+                print("There is no open milestone in this DataFrame.")
+            else:
+                print(f"Latest OPEN milestone: {latest_open['name']} (id={latest_open['id']})")
             print("------------------------------------")
             sys.exit()
 
