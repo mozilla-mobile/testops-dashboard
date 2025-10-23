@@ -66,6 +66,7 @@ jobs:
       - name: Jira query
         run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
 
+        continue-on-error: true
       - name: Jira query
         if: always()
         run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-needed
