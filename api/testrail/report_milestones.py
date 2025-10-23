@@ -40,6 +40,7 @@ def _tr() -> TestRail():
 def select_latest_open(df):
     if df is None or df.empty:
         return None
+
     open_df = df[df["is_completed"] == False]
     if open_df.empty:
         return None
@@ -76,6 +77,10 @@ def run(project, milestone_validate_closed: bool = False):
             print("NO DB INSERT")
             # TODO: initiate follow-on reporting here
             print("------------------------------------")
+            print(df_selected.columns)
+            print("------------------------------------")
+            sys.exit()
+
             latest_open = select_latest_open(df_selected)
             if latest_open is None:
                 print("There is no open milestone in this DataFrame.")
