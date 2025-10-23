@@ -66,7 +66,7 @@ def run(project, milestone_validate_closed: bool = False):
     testrail_milestones_delete()
     project_ids_list = testrail_project_ids(project)
     print("SET PROJECT ID to: Test Project - Mobile = 75")
-    project_ids_list = [75] 
+    project_ids_list = [[1, 75]] 
 
     # TODO: this gets overwritten in conditional below (remove)
     milestones_all = pd.DataFrame()
