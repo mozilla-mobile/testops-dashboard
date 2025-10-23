@@ -38,16 +38,14 @@ def _tr() -> TestRail():
     return _TR
 
 def select_latest_open(df):
-    if df is None or df.empty:
+    if df.empty:
         return None
 
     open_df = df[df["is_completed"] == False]
     if open_df.empty:
         return None
-    # prefer nearest due date; fall back to most-recent created_on; then id
-    for col in ("due_on", "created_on", "id"):
-        if col in open_df.columns:
-            open_df = open_df.sort_values(col, ascending=True)
+    sort_keys = [c for c in ("started_on", "id") if c in open_df.columns]
+    open_df = open_df.sort_values(sort_keys, ascending=True)
     return open_df.iloc[-1].to_dict()
 
 def run(project, milestone_validate_closed: bool = False):
