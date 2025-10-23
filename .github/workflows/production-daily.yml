@@ -11,102 +11,103 @@ on:
         required: true
         default: 'master'
 
+env:
+  CLOUD_SQL_DATABASE_NAME: production
+  CLOUD_SQL_DATABASE_USERNAME: ${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}
+  CLOUD_SQL_DATABASE_PASSWORD: ${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}
+  CLOUD_SQL_DATABASE_PORT: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+  TESTRAIL_HOST: ${{ secrets.TESTRAIL_HOST }}
+  TESTRAIL_USERNAME: ${{ secrets.TESTRAIL_USERNAME }}
+  TESTRAIL_PASSWORD: ${{ secrets.TESTRAIL_PASSWORD }}
+  ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
+  ATLASSIAN_HOST: ${{ secrets.ATLASSIAN_HOST }}
+  ATLASSIAN_USERNAME: ${{ secrets.ATLASSIAN_USERNAME }}
+  JIRA_HOST: ${{ secrets.JIRA_HOST }}
+  JIRA_USER: ${{ secrets.JIRA_USER }}
+  JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  BUGZILLA_API_KEY: ${{ secrets.BUGZILLA_API_KEY }}
+  BITRISE_HOST: ${{ secrets.BITRISE_HOST }}
+  BITRISE_APP_SLUG: ${{ secrets.BITRISE_APP_SLUG }}
+  BITRISE_TOKEN: ${{ secrets.BITRISE_TOKEN }}
+  SENTRY_HOST: ${{ secrets.SENTRY_HOST }}
+  SENTRY_API_TOKEN: ${{ secrets.SENTRY_API_TOKEN_CSO }}
+  SENTRY_ORGANIZATION_SLUG: ${{ secrets.SENTRY_ORGANIZATION_SLUG }}
+  SENTRY_IOS_PROJECT_ID: ${{ secrets.SENTRY_IOS_PROJECT_ID }}
+  SENTRY_FENIX_PROJECT_ID: ${{ secrets.SENTRY_FENIX_PROJECT_ID }}
+  SENTRY_FENIX_BETA_PROJECT_ID: ${{ secrets.SENTRY_FENIX_BETA_PROJECT_ID }}
+
 jobs:
-  deploy:
-    name: Testops Report DAILY - Production
+  reports:
+    name: Daily reports (${{ matrix.name }})
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Check out source repository
-        uses: actions/checkout@v5
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        include:
+          - name: Jira QA Requests
+            args: --platform mobile --project ALL --report-type jira-qa-requests
+          - name: Jira QA Needed
+            args: --platform mobile --project ALL --report-type jira-qa-needed
+          - name: Bugzilla QE Verify
+            args: --platform mobile --project ALL --report-type bugzilla-qe-verify
+          - name: TestRail Milestones
+            args: --platform mobile --project ALL --report-type testrail-milestones
+          - name: Jira Worklogs
+            args: --report-type jira-softvision-worklogs
+          - name: Bitrise Builds Count
+            args: --report-type bitrise-builds
+          - name: Bugzilla Android Memory Leaks
+            args: --report-type bugzilla-meta-bugs --meta-bug-id 1935100
 
-      - name: Setup python 
-        uses: actions/setup-python@v6
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
-
-      - name: Establish Cloud SQL Proxy
-        uses: mattes/gce-cloudsql-proxy-action@v1
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - uses: mattes/gce-cloudsql-proxy-action@v1
         with:
           creds: ${{ secrets.GCLOUD_AUTH }}
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
-
-      - name: Install requirements 
-        run: |
-            pip install -r requirements.txt
-
-      - name: Set env vars 
-        run: |
-            echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_NAME=production" >> $GITHUB_ENV
-            echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
-            echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
-            echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
-            echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
-            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
-            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
-            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
-            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-            echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
-            echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
-            echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
-            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
-            echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
-            echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
-            echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
-            echo "SENTRY_HOST=${{ secrets.SENTRY_HOST }}" >> $GITHUB_ENV
-            echo "SENTRY_API_TOKEN=${{ secrets.SENTRY_API_TOKEN_CSO }}" >> $GITHUB_ENV
-            echo "SENTRY_ORGANIZATION_SLUG=${{ secrets.SENTRY_ORGANIZATION_SLUG }}" >> $GITHUB_ENV
-            echo "SENTRY_IOS_PROJECT_ID=${{ secrets.SENTRY_IOS_PROJECT_ID}}" >> $GITHUB_ENV
-            echo "SENTRY_FENIX_PROJECT_ID=${{ secrets.SENTRY_FENIX_PROJECT_ID}}" >> $GITHUB_ENV
-            echo "SENTRY_FENIX_BETA_PROJECT_ID=${{ secrets.SENTRY_FENIX_BETA_PROJECT_ID }}" >> $GITHUB_ENV
-
-      - name: Jira query
-        run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-requests
-
-      - name: Jira query
-        if: always()
-        run: python ./__main__.py --platform mobile --project ALL --report-type jira-qa-needed
-
-        continue-on-error: true
-      - name: Bugzilla query
-        if: always()
-        run: python ./__main__.py --platform mobile --project ALL --report-type bugzilla-qe-verify
-
-        continue-on-error: true
-      - name: Update DB - testrail milestones
-        run: python3 ./__main__.py --platform mobile --project ALL --report-type testrail-milestones
-  
-        continue-on-error: true
-      - name: Jira Softvision Worklogs
-        run: python ./__main__.py --report-type jira-softvision-worklogs
-
-        continue-on-error: true
-      - name: Update DB - bitrise builds
-        run: python3 ./__main__.py --report-type bitrise-builds
-
+      - run: pip install -r requirements.txt
+      - run: python ./__main__.py ${{ matrix.args }}
         continue-on-error: true
 
-      - name: Bugzilla Metabug Android Memory Leaks
-        run: python  ./__main__.py --report-type bugzilla-meta-bugs --meta-bug-id 1935100
-
-        continue-on-error: true
-
-      - name: Sentry query
+  sentry:
+    name: Sentry reports and notifications
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GCLOUD_AUTH }}
+          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+      - run: pip install -r requirements.txt
+      
+      - name: Sentry query (iOS)
         run: |
           python __main__.py --report-type sentry-issues --project firefox-ios
           python __main__.py --report-type sentry-rates --project firefox-ios
-
         continue-on-error: true
 
-      - name: Construct JSON for Slack (Sentry)
+      - name: Construct JSON for Slack (iOS)
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
         continue-on-error: true
-      - name: Send latest Sentry issues to Slack
-        id: slack-sentry
+
+      - name: Send health notification to Slack (iOS)
+        id: slack-sentry-ios
         uses: slackapi/slack-github-action@v2.1.0
         with:
           payload-file-path: "./sentry-slack-firefox-ios.json"
@@ -114,22 +115,24 @@ jobs:
           webhook:  ${{ secrets.SLACK_WEBHOOK_FIREFOX_IOS_DEV }}
           webhook-type: incoming-webhook
         continue-on-error: true
-  
+
+  notify:
+    name: Send workflow status notification
+    runs-on: ubuntu-latest
+    needs: [reports, sentry]
+    if: always()
+    steps:
+      - uses: actions/checkout@v5
       - name: Set job log URL
-        if: always()
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
-      - name: Send custom JSON data to Slack workflow
-        if: always()
-        id: slack
+      
+      - name: Send workflow status to Slack
         uses: slackapi/slack-github-action@v2.1.1
         env:
           WORKFLOW_NAME: ${{ github.workflow }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
-          JOB_STATUS: ${{ job.status == 'success' && ':white_check_mark:' || job.status == 'failure' && ':x:' }}
-          JOB_STATUS_COLOR: ${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#FF0000' }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
+          JOB_STATUS: ${{ (needs.reports.result == 'success' && needs.sentry.result == 'success') && ':white_check_mark:' || ':x:' }}
+          JOB_STATUS_COLOR: ${{ (needs.reports.result == 'success' && needs.sentry.result == 'success') && '#36a64f' || '#FF0000' }}
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
           webhook-type: webhook-trigger
