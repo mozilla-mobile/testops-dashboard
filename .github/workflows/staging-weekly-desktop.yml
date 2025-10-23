@@ -44,3 +44,6 @@ jobs:
 
       - name: Query Test Plans and Runs
         run: python ./__main__.py --report-type testrail-test-results --project firefox-desktop
+
+      - name: Bugzilla Desktop Overall Bugs
+        run: python ./__main__.py --report-type bugzilla-desktop-overall-bugs --project firefox-desktop
