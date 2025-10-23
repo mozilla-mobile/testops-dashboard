@@ -38,14 +38,16 @@ def _tr() -> TestRail():
     return _TR
 
 def select_latest_open(df):
+    print("BEGIN: select_latest_open")
     if df.empty:
         return None
 
     open_df = df[df["is_completed"] == False]
     if open_df.empty:
         return None
-    sort_keys = [c for c in ("started_on", "id") if c in open_df.columns]
-    open_df = open_df.sort_values(sort_keys, ascending=True)
+    sort_cols = [c for c in ("started_on", "testrail_milestone_id") if c in open_df.columns]
+    open_df = open_df.sort_values(sort_cols, ascending=True)
+
     return open_df.iloc[-1].to_dict()
 
 def run(project, milestone_validate_closed: bool = False):
@@ -72,8 +74,8 @@ def run(project, milestone_validate_closed: bool = False):
             df_selected = pd.DataFrame()
 
         if milestone_validate_closed:
-            print("NO DB INSERT")
             # TODO: initiate follow-on reporting here
+            print("NO DB INSERT")
             print("------------------------------------")
             print(df_selected.columns)
             print("------------------------------------")
