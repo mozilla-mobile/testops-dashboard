@@ -55,7 +55,7 @@ def insert_rates(json_data, csv_file, project):
                         "text": {
                             "type": "mrkdwn",
                             "text": (
-                                "*v{0}* → :iphone: {1}%  "
+                                "*v{0}* :iphone: {1}%  "
                                 ":bust_in_silhouette: {2}% "
                                 ":rocket: {3}%"
                             ).format(
@@ -164,11 +164,11 @@ def insert_json_content(json_data, versions):
 def init_json(project):
     now = DatetimeUtils.start_date('0')
     project_config = {
-        "firefox-ios": ":apple: iOS",
-        "fenix": ":android: Android",
-        "fenix-beta": ":android: Android (Beta)"
+        "firefox-ios": ":testops-apple: iOS",
+        "fenix": ":testops-android: Android",
+        "fenix-beta": ":testops-android: Android (Beta)"
     }
-    platform = project_config.get(project, ":android: Android")
+    platform = project_config.get(project, ":testops-android: Android")
     json_data = {
         "blocks": [
             {
