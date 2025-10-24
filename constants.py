@@ -52,6 +52,7 @@ REPORT_TYPES = [
     'jira-qa-requests-new-issue-types',
     'jira-softvision-worklogs',
     'testrail-milestones',
+    'testrail-milestones-closed',
     'testrail-users',
     'testrail-test-case-coverage',
     'testrail-test-run-counts',
