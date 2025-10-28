@@ -26,6 +26,7 @@ project_config = {
     }
 }
 
+
 def get_all_future_versions():
     response = requests.get('https://whattrainisitnow.com/api/firefox/releases/future/')
     if response.status_code != 200:
@@ -43,8 +44,10 @@ def insert_rates(json_data, csv_file, project):
         low_crash_free_rate_threshold = rules.get(project).get(
             'LOW_CRASH_FREE_RATE_THRESHOLD', 99.5)
     flag_low_crash_free_rate_detected = False
-    looker_dashboard_url = project_config.get(project).get('looker_dashboard_url', None)
-    confluence_report_url = project_config.get(project).get('confluence_report_url', None)
+    looker_dashboard_url = project_config.get(project).get(
+        'looker_dashboard_url', None)
+    confluence_report_url = project_config.get(project).get(
+        'confluence_report_url', None)
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
         for row in rows:
@@ -127,7 +130,7 @@ def insert_rates(json_data, csv_file, project):
                             "value": "report_click",
                             "action_id": "report",
                             "url": (
-                            confluence_report_url
+                                confluence_report_url
                             )
                         }
                     ]
