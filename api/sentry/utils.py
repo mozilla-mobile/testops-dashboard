@@ -7,6 +7,25 @@ import yaml
 
 from utils.datetime_utils import DatetimeUtils
 
+project_config = {
+    "firefox-ios": {
+        "title": ":testops-apple: iOS",
+        "looker_dashboard_url": (
+            "https://mozilla.cloud.looker.com/dashboards/2380"
+        ),
+        "confluence_report_url": (
+            "https://mozilla-hub.atlassian.net/wiki/spaces/"
+            "MTE/pages/1631911951/iOS+Health+Monitor+Report"
+        )
+    },
+    "fenix": {
+        "title": ":testops-android: Android"
+    },
+    "fenix-beta": {
+        "title": ":testops-android: Android (Beta)"
+    }
+}
+
 
 def get_all_future_versions():
     response = requests.get('https://whattrainisitnow.com/api/firefox/releases/future/')
@@ -25,6 +44,10 @@ def insert_rates(json_data, csv_file, project):
         low_crash_free_rate_threshold = rules.get(project).get(
             'LOW_CRASH_FREE_RATE_THRESHOLD', 99.5)
     flag_low_crash_free_rate_detected = False
+    looker_dashboard_url = project_config.get(project).get(
+        'looker_dashboard_url', None)
+    confluence_report_url = project_config.get(project).get(
+        'confluence_report_url', None)
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
         for row in rows:
@@ -79,40 +102,40 @@ def insert_rates(json_data, csv_file, project):
             else:
                 print("Version {0}'s adoption rate is less than 1%. Skipping."
                       .format(row['release_version']))
-        json_data["blocks"].append(
-            {
-                "type": "actions",
-                "elements": [
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": ":chart_with_upwards_trend: Trends",
-                            "emoji": True
+        if looker_dashboard_url and confluence_report_url:
+            json_data["blocks"].append(
+                {
+                    "type": "actions",
+                    "elements": [
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": ":chart_with_upwards_trend: Trends",
+                                "emoji": True
+                            },
+                            "value": "trends_click",
+                            "action_id": "trends",
+                            "url": (
+                                looker_dashboard_url
+                            )
                         },
-                        "value": "trends_click",
-                        "action_id": "trends",
-                        "url": (
-                            "https://mozilla.cloud.looker.com/dashboards/2381"
-                        )
-                    },
-                    {
-                        "type": "button",
-                        "text": {
-                            "type": "plain_text",
-                            "text": ":scroll: Report",
-                            "emoji": True
-                        },
-                        "value": "report_click",
-                        "action_id": "report",
-                        "url": (
-                            "https://mozilla-hub.atlassian.net/wiki/spaces/"
-                            "MTE/pages/1631911951/iOS+Health+Monitor+Report"
-                        )
-                    }
-                ]
-            }
-        )
+                        {
+                            "type": "button",
+                            "text": {
+                                "type": "plain_text",
+                                "text": ":scroll: Report",
+                                "emoji": True
+                            },
+                            "value": "report_click",
+                            "action_id": "report",
+                            "url": (
+                                confluence_report_url
+                            )
+                        }
+                    ]
+                }
+            )
         if flag_low_crash_free_rate_detected:
             json_data["blocks"].append(
                 {
@@ -163,12 +186,7 @@ def insert_json_content(json_data, versions):
 
 def init_json(project):
     now = DatetimeUtils.start_date('0')
-    project_config = {
-        "firefox-ios": ":testops-apple: iOS",
-        "fenix": ":testops-android: Android",
-        "fenix-beta": ":testops-android: Android (Beta)"
-    }
-    platform = project_config.get(project, ":testops-android: Android")
+    platform = project_config.get(project).get('title')
     json_data = {
         "blocks": [
             {
