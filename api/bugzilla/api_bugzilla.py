@@ -288,26 +288,33 @@ class BugzillaClient(Bugz):
         print(f"[export_filtered_bugs_and_ids] Found {len(bug_ids)} bug IDs")
         return bug_ids
 
-    def _discover_release_status_fields(self, keep_last_n: int = 5) -> list[str]:
-        # Get last N release-train fields
+    def _discover_release_status_fields(self) -> list[str]:
+        """
+        Fetch Firefox release-train status fields (e.g., cf_status_firefox141)
+        return those at or after v140.
+        """
+        BUGZILLA_VERSION_FLOOR = 140  # keep all versions starting from this one
+
         url = f"{BUGZILLA_API_BASE}/field/bug"
         r = requests.get(url, timeout=30)
         r.raise_for_status()
         names = [f["name"] for f in r.json().get("fields", []) if "name" in f]
 
-        releases = []
+        releases: list[tuple[int, str]] = []
         for n in names:
-            m = FIREFOX_FLAG_STATUS_VERSION.match(n)
+            m = FIREFOX_FLAG_STATUS_VERSION.match(n)  # e.g. r"^cf_status_firefox(\d+)$"
             if m:
                 releases.append((int(m.group(1)), n))
-        releases.sort(key=lambda t: t[0])  # sort by version number
 
-        if keep_last_n and len(releases) > keep_last_n:
-            releases = releases[-keep_last_n:]  # keep the 5 most recent trains
+        # Sort by version number
+        releases.sort(key=lambda t: t[0])
+
+        # Keep everything from version 140 onward
+        releases = [t for t in releases if t[0] >= BUGZILLA_VERSION_FLOOR]
 
         kept = [name for _, name in releases]
         versions = [v for v, _ in releases]
-        print(f"[version-flags] last {len(kept)}: {kept} (versions={versions})")
+        print(f"[version-flags] kept {len(kept)}: {kept} (versions={versions})")
         return kept
 
     def first_fixed_verified_by_version(self, history_rows):
@@ -337,7 +344,7 @@ class BugzillaClient(Bugz):
         hist_timeout: int = TIMEOUT,
         hist_retries: int = RETRY,
     ):
-        version_fields = self._discover_release_status_fields(keep_last_n=keep_last_n)
+        version_fields = self._discover_release_status_fields()
         if not version_fields:
             return pd.DataFrame()
 
