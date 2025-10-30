@@ -652,8 +652,43 @@ def image_attachments_upload(page_id):
 # ------------------------------------------------------------------
 
 
+def get_metric_status_icon(status: str) -> str:
+    """
+    Convert metric status string to emoji icon.
+
+    Args:
+        status: The metric status (e.g., "approved", "draft", "in-review")
+    Returns:
+        Emoji string for the status, or ❓ if status is unrecognized
+    """
+    status_map = {
+        # Production Ready - Passed 5-Point Actionability (Metric Lifecycle) Review
+        "approved": "🛡️",
+
+        # In Progress / Under Review
+        "pending": "🔄",
+
+        # Draft / Informational - Not production-ready
+        "informational": "ℹ️",
+
+        # Not Yet Reviewed
+        "not-reviewed": "❓",
+        "unknown": "❓",
+    }
+
+    # Handle missing or empty status
+    if not status:
+        return "❓"
+
+    # Normalize and lookup
+    return status_map.get(status.lower().strip(), "❓")
+
+
 def table_row_write(report_title, report_description,
-                    attachment_filename, looker_graph_url):
+                    attachment_filename, looker_graph_url, approval_status):
+
+    status_icon = get_metric_status_icon(approval_status)
+
     return (
         f"""
             <row>
@@ -663,6 +698,7 @@ def table_row_write(report_title, report_description,
         <a href="{looker_graph_url}"><ac:image>
             <ri:attachment ri:filename="{attachment_filename}"/>
         </ac:image></a></td>
+        <td style="text-align: center;">{status_icon}</td>
         </row>
         """
     )
@@ -680,7 +716,8 @@ def page_html(page_id, sections):
             row = table_row_write(report["report-title"],
                                   report["report-description"],
                                   report["attachment-filename"],
-                                  report["looker-graph-url"])
+                                  report["looker-graph-url"],
+                                  report.get("approval-status", "not-reviewed"))
             rows += row
 
         html_content += f"""
