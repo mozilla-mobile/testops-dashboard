@@ -105,15 +105,6 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
           ls sentry-slack-firefox-ios.json
 
-      - name: Send health notification to Slack (iOS)
-        id: slack-sentry-ios
-        uses: slackapi/slack-github-action@v2.1.0
-        with:
-          payload-file-path: "./sentry-slack-firefox-ios.json"
-          payload-templated: true 
-          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
-          webhook-type: incoming-webhook
-
       - name: Sentry query (Android)
         run: |
           python __main__.py --report-type sentry-issues --project fenix
