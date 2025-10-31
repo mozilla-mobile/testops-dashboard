@@ -576,6 +576,7 @@ class BugzillaClient(Bugz):
 
         # Convert to DataFrame
         df = pd.DataFrame(rows)
+        print(f"Total {len(df)} bugs tracked")
         self.db.clean_table(ReportBugzillaOverallBugs)
 
         self.db.report_bugzilla_overall_bugs(df)
