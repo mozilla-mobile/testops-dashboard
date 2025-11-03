@@ -39,6 +39,7 @@ PROJECTS_SENTRY = [
 REPORT_TYPES = [
     'bitrise-builds',
     'bugzilla-desktop-bugs',
+    'bugzilla-desktop-overall-bugs',
     'bugzilla-desktop-release-flags-for-bugs',
     'bugzilla-meta-bugs',
     'bugzilla-qe-verify',
@@ -104,6 +105,11 @@ FIELDS = ["id", "summary", "flags", "severity",
 BUGZILLA_QA_WHITEBOARD_FILTER = {
     "cf_qa_whiteboard_type": "substring",
     "cf_qa_whiteboard": "qa-found-in-"
+}
+
+BUGZILLA_QA_WHITEBOARD_OVERALL_FILTER = {
+    "cf_qa_whiteboard_type": "anywordssubstr",
+    "cf_qa_whiteboard": "qa-investig qa-ver qa-triage",
 }
 
 BUGZILLA_BUGS_FIELDS = [

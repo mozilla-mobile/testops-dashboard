@@ -749,4 +749,29 @@ CREATE TABLE `report_bugzilla_query_release_flags_for_bugs` (
 ) ENGINE=InnoDB AUTO_INCREMENT=6441 DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
--- Dump completed on 2025-09-04 11:35:53
+--
+-- Table structure for table `report_bugzilla_overall_bugs`
+--
+
+DROP TABLE IF EXISTS `report_bugzilla_overall_bugs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_bugzilla_overall_bugs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `bugzilla_key` int NOT NULL,
+  `bugzilla_summary` text,
+  `bugzilla_product` varchar(255) DEFAULT NULL,
+  `bugzilla_qa_whiteboard` varchar(500) DEFAULT NULL,
+  `bugzilla_bug_severity` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_priority` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_status` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_resolution` varchar(50) DEFAULT NULL,
+  `bugzilla_bug_created_at` datetime DEFAULT NULL,
+  `bugzilla_bug_last_change_time` datetime DEFAULT NULL,
+  `bugzilla_bug_whiteboard` varchar(500) DEFAULT NULL,
+  `bugzilla_bug_keyword` varchar(500) DEFAULT NULL,
+  `bugzilla_bug_resolved_at` datetime DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `bugzilla_key` (`bugzilla_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
