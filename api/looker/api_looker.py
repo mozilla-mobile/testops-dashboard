@@ -14,8 +14,8 @@ from pathlib import Path
 LOOKER_HOST = os.environ['LOOKER_HOST']
 LOOKER_CLIENT_ID = os.environ['LOOKER_CLIENT_ID']
 LOOKER_SECRET = os.environ['LOOKER_SECRET']
+FOLDER_ID = os.environ.get('FOLDER_ID', 1820)
 
-FOLDER_ID = 1820
 MAX_CONCURRENT_REQUESTS = 10
 
 project_root = Path.cwd()
@@ -107,13 +107,13 @@ def get_looks_in_folder(access_token, FOLDER_ID):
     return looks
 
 
-def process_single_look(access_token, look, images_dir):
+def process_single_look(access_token, look):
     """Process a single look: create task, wait for completion, download image"""
     try:
         print(f"Processing - ID: {look['id']}, Title: {look['title']}")
         task_id = create_render_task(access_token, look['id'])
-        result_url = wait_for_render_task(access_token, task_id)
-        download_image(access_token, result_url, look['title'], images_dir)
+        task_id = wait_for_render_task(access_token, task_id)
+        download_image(access_token, task_id, look['title'], IMAGES_DIR)
         return f"Successfully processed look {look['id']}: {look['title']}"
     except Exception as e:
         return f"Failed to process look {look['id']}: {look['title']} - Error: {str(e)}"
@@ -121,7 +121,7 @@ def process_single_look(access_token, look, images_dir):
 
 def main():
     access_token = get_looker_token()
-    # Ensure the directory exists, create if not
+     # Ensure the directory exists, create if not
     os.makedirs(IMAGES_DIR, exist_ok=True)
 
     all_looks = get_looks_in_folder(access_token, FOLDER_ID)
@@ -131,7 +131,7 @@ def main():
     with ThreadPoolExecutor(max_workers=MAX_CONCURRENT_REQUESTS) as executor:
         # Submit all tasks
         future_to_look = {
-            executor.submit(process_single_look, access_token, look, IMAGES_DIR): look
+            executor.submit(process_single_look, access_token, look): look
             for look in all_looks
         }
 
