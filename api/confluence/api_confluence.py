@@ -38,6 +38,7 @@ confluence = Confluence(
     username=ATLASSIAN_USERNAME,
     password=ATLASSIAN_API_TOKEN
 )
+TEAM_ID = os.environ.get('TEAM_ID', 'MTE')
 
 
 """
@@ -695,7 +696,8 @@ def pages_looker_graphs():
     """iterates over confluence YAML config files and generates
     looker graph pages in bulk (all have same format)
     """
-    for filepath in glob.glob(f"{PATH_YAML_FILES}/*.yaml"):  # Only YAML files
+    team_path = "" if TEAM_ID == 'MTE' else f"{TEAM_ID}/"
+    for filepath in glob.glob(f"{PATH_YAML_FILES}/{team_path}*.yaml"):  # Only YAML files
         with open(filepath, 'r', encoding='utf-8') as file:
             print(f"LOAD CONFIG FILE - {filepath}")
             config = yaml.safe_load(file)
