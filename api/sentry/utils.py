@@ -19,7 +19,14 @@ project_config = {
         )
     },
     "fenix": {
-        "title": ":testops-android: Android"
+        "title": ":testops-android: Android",
+        "looker_dashboard_url": (
+            "https://mozilla.cloud.looker.com/dashboards/2643"
+        ),
+        "confluence_report_url": (
+            "https://mozilla-hub.atlassian.net/wiki/spaces/"
+            "MTE/pages/1695154291/Android+Health+Monitor+Report"
+        )
     },
     "fenix-beta": {
         "title": ":testops-android: Android (Beta)"
