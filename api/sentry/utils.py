@@ -11,7 +11,7 @@ project_config = {
     "firefox-ios": {
         "title": ":testops-apple: iOS",
         "looker_dashboard_url": (
-            "https://mozilla.cloud.looker.com/dashboards/2380"
+            "https://mozilla.cloud.looker.com/dashboards/2381"
         ),
         "confluence_report_url": (
             "https://mozilla-hub.atlassian.net/wiki/spaces/"
