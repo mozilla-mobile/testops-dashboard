@@ -11,10 +11,10 @@ import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-LOOKER_HOST = os.environ['LOOKER_HOST']
-LOOKER_CLIENT_ID = os.environ['LOOKER_CLIENT_ID']
-LOOKER_SECRET = os.environ['LOOKER_SECRET']
-FOLDER_ID = os.environ.get('FOLDER_ID', 1820)
+LOOKER_HOST = os.environ["LOOKER_HOST"]
+LOOKER_CLIENT_ID = os.environ["LOOKER_CLIENT_ID"]
+LOOKER_SECRET = os.environ["LOOKER_SECRET"]
+FOLDER_ID = os.environ.get("FOLDER_ID", 1820)
 
 MAX_CONCURRENT_REQUESTS = 10
 
@@ -35,8 +35,10 @@ def get_looker_token():
 
 # Request a render task for the Look
 def create_render_task(token, look_id, fmt="png", width=400, height=400):
-    url = (f"{LOOKER_HOST}/api/4.0/render_tasks/looks/"
-           f"{look_id}/{fmt}?width={width}&height={height}")
+    url = (
+        f"{LOOKER_HOST}/api/4.0/render_tasks/looks/"
+        f"{look_id}/{fmt}?width={width}&height={height}"
+    )
     headers = {"Authorization": f"Bearer {token}"}
     payload = {"width": width, "height": height}
 
@@ -84,8 +86,8 @@ def download_image(access_token, task_id, look_name, images_dir):
 
     # Change the name to graph-name.png
     look_name = look_name.lower().strip()
-    look_name = re.sub(r'[^a-z0-9\s-]', '', look_name)
-    look_name = re.sub(r'[-\s]+', '-', look_name)
+    look_name = re.sub(r"[^a-z0-9\s-]", "", look_name)
+    look_name = re.sub(r"[-\s]+", "-", look_name)
 
     # Define the path to save the image
     save_path = os.path.join(images_dir, f"{look_name}.png")
@@ -111,9 +113,9 @@ def process_single_look(access_token, look):
     """Process a single look: create task, wait for completion, download image"""
     try:
         print(f"Processing - ID: {look['id']}, Title: {look['title']}")
-        task_id = create_render_task(access_token, look['id'])
+        task_id = create_render_task(access_token, look["id"])
         task_id = wait_for_render_task(access_token, task_id)
-        download_image(access_token, task_id, look['title'], IMAGES_DIR)
+        download_image(access_token, task_id, look["title"], IMAGES_DIR)
         return f"Successfully processed look {look['id']}: {look['title']}"
     except Exception as e:
         return f"Failed to process look {look['id']}: {look['title']} - Error: {str(e)}"
@@ -121,7 +123,7 @@ def process_single_look(access_token, look):
 
 def main():
     access_token = get_looker_token()
-     # Ensure the directory exists, create if not
+    # Ensure the directory exists, create if not
     os.makedirs(IMAGES_DIR, exist_ok=True)
 
     all_looks = get_looks_in_folder(access_token, FOLDER_ID)
@@ -141,7 +143,7 @@ def main():
                 result = future.result()
                 print(result)
             except Exception as exc:
-                print(f'Look {look["id"]} generated an exception: {exc}')
+                print(f"Look {look['id']} generated an exception: {exc}")
 
 
 if __name__ == "__main__":
