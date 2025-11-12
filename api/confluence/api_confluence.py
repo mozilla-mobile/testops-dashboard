@@ -652,8 +652,84 @@ def image_attachments_upload(page_id):
 # ------------------------------------------------------------------
 
 
+def get_metric_status_icon(status: str) -> str:
+    """
+    Convert metric status to Confluence panel macro.
+    Uses the exact format Confluence uses in storage.
+    """
+    panels = {
+        # Green panel with shield icon (Approved)
+        "approved": (
+            '<ac:structured-macro ac:name="panel" '
+            'ac:schema-version="1">'
+            '<ac:parameter ac:name="panelIcon">'
+            ':security-shield:'
+            '</ac:parameter>'
+            '<ac:parameter ac:name="panelIconId">'
+            'a13e390c-702a-43df-925b-7bdc5de46527'
+            '</ac:parameter>'
+            '<ac:parameter ac:name="panelIconText">'
+            ':security-shield:'
+            '</ac:parameter>'
+            '<ac:parameter ac:name="bgColor">#E3FCEF</ac:parameter>'
+            '<ac:rich-text-body>'
+            '<p>Approved</p>'
+            '</ac:rich-text-body>'
+            '</ac:structured-macro>'
+        ),
+
+        # Blue panel with magnifying glass (Pending Review)
+        "pending": (
+            '<ac:structured-macro ac:name="panel" '
+            'ac:schema-version="1">'
+            '<ac:parameter ac:name="panelIcon">'
+            ':magnify-black:'
+            '</ac:parameter>'
+            '<ac:parameter ac:name="panelIconId">'
+            'cd05f105-b031-468a-a0e4-574c2c7a056f'
+            '</ac:parameter>'
+            '<ac:parameter ac:name="panelIconText">'
+            ':magnify-black:'
+            '</ac:parameter>'
+            '<ac:parameter ac:name="bgColor">#DEEBFF</ac:parameter>'
+            '<ac:rich-text-body>'
+            '<p>Pending Review</p>'
+            '</ac:rich-text-body>'
+            '</ac:structured-macro>'
+        ),
+
+        # Yellow panel with info icon (Informational)
+        "informational": (
+            '<ac:structured-macro ac:name="panel" '
+            'ac:schema-version="1">'
+            '<ac:parameter ac:name="panelIcon">'
+            ':information_source:'
+            '</ac:parameter>'
+            '<ac:parameter ac:name="panelIconId">'
+            'c3c13202-6255-4c09-a401-86fba6d7e801'
+            '</ac:parameter>'
+            '<ac:parameter ac:name="panelIconText">'
+            ':info-black:'
+            '</ac:parameter>'
+            '<ac:parameter ac:name="bgColor">#FFFAE6</ac:parameter>'
+            '<ac:rich-text-body>'
+            '<p>Informational Metric</p>'
+            '</ac:rich-text-body>'
+            '</ac:structured-macro>'
+        ),
+    }
+
+    if not status:
+        return panels["pending"]
+
+    return panels.get(status.lower().strip(), panels["pending"])
+
+
 def table_row_write(report_title, report_description,
-                    attachment_filename, looker_graph_url):
+                    attachment_filename, looker_graph_url, approval_status):
+
+    status_icon = get_metric_status_icon(approval_status)
+
     return (
         f"""
             <row>
@@ -663,6 +739,7 @@ def table_row_write(report_title, report_description,
         <a href="{looker_graph_url}"><ac:image>
             <ri:attachment ri:filename="{attachment_filename}"/>
         </ac:image></a></td>
+        <td style="text-align: center;">{status_icon}</td>
         </row>
         """
     )
@@ -680,7 +757,8 @@ def page_html(page_id, sections):
             row = table_row_write(report["report-title"],
                                   report["report-description"],
                                   report["attachment-filename"],
-                                  report["looker-graph-url"])
+                                  report["looker-graph-url"],
+                                  report.get("approval-status", "pending"))
             rows += row
 
         html_content += f"""
