@@ -697,7 +697,8 @@ def pages_looker_graphs():
     looker graph pages in bulk (all have same format)
     """
     team_path = "" if TEAM_ID == 'MTE' else f"{TEAM_ID}/"
-    for filepath in glob.glob(f"{PATH_YAML_FILES}/{team_path}*.yaml"): #Only YAML files
+    all_yaml_files = glob.glob(f"{PATH_YAML_FILES}/{team_path}*.yaml")
+    for filepath in all_yaml_files: # Only YAML files
         with open(filepath, 'r', encoding='utf-8') as file:
             print(f"LOAD CONFIG FILE - {filepath}")
             config = yaml.safe_load(file)
