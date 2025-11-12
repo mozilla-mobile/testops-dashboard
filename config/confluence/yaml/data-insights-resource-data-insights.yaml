@@ -42,32 +42,32 @@ wiki_page:
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2735"
           
         - report-title: "Android Workload per Release Cycle per Person"
-          report-description: "TBD"
+          report-description: "Workload per Release Cycle per person"
           attachment-filename: "android-workload-per-person-per-release-cycle.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2736"
   
         - report-title: "iOS Workload per Release Cycle per Person"
-          report-description: "TBD"
+          report-description: "Workload per Release Cycle per person"
           attachment-filename: "ios-workload-per-person-per-release-cycle.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2737"
 
         - report-title: "Fenix Releases Tested"
-          report-description: "TBD"
+          report-description: "Number and sign off status for release builds tested"
           attachment-filename: "fenix-verified-builds-pie-chart.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2718"
           
         - report-title: "Firefox-iOS Releases Tested"
-          report-description: "TBD"
+          report-description: "Number and sign off status for release builds tested"
           attachment-filename: "firefox-ios-verified-builds-pie-chart.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2719"
 
         - report-title: "Focus-android Releases Tested"
-          report-description: "TBD"
+          report-description: "Number and sign off status for release builds tested"
           attachment-filename: "focus-android-verified-builds-pie-chart.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2731"
 
         - report-title: "Focus-iOS Releases Tested"
-          report-description: "TBD"
+          report-description: "Number and sign off status for release builds tested"
           attachment-filename: "focus-ios-verified-builds-pie-chart.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2734"
 
@@ -102,13 +102,13 @@ wiki_page:
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1854"
           
         - report-title: "iOS Feature Requests"
-          report-description: "TBD"
-          attachment-filename: "404.png"
+          report-description: "Number of Features Requests for iOS"
+          attachment-filename: "dashboard-ios-feature-requests.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1846"
           
         - report-title: "Android Feature Requests"
-          report-description: "TBD"
-          attachment-filename: "404.png"
+          report-description: "Number of Feature Requests for Android"
+          attachment-filename: "dashboard-android-feature-requests.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1864"
 
     - name: "Test Automation Coverage Dashboards"
@@ -119,7 +119,7 @@ wiki_page:
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/562"
           
         - report-title: "iOS Test Automation Coverage"
-          report-description: "TBD"
-          attachment-filename: "404.png"
+          report-description: "All graphs in Dashboard"
+          attachment-filename: "dashboard-test-automation-coverage-firefox.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/601"
 
