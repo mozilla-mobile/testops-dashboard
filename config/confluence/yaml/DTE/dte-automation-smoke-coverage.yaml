@@ -1,0 +1,25 @@
+wiki_page:
+  page_id: 1962607176
+  page_title: "DTE - Automation Smoke Coverage Insights"
+  sections:
+    - name: "Automation Smoke Coverage Overview"
+      reports:
+        - report-title: "Automation Coverage Trend - Smoke Tests"
+          report-description: "Shows the trend over time for the number of test cases in smoke test suites, categorized as Completed, Disabled, Unsuitable, Suitable, or Untriaged."
+          attachment-filename: "automation-coverage-trend-smoketest-2.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3102"
+
+        - report-title: "Automation Coverage Percentage - Smoke Tests"
+          report-description: "Shows the percentage distribution of test cases in smoke test suites, categorized as Completed, Disabled, Unsuitable, Suitable, or Untriaged."
+          attachment-filename: "draft-autmation-coverage-smoketest.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3103"
+
+        - report-title: "Automation Coverage Trend - Smoke Tests (Prod)"
+          report-description: "Shows the trend over the past 4 months for the number of test cases in smoke test suites, categorized as Completed, Disabled, Unsuitable, Suitable, or Untriaged."
+          attachment-filename: "automation-coverage-trend-smoketest-prod.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3106"
+
+        - report-title: "Automation Coverage Percentage - Smoke Tests (Prod)"
+          report-description: "Shows the percentage distribution of test cases in smoke test suites over the past 4 months, categorized as Completed, Disabled, Unsuitable, Suitable, or Untriaged."
+          attachment-filename: "automation-coverage-smoketest-prod.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3105"
