@@ -21,5 +21,5 @@ wiki_page:
 
         - report-title: "Automation Coverage Percentage - Full Functional Tests (Prod)"
           report-description: "Shows the percentage distribution of test cases in smoke test suites over the past 4 months, categorized as Completed, Disabled, Unsuitable, Suitable, or Untriaged."
-          attachment-filename: "automation-coverage-full-functional-prod.png"
+          attachment-filename: "autmation-coverage-full-functional-prod.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3110"
