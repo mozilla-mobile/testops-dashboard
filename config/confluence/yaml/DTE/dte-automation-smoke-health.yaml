@@ -8,7 +8,7 @@ wiki_page:
           report-description: "Displays the distribution of Passed, Blocked, Failed, and Retested test cases across all smoke automation test plans created in the past month."
           attachment-filename: "test-plan-counts.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3096"
-`
+
         - report-title: "Weekly Test Plan Creation Trends"
           report-description: "Visualizes the frequency of new test plans generated from smoke automation suites over the past month, grouped by week."
           attachment-filename: "test-plans-frequency.png"
