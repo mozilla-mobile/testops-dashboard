@@ -1,4 +1,4 @@
-name: Testops Confluence Update
+name: Testops Confluence Update (DTE)
 
 # Daily @2am UTC
 on:
@@ -12,7 +12,7 @@ on:
         required: true
         default: 'master'
 env:
-  FOLDER_ID: 1946
+  LOOKER_FOLDER_ID: 1946
   TEAM_ID: 'DTE'
 
 jobs:

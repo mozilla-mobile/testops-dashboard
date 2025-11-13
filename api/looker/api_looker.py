@@ -14,7 +14,7 @@ from pathlib import Path
 LOOKER_HOST = os.environ["LOOKER_HOST"]
 LOOKER_CLIENT_ID = os.environ["LOOKER_CLIENT_ID"]
 LOOKER_SECRET = os.environ["LOOKER_SECRET"]
-FOLDER_ID = os.environ.get("FOLDER_ID", 1820)
+FOLDER_ID = os.environ.get("LOOKER_FOLDER_ID", 1820)
 
 MAX_CONCURRENT_REQUESTS = 10
 
