@@ -10,9 +10,11 @@ YAML is used for simple, uniform, and scalable page generation where Looker grap
 
 - Each YAML file maps to one Confluence page with a standard table layout.
 - Designed for high-volume updates with minimal effort.
+- Currently, supports pages for the `MTE` and `DTE` team.
+  - The team name can be specified by changing the `TEAM_ID` environment variable.
 - To add new pages, simply drop additional files into the `config/confluence/yaml/` directory — no code changes required.
-- The YAML parser processes all files in this directory and writes one Confluence page per file.
-
+  - For pages own by `DTE`, use the `config/confluence/yaml/DTE/` directory.
+- The YAML parser processes all files in this directory and writes one Confluence page per file. 
 
 ### Custom Page (XML) Configs
 
@@ -40,3 +42,4 @@ python ./__main__.py --confluence-updates yaml
 python ./__main__.py --confluence-build-validation
 ```
 
+**Note:** The default looker folder is set to the `MTE` folder id. To change this, you can set the environment variable `LOOKER_FOLDER_ID` to the desired folder id before running the script.
