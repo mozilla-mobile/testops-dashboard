@@ -1,9 +1,9 @@
 name: Desktop Testops Report WEEKLY - Staging
 
-# Sat. @4am UTC
+# Monday @8am CET
 on:
   schedule:
-    - cron:  "0 7 * * 6" 
+    - cron:  "0 8 * * 1"
   workflow_dispatch:
 
 jobs:
@@ -44,6 +44,11 @@ jobs:
 
       - name: Query Test Plans and Runs
         run: python ./__main__.py --report-type testrail-test-results --project firefox-desktop
+        continue-on-error: true
 
-      - name: Bugzilla Desktop Overall Bugs
-        run: python ./__main__.py --report-type bugzilla-desktop-overall-bugs --project firefox-desktop
+      - name: Query Bugzilla Release Flags Bugs
+        run: python ./__main__.py --report-type bugzilla-desktop-release-flags-for-bugs
+        continue-on-error: true
+
+      - name: Query Bugzilla Overall Bugs
+        run: python ./__main__.py --report-type bugzilla-desktop-overall-bugs
