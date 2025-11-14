@@ -673,7 +673,7 @@ def get_metric_status_icon(status: str) -> str:
             '</ac:parameter>'
             '<ac:parameter ac:name="bgColor">#E3FCEF</ac:parameter>'
             '<ac:rich-text-body>'
-            '<p>Approved</p>'
+            '<h5>Approved</h5>'
             '</ac:rich-text-body>'
             '</ac:structured-macro>'
         ),
@@ -693,7 +693,7 @@ def get_metric_status_icon(status: str) -> str:
             '</ac:parameter>'
             '<ac:parameter ac:name="bgColor">#DEEBFF</ac:parameter>'
             '<ac:rich-text-body>'
-            '<p>Pending Review</p>'
+            '<h5>Pending Review</h5>'
             '</ac:rich-text-body>'
             '</ac:structured-macro>'
         ),
@@ -713,7 +713,7 @@ def get_metric_status_icon(status: str) -> str:
             '</ac:parameter>'
             '<ac:parameter ac:name="bgColor">#FFFAE6</ac:parameter>'
             '<ac:rich-text-body>'
-            '<p>Informational Metric</p>'
+            '<h5>Informational Metric</h5>'
             '</ac:rich-text-body>'
             '</ac:structured-macro>'
         ),
