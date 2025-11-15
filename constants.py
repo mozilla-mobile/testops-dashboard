@@ -5,61 +5,62 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 PLATFORMS = [
-    'desktop',
-    'ecosystem',
-    'mobile',
+    "desktop",
+    "ecosystem",
+    "mobile",
 ]
 
 PROJECTS_ECOSYSTEM = [
-    'experimenter',
-    'nimbus',
-    'ALL',
+    "experimenter",
+    "nimbus",
+    "ALL",
 ]
 
 PROJECTS_DESKTOP = [
-    'firefox-desktop',
-    'ALL',
+    "firefox-desktop",
+    "ALL",
 ]
 
 PROJECTS_MOBILE = [
-    'fenix',
-    'firefox-ios',
-    'focus-android',
-    'focus-ios',
-    'reference-browser',
-    'ALL',
+    "fenix",
+    "firefox-ios",
+    "focus-android",
+    "focus-ios",
+    "reference-browser",
+    "ALL",
 ]
 
 PROJECTS_SENTRY = [
-    'fenix',
-    'fenix-beta',
-    'firefox-ios',
+    "fenix",
+    "fenix-beta",
+    "firefox-ios",
 ]
 
 REPORT_TYPES = [
-    'bitrise-builds',
-    'bugzilla-desktop-bugs',
-    'bugzilla-desktop-overall-bugs',
-    'bugzilla-desktop-release-flags-for-bugs',
-    'bugzilla-meta-bugs',
-    'bugzilla-qe-verify',
-    'bugzilla-query-by-keyword',
-    'confluence-updates',
-    'confluence-new-page',
-    'confluence-build-validation',
-    'github-issue-regression',
-    'jira-qa-needed',
-    'jira-qa-requests',
-    'jira-qa-requests-new-issue-types',
-    'jira-softvision-worklogs',
-    'testrail-milestones',
-    'testrail-users',
-    'testrail-test-case-coverage',
-    'testrail-test-run-counts',
-    'testrail-test-plans-and-runs',
-    'testrail-test-results',
-    'sentry-issues',
-    'sentry-rates'
+    "bitrise-builds",
+    "bugzilla-desktop-bugs",
+    "bugzilla-desktop-overall-bugs",
+    "bugzilla-desktop-release-flags-for-bugs",
+    "bugzilla-meta-bugs",
+    "bugzilla-qe-verify",
+    "bugzilla-query-by-keyword",
+    "confluence-updates",
+    "confluence-new-page",
+    "confluence-build-validation",
+    "github-issue-regression",
+    "jira-qa-needed",
+    "jira-qa-requests",
+    "jira-qa-requests-new-issue-types",
+    "jira-softvision-worklogs",
+    "testrail-milestones",
+    "testrail-users",
+    "testrail-test-case-coverage",
+    "testrail-test-health",
+    "testrail-test-run-counts",
+    "testrail-test-plans-and-runs",
+    "testrail-test-results",
+    "sentry-issues",
+    "sentry-rates",
 ]
 
 # Jira Host
@@ -86,7 +87,7 @@ QATT_PARENT_TICKETS_IN_BOARD = f"filter={QATT_BOARD}&jql=parent="
 WORKLOG_URL_TEMPLATE = "issue/{issue_key}/worklog"
 
 # JQL Extra fields needed
-JQL_QUERY = 'jql=filter='
+JQL_QUERY = "jql=filter="
 
 STORY_POINTS = "customfield_10037"
 FIREFOX_RELEASE_TRAIN = "customfield_10155"
@@ -99,12 +100,11 @@ TESTED_TRAINS = "customfield_11930"
 # Bugzilla queries
 BUGZILLA_URL = "bugzilla.mozilla.org"
 PRODUCTS = ["Fenix", "Focus", "GeckoView"]
-FIELDS = ["id", "summary", "flags", "severity",
-          "priority", "status", "resolution"]
+FIELDS = ["id", "summary", "flags", "severity", "priority", "status", "resolution"]
 
 BUGZILLA_QA_WHITEBOARD_FILTER = {
     "cf_qa_whiteboard_type": "substring",
-    "cf_qa_whiteboard": "qa-found-in-"
+    "cf_qa_whiteboard": "qa-found-in-",
 }
 
 BUGZILLA_QA_WHITEBOARD_OVERALL_FILTER = {
@@ -113,9 +113,17 @@ BUGZILLA_QA_WHITEBOARD_OVERALL_FILTER = {
 }
 
 BUGZILLA_BUGS_FIELDS = [
-    "id", "summary", "product",
-    "cf_qa_whiteboard", "severity",
-    "priority", "status", "resolution",
-    "creation_time", "last_change_time",
-    "whiteboard", "keywords", "cf_last_resolved"
+    "id",
+    "summary",
+    "product",
+    "cf_qa_whiteboard",
+    "severity",
+    "priority",
+    "status",
+    "resolution",
+    "creation_time",
+    "last_change_time",
+    "whiteboard",
+    "keywords",
+    "cf_last_resolved",
 ]
