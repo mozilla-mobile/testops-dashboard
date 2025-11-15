@@ -55,6 +55,7 @@ REPORT_TYPES = [
     'testrail-milestones',
     'testrail-users',
     'testrail-test-case-coverage',
+    'testrail-test-health'
     'testrail-test-run-counts',
     'testrail-test-plans-and-runs',
     'testrail-test-results',
