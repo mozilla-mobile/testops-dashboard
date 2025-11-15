@@ -5,12 +5,13 @@ from utils.datetime_utils import DatetimeUtils as dt
 
 
 class TestRail:
+
     def __init__(self):
         try:
-            TESTRAIL_HOST = os.environ["TESTRAIL_HOST"]
+            TESTRAIL_HOST = os.environ['TESTRAIL_HOST']
             self.client = APIClient(TESTRAIL_HOST)
-            self.client.user = os.environ["TESTRAIL_USERNAME"]
-            self.client.password = os.environ["TESTRAIL_PASSWORD"]
+            self.client.user = os.environ['TESTRAIL_USERNAME']
+            self.client.password = os.environ['TESTRAIL_PASSWORD']
         except KeyError:
             print("ERROR: Missing testrail env var")
             sys.exit(1)
@@ -18,7 +19,8 @@ class TestRail:
     # API: Milestones
     def milestones(self, testrail_project_id):
         return self.client.send_get(
-            f"get_milestones/{testrail_project_id}", data_type="milestones"
+            f"get_milestones/{testrail_project_id}",
+            data_type='milestones'
         )
 
     def milestone(self, testrail_milestone_id):
@@ -35,7 +37,7 @@ class TestRail:
     def test_cases(self, testrail_project_id, testrail_test_suite_id):
         return self.client.send_get(
             f"get_cases/{testrail_project_id}&suite_id={testrail_test_suite_id}",
-            data_type="cases",
+            data_type="cases"
         )
 
     def test_case(self, testrail_test_case_id):
@@ -48,7 +50,8 @@ class TestRail:
     # API: Suites
     def test_suites(self, testrail_project_id):
         return self.client.send_get(
-            f"get_suites/{testrail_project_id}", data_type="suites"
+            f"get_suites/{testrail_project_id}",
+            data_type="suites"
         )
 
     def test_suite(self, testrail_test_suite_id):
@@ -58,8 +61,8 @@ class TestRail:
     def test_run(self, run_id):
         return self.client.send_get(f"get_run/{run_id}")
 
-    def test_runs(self, testrail_project_id, start_date="", end_date=""):
-        date_range = ""
+    def test_runs(self, testrail_project_id, start_date='', end_date=''):
+        date_range = ''
         if start_date:
             after = dt.convert_datetime_to_epoch(start_date)
             date_range += f"&created_after={after}"
@@ -69,19 +72,21 @@ class TestRail:
         return self.client.send_get(f"get_runs/{testrail_project_id}{date_range}")
 
     def test_results_for_run(self, run_id):
-        return self.client.send_get(f"get_results_for_run/{run_id}")
+        return self.client.send_get(f'get_results_for_run/{run_id}')
 
     # API: Plans
-    def get_test_plans(self, testrail_project_id, start_date="", end_date=""):
+    def get_test_plans(self, testrail_project_id, start_date='', end_date=''):
         """Return all plans related to a project id"""
-        date_range = ""
+        date_range = ''
         if start_date:
             after = dt.convert_datetime_to_epoch(start_date)
-            date_range += f"&created_after={after}"
+            date_range += f'&created_after={after}'
         if end_date:
             before = dt.convert_datetime_to_epoch(end_date)
-            date_range += f"&created_before={before}"
-        return self.client.send_get(f"/get_plans/{testrail_project_id}{date_range}")
+            date_range += f'&created_before={before}'
+        return self.client.send_get(
+            f"/get_plans/{testrail_project_id}{date_range}"
+        )
 
     def search_test_plans(self, testrail_project_id, **kwargs):
         """Return all matching plans related to a project id"""
@@ -90,18 +95,17 @@ class TestRail:
             for key, val in kwargs.items():
                 query = query + f"&{key}={val}"
         endpoint = f"get_plans/{testrail_project_id}{query}"
-        print(endpoint)
         return self.client.send_get(endpoint)
 
-    def get_test_plan(self, plan_id, start_date="", end_date=""):
+    def get_test_plan(self, plan_id, start_date='', end_date=''):
         """Return a plan object by plan id"""
-        date_range = ""
+        date_range = ''
         if start_date:
             after = dt.convert_datetime_to_epoch(start_date)
-            date_range += f"&created_after={after}"
+            date_range += f'&created_after={after}'
         if end_date:
             before = dt.convert_datetime_to_epoch(end_date)
-            date_range += f"&created_before={before}"
+            date_range += f'&created_before={before}'
         return self.client.send_get(f"/get_plan/{plan_id}{date_range}")
 
     # API: Tests
@@ -111,4 +115,6 @@ class TestRail:
 
     # API: Users
     def users(self, testrail_project_id):
-        return self.client.send_get(f"get_users/{testrail_project_id}")
+        return self.client.send_get(
+            f'get_users/{testrail_project_id}'
+        )
