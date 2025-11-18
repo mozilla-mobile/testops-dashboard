@@ -14,6 +14,10 @@ from pathlib import Path
 LOOKER_HOST = os.environ["LOOKER_HOST"]
 LOOKER_CLIENT_ID = os.environ["LOOKER_CLIENT_ID"]
 LOOKER_SECRET = os.environ["LOOKER_SECRET"]
+# LOOKER_FOLDER_ID - identifies which folder to fetch visualizations from
+# Default: 1820 (MTE team folder)
+# To find folder IDs, see: config/looker/folder_ids.yaml
+# Or navigate to the folder in Looker and check the URL
 FOLDER_ID = os.environ.get("LOOKER_FOLDER_ID", 1820)
 
 MAX_CONCURRENT_REQUESTS = 10

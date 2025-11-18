@@ -16,6 +16,21 @@ YAML is used for simple, uniform, and scalable page generation where Looker grap
   - For pages own by `DTE`, use the `config/confluence/yaml/DTE/` directory.
 - The YAML parser processes all files in this directory and writes one Confluence page per file. 
 
+### Looker Folder Configuration
+
+Each team's metrics are stored in separate Looker folders. The folder IDs are:
+
+- **MTE**: 1820 (default)
+- **DTE**: 1946
+
+**Note:** To change the looker folder, you can set the environment variable `LOOKER_FOLDER_ID` to the desired folder id before running the script.
+
+
+**Finding Looker Folder IDs:**
+1. Navigate to the folder in Looker's web interface
+2. Check the browser URL: `https://mozilla.cloud.looker.com/folders/{FOLDER_ID}`
+3. Or refer to `config/looker/folder_ids.yaml` for all team folder IDs
+
 ### Custom Page (XML) Configs
 
 XML is used for more complex, page-specific templates that require flexible layout control.
@@ -41,5 +56,3 @@ python ./__main__.py --confluence-updates yaml
 ```bash
 python ./__main__.py --confluence-build-validation
 ```
-
-**Note:** The default looker folder is set to the `MTE` folder id. To change this, you can set the environment variable `LOOKER_FOLDER_ID` to the desired folder id before running the script.

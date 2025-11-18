@@ -11,6 +11,9 @@ on:
         required: true
         default: 'master'
 env:
+  # Looker Folder IDs - find these by navigating to the folder in Looker
+  # and checking the URL: https://mozilla.cloud.looker.com/folders/{ID}
+  # MTE: 1820, DTE: 1946
   LOOKER_FOLDER_ID: 1946
   TEAM_ID: 'DTE'
 
