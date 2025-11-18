@@ -116,6 +116,19 @@ jobs:
           webhook-type: incoming-webhook
         continue-on-error: true
 
+      - name: Sentry query (Android)
+        run: |
+          python __main__.py --report-type sentry-issues --project fenix
+          python __main__.py --report-type sentry-rates --project fenix
+
+      - name: Sentry query (Android Beta)
+        run: |
+          python __main__.py --report-type sentry-issues --project fenix-beta
+          python __main__.py --report-type sentry-rates --project fenix-beta
+      
+      # Note: We have sent the Android and Android Beta notifications to 
+      # mobile-alerts-product-health channel.
+
   notify:
     name: Send workflow status notification
     runs-on: ubuntu-latest
