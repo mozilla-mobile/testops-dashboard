@@ -59,6 +59,12 @@ jobs:
 
       - name: Update DB - test coverage
         run: python ./__main__.py --report-type testrail-test-case-coverage --platform desktop --project ALL
+        continue-on-error: true
 
       - name: Query Test Plans and Runs
         run: python ./__main__.py --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
+        continue-on-error: true
+
+      - name: Query Bugzilla Softvision Bugs
+        run: python ./__main__.py --platform desktop --report-type bugzilla-desktop-bugs
+ 
