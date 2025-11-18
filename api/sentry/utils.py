@@ -11,7 +11,7 @@ project_config = {
     "firefox-ios": {
         "title": ":testops-apple: iOS",
         "looker_dashboard_url": (
-            "https://mozilla.cloud.looker.com/dashboards/2381"
+            "https://mozilla.cloud.looker.com/dashboards/2667?Sentry+Project+ID=6176941&Created+Month=30+days"
         ),
         "confluence_report_url": (
             "https://mozilla-hub.atlassian.net/wiki/spaces/"
@@ -19,10 +19,20 @@ project_config = {
         )
     },
     "fenix": {
-        "title": ":testops-android: Android"
+        "title": ":testops-android: Android",
+        "looker_dashboard_url": (
+            "https://mozilla.cloud.looker.com/dashboards/2667?Sentry+Project+ID=6375561&Created+Month=30+days"
+        ),
+        "confluence_report_url": (
+            "https://mozilla-hub.atlassian.net/wiki/spaces/"
+            "MTE/pages/1695154291/Android+Health+Monitor+Report"
+        )
     },
     "fenix-beta": {
-        "title": ":testops-android: Android (Beta)"
+        "title": ":testops-android: Android (Beta)",
+        "looker_dashboard_url": (
+            "https://mozilla.cloud.looker.com/dashboards/2667?Sentry+Project+ID=6295551&Created+Month=30+days"
+        )
     }
 }
 
@@ -102,40 +112,41 @@ def insert_rates(json_data, csv_file, project):
             else:
                 print("Version {0}'s adoption rate is less than 1%. Skipping."
                       .format(row['release_version']))
-        if looker_dashboard_url and confluence_report_url:
-            json_data["blocks"].append(
-                {
-                    "type": "actions",
-                    "elements": [
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": ":chart_with_upwards_trend: Trends",
-                                "emoji": True
-                            },
-                            "value": "trends_click",
-                            "action_id": "trends",
-                            "url": (
-                                looker_dashboard_url
-                            )
-                        },
-                        {
-                            "type": "button",
-                            "text": {
-                                "type": "plain_text",
-                                "text": ":scroll: Report",
-                                "emoji": True
-                            },
-                            "value": "report_click",
-                            "action_id": "report",
-                            "url": (
-                                confluence_report_url
-                            )
-                        }
-                    ]
-                }
-            )
+        buttons_elements = []
+        # Add Trends button if looker_dashboard_url is defined
+        if looker_dashboard_url:
+            buttons_elements.append({
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": ":chart_with_upwards_trend: Trends",
+                    "emoji": True
+                },
+                "value": "trends_click",
+                "action_id": "trends",
+                "url": looker_dashboard_url
+            })
+        
+        # Add Report button if confluence_report_url is defined
+        if confluence_report_url:
+            buttons_elements.append({
+                "type": "button",
+                "text": {
+                    "type": "plain_text",
+                    "text": ":scroll: Report",
+                    "emoji": True
+                },
+                "value": "report_click",
+                "action_id": "report",
+                "url": confluence_report_url
+            })
+        
+        # Only add the actions block if we have at least one button
+        if buttons_elements:
+            json_data["blocks"].append({
+                "type": "actions",
+                "elements": buttons_elements
+            })
         if flag_low_crash_free_rate_detected:
             json_data["blocks"].append(
                 {
