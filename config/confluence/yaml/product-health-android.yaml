@@ -12,4 +12,17 @@ wiki_page:
           report-description: "Breakdown of bug status"
           attachment-filename: "bugs-caught-by-ui-tests-on-android.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3041"
-          
+    - name: "Sentry"
+      reports:
+        - report-title: "Crash Free Users Rate"
+          report-description: "Crash Free Users Rate"
+          attachment-filename: "crash-free-rate-user.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3128"
+        - report-title: "Crash Free Session Rate"
+          report-description: "Crash Free Session Rate"
+          attachment-filename: "crash-free-rate-session.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3129"
+        - report-title: "Adoption Rate"
+          report-description: "Adoption Rate"
+          attachment-filename: "adoption-rate.png" # TODO: Add png file
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3130"          
