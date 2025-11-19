@@ -60,6 +60,7 @@ jobs:
       - name: Set job log URL
         if: always()
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
       - name: Send custom JSON data to Slack workflow
         if: always()
         id: slack

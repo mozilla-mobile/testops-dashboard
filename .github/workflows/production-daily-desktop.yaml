@@ -66,5 +66,26 @@ jobs:
         continue-on-error: true
 
       - name: Query Bugzilla Softvision Bugs
-        run: python ./__main__.py --platform desktop --report-type bugzilla-desktop-bugs
- 
+        run: python ./__main__.py --platform desktop --project firefox-desktop --report-type bugzilla-desktop-bugs
+
+      - name: Set job log URL
+        if: always()
+        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Send custom JSON data to Slack workflow
+        if: always()
+        id: slack
+        uses: slackapi/slack-github-action@v2.1.1
+        env:
+          WORKFLOW_NAME: ${{ github.workflow }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          JOB_STATUS: ${{ job.status == 'success' && ':white_check_mark:' || job.status == 'failure' && ':x:' }}
+          JOB_STATUS_COLOR: ${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#FF0000' }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          webhook-type: webhook-trigger
+          payload-templated: true
+          payload-file-path: "./config/payload-slack-content.json"
