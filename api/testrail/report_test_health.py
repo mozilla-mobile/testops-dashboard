@@ -4,6 +4,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+# Test Health is a table that shows elapsed execution time, pass rate, and
+# a history of test statuses, which will help us identify tests that need
+# stabilization or optimization, and follow performance trends.
 
 from datetime import datetime, timedelta
 from collections import namedtuple
@@ -148,6 +151,7 @@ def update_testrail_test_health_row(payload, update_list):
 def testrail_test_health(project, num_days=1):
     tr = _tr()
 
+    # Dictionary of project ids and their respective service acct user id
     AUTOUSERS = {17: 976}
     updates = []
     project_ids_list = testrail_project_ids(project)[0]
@@ -189,7 +193,7 @@ def testrail_test_health(project, num_days=1):
                         matching_row = [
                             u
                             for u in updates
-                            if u.get("case_id") == new_row["testrail_case_id"]
+                            if u.get("testrail_case_id") == new_row["testrail_case_id"]
                         ]
                         if matching_row:
                             updates.remove(matching_row[0])
@@ -201,7 +205,12 @@ def testrail_test_health(project, num_days=1):
 def report_test_health_update(payload):
     db = _db()
     for row in payload:
-        db.session.query(ReportTestRailTestHealth).filter(
+        matching_row = db.session.query(ReportTestRailTestHealth).filter(
             ReportTestRailTestHealth.testrail_case_id == row["testrail_case_id"]
-        ).update(row, synchronize_session="fetch")
+        )
+        if matching_row:
+            matching_row.update(row, synchronize_session="fetch")
+        else:
+            db.session.add(ReportTestRailTestHealth(**payload))
+            db.session.commit()
         db.session.commit()
