@@ -22,3 +22,7 @@ wiki_page:
           report-description: "Crash Free Session Rate"
           attachment-filename: "crash-free-rate-session.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3129"
+        - report-title: "Adoption Rate"
+          report-description: "Adoption Rate"
+          attachment-filename: "adoption-rate.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3130"    
