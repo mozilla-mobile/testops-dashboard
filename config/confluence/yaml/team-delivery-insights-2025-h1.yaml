@@ -1,6 +1,7 @@
 wiki_page:
   page_id: 1650786307
   page_title: "Team Delivery Insights 2025"
+  show_approval_status: false
   sections:
     - name: "Testing"
       reports:

@@ -1,6 +1,7 @@
 wiki_page:
   page_id: 1695154291
   page_title: "Android Health Monitor Report"
+  show_approval_status: false
   sections:
     - name: "Bugzilla"
       reports:
