@@ -943,6 +943,35 @@ def pages_looker_graphs():
             page_payload_write(page_id, payload)
 
 
+def remove_notes_info_macro(page_id):
+    """Remove the blue info macro from Notes section on existing pages"""
+    page_data = page_object(url_page_content_storage(page_id))
+    existing_html = page_data["body"]["storage"]["value"]
+
+    # Pattern to match the info macro before Notes heading
+    info_macro_pattern = re.compile(
+        r'<ac:structured-macro ac:name="info"[^>]*>.*?</ac:structured-macro>\s*'
+        r'(?=<h3>Notes</h3>)',
+        re.DOTALL | re.IGNORECASE
+    )
+
+    if info_macro_pattern.search(existing_html):
+        logger.info(f"Page {page_id}: Removing info macro from Notes section")
+        cleaned_html = info_macro_pattern.sub('', existing_html)
+
+        current_version = page_data["version"]["number"]
+        payload = page_payload(
+            page_id,
+            page_data["title"],
+            page_data,
+            current_version,
+            cleaned_html
+        )
+        page_payload_write(page_id, payload)
+        logger.info(f"Page {page_id}: Info macro removed successfully")
+    else:
+        logger.info(f"Page {page_id}: No info macro found")
+
 # ------------------------------------------------------------------
 # Page rendering: Custom pages (XML)
 # ------------------------------------------------------------------
@@ -1081,6 +1110,15 @@ def page_report_build_validation(
 
 
 def main():
+    # TEMPORARY: One-time cleanup - remove after running once
+    logger.info("Starting one-time cleanup of info macros...")
+    for filepath in glob.glob(f"{PATH_YAML_FILES}/*.yaml"):
+        with open(filepath, 'r', encoding='utf-8') as file:
+            config = yaml.safe_load(file)
+            page_id = config["wiki_page"].get("page_id")
+            logger.info(f"Processing page {page_id} from {filepath}")
+            remove_notes_info_macro(page_id)
+    logger.info("Cleanup complete!")
     # TODO: phase 2 PR - instead of invoking this directly from main,
     # invoke it from __main__.py --report-type looker-graphs
     pages_looker_graphs()
