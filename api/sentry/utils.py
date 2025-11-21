@@ -35,6 +35,10 @@ project_config = {
         "looker_dashboard_url": (
             "https://mozilla.cloud.looker.com/dashboards/"
             "2667?Sentry+Project+ID=6295551&Created+Month=30+days"
+        ),
+        "confluence_report_url": (
+            "https://mozilla-hub.atlassian.net/wiki/spaces/"
+            "MTE/pages/1695154291/Android+Health+Monitor+Report"
         )
     }
 }
