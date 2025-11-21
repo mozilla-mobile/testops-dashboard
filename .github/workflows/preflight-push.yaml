@@ -57,6 +57,8 @@ jobs:
             args: --report-type testrail-users
           - name: Mobile Testrail Milestones
             args: --platform mobile --project ALL --report-type testrail-milestones
+          - name: Mobile Testrail Milestones CLOSED
+            args: --platform mobile --project ALL --report-type testrail-milestones-closed
           - name: Jira qa-needed
             args: --report-type jira-qa-needed
           - name: Jira qa-requests

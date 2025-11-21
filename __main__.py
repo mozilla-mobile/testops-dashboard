@@ -54,6 +54,7 @@ from handlers.testrail import (
     handle_testrail_test_plans_and_runs,
     handle_testrail_test_results,
     handle_testrail_milestones,
+    handle_testrail_milestones_closed,
     handle_testrail_users,
     handle_testrail_test_case_coverage,
     # handle_testrail_test_run_counts_update,
@@ -112,7 +113,7 @@ def parse_args(cmdln_args):
 def validate_project(platform, project, report_type):
     # Conditionally require --platform and --project
     # if --report-type is 'test-case-coverage'
-    if report_type in ('test-case-coverage', 'testrail-milestones'):
+    if report_type in ('test-case-coverage', 'testrail-milestones', 'testrail-milestones-closed'):
         if not project:
             print("--project is required for the report selected")
         if not platform:
@@ -187,6 +188,7 @@ COMMAND_MAP = {
     'sentry-issues': handle_sentry_issues,
     'sentry-rates': handle_sentry_rates,
     'testrail-milestones': handle_testrail_milestones,
+    'testrail-milestones-closed': handle_testrail_milestones_closed,
     'testrail-users': handle_testrail_users,
     'testrail-test-case-coverage': handle_testrail_test_case_coverage,
     # 'testrail-test-run-counts': handle_testrail_test_run_counts_update,
@@ -204,6 +206,7 @@ def main():
     print(f"args: {args}")
     print(f"args.report_type: {args.report_type}")
     print(f"args.arg_list: {args.arg_list}")
+
 
     if report_type not in COMMAND_MAP:
         sys.exit(f"Unknown or unsupported report type: {report_type}")
