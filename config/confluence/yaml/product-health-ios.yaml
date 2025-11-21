@@ -1,6 +1,7 @@
 wiki_page:
   page_id: 1631911951
   page_title: "iOS Health Monitor Report"
+  show_approval_status: false
   sections:
     - name: "Sentry"
       reports:

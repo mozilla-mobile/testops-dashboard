@@ -1,6 +1,7 @@
 wiki_page:
   page_id: "1436811681"
   page_title: "Test Data Insights (Android & iOS)"
+  show_approval_status: true
   sections:
     - name: "UI Test Data Insights - Android"
       reports:
