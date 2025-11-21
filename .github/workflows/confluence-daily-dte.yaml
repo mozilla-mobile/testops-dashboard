@@ -1,0 +1,72 @@
+name: Testops Confluence Update (DTE)
+
+# Daily @2am UTC
+on:
+  schedule:
+    - cron:  "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      branchName:
+        description: 'Default branch'
+        required: true
+        default: 'master'
+env:
+  # Looker Folder IDs - find these by navigating to the folder in Looker
+  # and checking the URL: https://mozilla.cloud.looker.com/folders/{ID}
+  # MTE: 1820, DTE: 1946
+  LOOKER_FOLDER_ID: 1946
+  TEAM_ID: 'DTE'
+
+jobs:
+  deploy:
+    name: TestOps Confluence Update (DAILY) 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v5
+
+      - name: Setup python 
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11' 
+
+      - name: Install requirements 
+        run: pip install -r requirements.txt
+
+      - name: Set env vars 
+        run: |
+            echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=staging" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
+            echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
+            echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
+            echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
+            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
+            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
+            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
+
+            echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
+
+            echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+            echo "LOOKER_HOST=${{ secrets.LOOKER_HOST}}" >> $GITHUB_ENV
+            echo "LOOKER_CLIENT_ID=${{ secrets.LOOKER_CLIENT_ID}}" >> $GITHUB_ENV
+            echo "LOOKER_SECRET=${{ secrets.LOOKER_SECRET}}" >> $GITHUB_ENV
+            
+            echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
+            echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
+            echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV: Generate Looker Thumbnails
+
+      - name: Update Looker Thumbnails
+
+        run: |
+            python3 ./api/looker/api_looker.py
+            ls
+            ls ./config/confluence/images/
+
+      - name: Update Confluence Page
+        run: python3 ./api/confluence/api_confluence.py
