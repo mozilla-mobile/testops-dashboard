@@ -1,38 +1,39 @@
 wiki_page:
   page_id: 1650786307
-  page_title: "Team Delivery Insights 2025 H1"
+  page_title: "Team Delivery Insights 2025"
+  show_approval_status: false
   sections:
     - name: "Testing"
       reports:
         - report-title: "Workload per Platform 2025"
           report-description: "Number of Feature Requests per platform in 2025"
           attachment-filename: "workload-per-platform-2025.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2707"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2707"
 
         - report-title: "Feature Requests per half year cycle"
           report-description: "Number of Feature Requests each half of the year and per Platform"
           attachment-filename: "feature-requests-half-year.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2799"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2799"
       
         - report-title: "Fenix Releases Tested"
           report-description: "Number of releases tested for Fenix"
           attachment-filename: "fenix-verified-builds-pie-chart.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2718"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2718"
           
         - report-title: "Firefox-iOS Releases Tested"
           report-description: "Number of releases tested for Firefox-iOS"
           attachment-filename: "firefox-ios-verified-builds-pie-chart.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2797"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2797"
 
         - report-title: "Focus-android Releases Tested"
           report-description: "Number of releases tested for Focus-android"
           attachment-filename: "focus-android-verified-builds-pie-chart.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2731"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2731"
 
         - report-title: "Focus-iOS Releases Tested"
           report-description: "Number of releases tested for Focus-iOS"
           attachment-filename: "focus-ios-verified-builds-pie-chart.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2734"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2734"
     - name: "Mobile Incidents"
       reports:
         - report-title: "Mobile Incidents by Platform"
@@ -43,7 +44,7 @@ wiki_page:
         - report-title: "Mobile Incidents Severity - 2025"
           report-description: "Incidents by Severity - 2025"
           attachment-filename: "mobile-incidents-severity-2025.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2867"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/2965"
 
         - report-title: "Mobile Incidents by Month - 2025"
           report-description: "Mobile Incidents by Month - 2025"

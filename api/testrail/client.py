@@ -88,6 +88,15 @@ class TestRail:
             f"/get_plans/{testrail_project_id}{date_range}"
         )
 
+    def search_test_plans(self, testrail_project_id, **kwargs):
+        """Return all matching plans related to a project id"""
+        query = ""
+        if kwargs:
+            for key, val in kwargs.items():
+                query = query + f"&{key}={val}"
+        endpoint = f"get_plans/{testrail_project_id}{query}"
+        return self.client.send_get(endpoint)
+
     def get_test_plan(self, plan_id, start_date='', end_date=''):
         """Return a plan object by plan id"""
         date_range = ''
@@ -98,6 +107,11 @@ class TestRail:
             before = dt.convert_datetime_to_epoch(end_date)
             date_range += f'&created_before={before}'
         return self.client.send_get(f"/get_plan/{plan_id}{date_range}")
+
+    # API: Tests
+    def get_test(self, test_id):
+        """Get single test execution by id"""
+        return self.client.send_get(f"get_test/{test_id}")
 
     # API: Users
     def users(self, testrail_project_id):

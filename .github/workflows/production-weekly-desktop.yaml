@@ -41,6 +41,7 @@ jobs:
             echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
             echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
             echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+            echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
 
       - name: Query Test Plans and Runs
         run: python ./__main__.py --report-type testrail-test-results --project firefox-desktop
@@ -50,9 +51,18 @@ jobs:
 
         continue-on-error: true
 
+      - name: Query Bugzilla Release Flags Bugs
+        run: python ./__main__.py --platform desktop --project firefox-desktop --report-type bugzilla-desktop-release-flags-for-bugs
+        continue-on-error: true
+
+      - name: Query Bugzilla Overall Bugs
+        run: python ./__main__.py --platform desktop --project firefox-desktop --report-type bugzilla-desktop-overall-bugs
+        continue-on-error: true
+
       - name: Set job log URL
         if: always()
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
       - name: Send custom JSON data to Slack workflow
         if: always()
         id: slack

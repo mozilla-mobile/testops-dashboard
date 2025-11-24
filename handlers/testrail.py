@@ -3,11 +3,13 @@ import api.testrail.report_milestones as milestones
 import api.testrail.report_test_results as test_results
 import api.testrail.report_test_case_coverage as test_case_coverage
 import api.testrail.report_test_plans_and_runs as test_plans_and_runs
+import api.testrail.report_test_health as test_health
 # import api.testrail.report_run_counts as run_counts
 
 
 def handle_testrail_test_plans_and_runs(args):
-    test_plans_and_runs.testrail_plans_and_runs(args.arg_list, args.num_days or '30')
+    test_plans_and_runs.testrail_plans_and_runs(
+        args.arg_list, args.num_days or "30")
 
 
 def handle_testrail_test_results(args):
@@ -24,6 +26,10 @@ def handle_testrail_users(args):
 
 def handle_testrail_test_case_coverage(args):
     test_case_coverage.testrail_test_case_coverage(args.arg_list)
+
+
+def handle_testrail_test_health(args):
+    test_health.testrail_test_health(args.arg_list, args.num_days)
 
 
 """

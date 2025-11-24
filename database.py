@@ -33,6 +33,10 @@ class ReportTestCaseCoverage(Base):
     __table__ = Table('report_test_case_coverage', Base.metadata, autoload_with=pool)  # noqa
 
 
+class ReportTestRailTestHealth(Base):
+    __table__ = Table("report_testrail_test_health", Base.metadata, autoload_with=pool)
+
+
 # class ReportTestRunCounts(Base):
 #    __table__ = Table('report_test_run_counts', Base.metadata, autoload_with=pool)
 

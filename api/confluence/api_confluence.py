@@ -674,7 +674,7 @@ def get_metric_status_icon(status: str) -> str:
             '</ac:parameter>'
             '<ac:parameter ac:name="bgColor">#E3FCEF</ac:parameter>'
             '<ac:rich-text-body>'
-            '<p>Approved</p>'
+            '<h5>Approved</h5>'
             '</ac:rich-text-body>'
             '</ac:structured-macro>'
         ),
@@ -694,7 +694,7 @@ def get_metric_status_icon(status: str) -> str:
             '</ac:parameter>'
             '<ac:parameter ac:name="bgColor">#DEEBFF</ac:parameter>'
             '<ac:rich-text-body>'
-            '<p>Pending Review</p>'
+            '<h5>Pending Review</h5>'
             '</ac:rich-text-body>'
             '</ac:structured-macro>'
         ),
@@ -714,11 +714,10 @@ def get_metric_status_icon(status: str) -> str:
             '</ac:parameter>'
             '<ac:parameter ac:name="bgColor">#FFFAE6</ac:parameter>'
             '<ac:rich-text-body>'
-            '<p>Informational Metric</p>'
+            '<h5>Informational Metric</h5>'
             '</ac:rich-text-body>'
             '</ac:structured-macro>'
-        ),
-        "none": None
+        )
     }
 
     if not status:
@@ -728,26 +727,31 @@ def get_metric_status_icon(status: str) -> str:
 
 
 def table_row_write(report_title, report_description,
-                    attachment_filename, looker_graph_url, approval_status):
+                    attachment_filename, looker_graph_url, approval_status,
+                    show_approval_status=True):
 
-    status_icon = get_metric_status_icon(approval_status)
+    status_cell = ""
+    if show_approval_status:
+        status_icon = get_metric_status_icon(approval_status)
+        status_cell = f'<td style="text-align: center;">{status_icon}</td>'
 
-    return (
-        f"""
-            <row>
-        <td><b>{report_title}</b></td>
-        <td>{report_description}</td>
-        <td>
-        <a href="{looker_graph_url}"><ac:image>
-            <ri:attachment ri:filename="{attachment_filename}"/>
-        </ac:image></a></td>
-        {f'<td style="text-align: center;">{status_icon}</td>' if status_icon else ""}
+    return f"""
+        <row>
+            <td><b>{report_title}</b></td>
+            <td>{report_description}</td>
+            <td>
+                <a href="{looker_graph_url}">
+                    <ac:image>
+                        <ri:attachment ri:filename="{attachment_filename}"/>
+                    </ac:image>
+                </a>
+            </td>
+            {status_cell}
         </row>
-        """
-    )
+    """
 
 
-def page_html(page_id, sections):
+def page_html(page_id, sections, show_approval_status=True):
 
     html_content = ""
 
@@ -760,7 +764,8 @@ def page_html(page_id, sections):
                                   report["report-description"],
                                   report["attachment-filename"],
                                   report["looker-graph-url"],
-                                  report.get("approval-status", "pending"))
+                                  report.get("approval-status", "pending"),
+                                  show_approval_status=show_approval_status)
             rows += row
 
         html_content += f"""
@@ -798,7 +803,9 @@ def pages_looker_graphs():
             current_version = page_data["version"]["number"]
 
             # Generate only the managed fragment (tables + images)
-            full_generated = page_html(page_id, page_sections)
+            show_approval_status = config["wiki_page"].get("show_approval_status", True)
+            full_generated = page_html(page_id, page_sections,
+                                       show_approval_status=show_approval_status)
 
             # For multi-section pages, put everything in managed region
             # For single-section pages, keep first heading outside
