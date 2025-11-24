@@ -718,6 +718,7 @@ def get_metric_status_icon(status: str) -> str:
             '</ac:rich-text-body>'
             '</ac:structured-macro>'
         ),
+        "none": None
     }
 
     if not status:
@@ -740,7 +741,7 @@ def table_row_write(report_title, report_description,
         <a href="{looker_graph_url}"><ac:image>
             <ri:attachment ri:filename="{attachment_filename}"/>
         </ac:image></a></td>
-        <td style="text-align: center;">{status_icon}</td>
+        {f'<td style="text-align: center;">{status_icon}</td>' if status_icon else ""}
         </row>
         """
     )
