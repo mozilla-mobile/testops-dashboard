@@ -1,0 +1,36 @@
+wiki_page:
+  page_id: 2007433229
+  page_title: "DTE - Automation Smoke Health Insights"
+  show_approval_status: false
+  sections:
+    - name: "Automation Smoke Health Overview"
+      reports:
+        - report-title: "Monthly Test Plan Results Summary"
+          report-description: "Displays the distribution of Passed, Blocked, Failed, and Retested test cases across all smoke automation test plans created in the past month."
+          attachment-filename: "test-plan-counts.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3096"
+
+        - report-title: "Weekly Test Plan Creation Trends"
+          report-description: "Visualizes the frequency of new test plans generated from smoke automation suites over the past month, grouped by week."
+          attachment-filename: "test-plans-frequency.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3044"
+
+        - report-title: "Test Plan Pass/Fail Ratio Analysis"
+          report-description: "Highlights the percentage breakdown of Passed, Blocked, Failed, and Retested test cases for each smoke automation test plan created in the past month. "
+          attachment-filename: "test-plans-ratio.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3098"
+
+        - report-title: "Untested Cases per Test Plan"
+          report-description: "Shows the count of untested cases within each smoke automation test plan created in the past month."
+          attachment-filename: "test-plans-untested-count.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3099"
+
+        - report-title: "Desktop Suite – Top 5 Longest Running Tests"
+          report-description: "Lists the five longest-running automated smoke tests within the Desktop suite, along with their execution durations."
+          attachment-filename: "desktop-top-5-longest-tests.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3101"
+
+        - report-title: "Weekly Test Run Activity"
+          report-description: "Shows the number of test runs executed over the past month, grouped weekly."
+          attachment-filename: "test-runs-frequency.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3100"

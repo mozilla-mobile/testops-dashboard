@@ -1,0 +1,28 @@
+wiki_page:
+  page_id: 2006057695
+  page_title: "DTE - Automation Coverage Insights"
+  show_approval_status: false
+  sections:
+    - name: "Automation Smoke Coverage Overview"
+      reports:
+        - report-title: "Automation Coverage Trend - Smoke Tests"
+          report-description: "Shows the trend over the past 4 months for the number of test cases in smoke test suites, categorized as Completed, Disabled, Unsuitable, Suitable, or Untriaged."
+          attachment-filename: "automation-coverage-trend-smoketest-prod.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3106"
+
+        - report-title: "Automation Coverage Percentage - Smoke Tests"
+          report-description: "Shows the percentage distribution of test cases in smoke test suites over the past 4 months, categorized as Completed, Disabled, Unsuitable, Suitable, or Untriaged."
+          attachment-filename: "autmation-coverage-smoketest-prod.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3105"
+
+    - name: "Automation Functional Coverage Overview"
+      reports:
+        - report-title: "Automation Coverage Trend - Full Functional Tests"
+          report-description: "Shows the trend over the past 4 months for the number of test cases in smoke test suites, categorized as Completed, Disabled, Unsuitable, Suitable, or Untriaged."
+          attachment-filename: "automation-coverage-trend-full-functional-prod.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3109"
+
+        - report-title: "Automation Coverage Percentage - Full Functional Tests"
+          report-description: "Shows the percentage distribution of test cases in smoke test suites over the past 4 months, categorized as Completed, Disabled, Unsuitable, Suitable, or Untriaged."
+          attachment-filename: "autmation-coverage-full-functional-prod.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3110"
