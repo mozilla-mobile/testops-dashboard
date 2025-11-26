@@ -75,7 +75,7 @@ jobs:
             args: --platform mobile --project firefox-ios --report-type bitrise-builds
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -93,7 +93,7 @@ jobs:
     name: Sentry reports
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -142,7 +142,7 @@ jobs:
     needs: [reports, sentry]
     if: always()
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
       - uses: slackapi/slack-github-action@v2.1.1
         env:
