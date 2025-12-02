@@ -547,36 +547,54 @@ class BugzillaClient(Bugz):
     def bugzilla_fetch_overall_bugs(self):
         print("overall")
 
-        query = {
-            **BUGZILLA_QA_WHITEBOARD_OVERALL_FILTER,
-            "include_fields": BUGZILLA_BUGS_FIELDS
+        PAGE_SIZE = 1000  # typical server max per request
+
+        base_query = {
+            **BUGZILLA_QA_WHITEBOARD_OVERALL_FILTER,  # anywordssubstr: "qa-investig qa-ver qa-triage"
+            "include_fields": BUGZILLA_BUGS_FIELDS,
+            "limit": PAGE_SIZE,
+            "offset": 0,
         }
-        print(query)
+
         rows = []
-        bugs = BugzillaHelper().query(query)
-        for bug in bugs:
-            resolved_raw = getattr(bug, "cf_last_resolved", None)
-            resolved_at = pd.to_datetime(str(resolved_raw)) if resolved_raw else None # noqa
+        total = 0
+        q = dict(base_query)
 
-            rows.append({
-                "bug_id": bug.id,
-                "summary": bug.summary,
-                "product": bug.product,
-                "qa_whiteboard": getattr(bug, "cf_qa_whiteboard", ""),
-                "severity": bug.severity,
-                "priority": bug.priority,
-                "status": bug.status,
-                "resolution": bug.resolution,
-                "created_at": pd.to_datetime(str(bug.creation_time)),
-                "last_change_time": pd.to_datetime(str(bug.last_change_time)),
-                "whiteboard": bug.whiteboard,
-                "keyword": bug.keywords,
-                "resolved_at": resolved_at
-            })
+        while True:
+            page = BugzillaHelper().query(q)  # returns list of bugs for this page
+            if not page:
+                break
 
-        # Convert to DataFrame
-        df = pd.DataFrame(rows)
-        print(f"Total {len(df)} bugs tracked")
+            for bug in page:
+                resolved_raw = getattr(bug, "cf_last_resolved", None)
+                resolved_at = pd.to_datetime(str(resolved_raw)) if resolved_raw else None
+
+                rows.append({
+                    "bug_id": bug.id,
+                    "summary": bug.summary,
+                    "product": bug.product,
+                    "qa_whiteboard": getattr(bug, "cf_qa_whiteboard", ""),
+                    "severity": bug.severity,
+                    "priority": bug.priority,
+                    "status": bug.status,
+                    "resolution": bug.resolution,
+                    "created_at": pd.to_datetime(str(bug.creation_time)),
+                    "last_change_time": pd.to_datetime(str(bug.last_change_time)),
+                    "whiteboard": bug.whiteboard,
+                    "keyword": bug.keywords,
+                    "resolved_at": resolved_at,
+                })
+
+            total += len(page)
+            print(f"Fetched {total} so far (page size {len(page)})")
+
+            if len(page) < PAGE_SIZE:
+                break  # last page
+            q["offset"] += PAGE_SIZE
+
+        # Convert to DataFrame + guard against dupes if the server shifted during paging
+        df = pd.DataFrame(rows).drop_duplicates(subset=["bug_id"], keep="last")
+        print(f"Total {len(df)} bugs tracked after dedupe")
         self.db.clean_table(ReportBugzillaOverallBugs)
 
         self.db.report_bugzilla_overall_bugs(df)
