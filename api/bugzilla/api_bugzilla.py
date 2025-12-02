@@ -549,8 +549,9 @@ class BugzillaClient(Bugz):
 
         PAGE_SIZE = 1000  # typical server max per request
 
+        # wordssubstr: "qa-investig qa-ver qa-triage"
         base_query = {
-            **BUGZILLA_QA_WHITEBOARD_OVERALL_FILTER,  # anywordssubstr: "qa-investig qa-ver qa-triage"
+            **BUGZILLA_QA_WHITEBOARD_OVERALL_FILTER,
             "include_fields": BUGZILLA_BUGS_FIELDS,
             "limit": PAGE_SIZE,
             "offset": 0,
@@ -567,7 +568,11 @@ class BugzillaClient(Bugz):
 
             for bug in page:
                 resolved_raw = getattr(bug, "cf_last_resolved", None)
-                resolved_at = pd.to_datetime(str(resolved_raw)) if resolved_raw else None
+                resolved_at = (
+                    pd.to_datetime(str(resolved_raw)) 
+                    if resolved_raw 
+                    else None
+                )
 
                 rows.append({
                     "bug_id": bug.id,
