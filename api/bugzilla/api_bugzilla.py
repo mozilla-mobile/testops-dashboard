@@ -569,8 +569,8 @@ class BugzillaClient(Bugz):
             for bug in page:
                 resolved_raw = getattr(bug, "cf_last_resolved", None)
                 resolved_at = (
-                    pd.to_datetime(str(resolved_raw)) 
-                    if resolved_raw 
+                    pd.to_datetime(str(resolved_raw))
+                    if resolved_raw
                     else None
                 )
 
