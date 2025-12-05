@@ -167,6 +167,7 @@ def testrail_test_health(project, num_days=1):
 
         # Iterate through plans to get result and test info
         for plan in plans.get("plans"):
+            print(f"Processing {plan.get('name')}...")
             plan_details = tr.get_test_plan(plan.get("id"))
             for entry in plan_details.get("entries"):
                 for run in entry.get("runs"):
