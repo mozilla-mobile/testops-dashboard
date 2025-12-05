@@ -73,8 +73,6 @@ jobs:
             args: --report-type bugzilla-query-by-keyword --bz-keyword "ui-test-bug-auto-found"
           - name: Bitrise Build Count
             args: --platform mobile --project firefox-ios --report-type bitrise-builds
-          - name: Test Health (Temp)
-            args: --report-type testrail-test-health --project firefox-desktop --platform desktop --num-days 7
 
     steps:
       - uses: actions/checkout@v5
