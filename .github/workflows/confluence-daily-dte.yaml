@@ -2,6 +2,7 @@ name: Testops Confluence Update (DTE)
 
 # Daily @2am UTC
 on:
+  pull_request:
   schedule:
     - cron:  "0 2 * * *"
   workflow_dispatch:

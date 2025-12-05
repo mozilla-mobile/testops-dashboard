@@ -55,7 +55,7 @@ from handlers.testrail import (
     handle_testrail_test_results,
     handle_testrail_milestones,
     handle_testrail_users,
-    handle_testrail_test_case_coverage,
+    handle_testrail_test_case_coverage, handle_testrail_test_health,
     # handle_testrail_test_run_counts_update,
 )
 
@@ -188,6 +188,7 @@ COMMAND_MAP = {
     'sentry-rates': handle_sentry_rates,
     'testrail-milestones': handle_testrail_milestones,
     'testrail-users': handle_testrail_users,
+    'testrail-test-health': handle_testrail_test_health,
     'testrail-test-case-coverage': handle_testrail_test_case_coverage,
     # 'testrail-test-run-counts': handle_testrail_test_run_counts_update,
     'testrail-test-plans-and-runs': handle_testrail_test_plans_and_runs,
