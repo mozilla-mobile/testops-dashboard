@@ -56,7 +56,7 @@ wiki_page:
       reports:
         - report-title: "Overall Bugs Marks as Done/Blocked Per Release Cycle"
           report-description: "[DRAFT]"
-          attachment-filename: "qa-ver-done/blocked-overall-bugs.png"
+          attachment-filename: "qa-ver-doneblocked-overall-bugs.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3150"
         - report-title: "Bugs investigated by Release Cycle"
           report-description: "[DRAFT]"
