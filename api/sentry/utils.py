@@ -9,18 +9,20 @@ from utils.datetime_utils import DatetimeUtils
 
 project_config = {
     "firefox-ios": {
-        "title": ":testops-apple: iOS",
+        "icon": ":testops-apple:",
+        "product": "Firefox iOS",
         "looker_dashboard_url": (
             "https://mozilla.cloud.looker.com/dashboards/"
             "2667?Sentry+Project+ID=6176941&Created+Month=30+days"
         ),
         "confluence_report_url": (
             "https://mozilla-hub.atlassian.net/wiki/spaces/"
-            "MTE/pages/1631911951/iOS+Health+Monitor+Report"
+            "MTE/pages/1631911951/iO+Health+Monitor+Report"
         )
     },
     "fenix": {
-        "title": ":testops-android: Android",
+        "icon": ":testops-android:",
+        "product": "Firefox Android",
         "looker_dashboard_url": (
             "https://mozilla.cloud.looker.com/dashboards/"
             "2667?Sentry+Project+ID=6375561&Created+Month=30+days"
@@ -31,7 +33,8 @@ project_config = {
         )
     },
     "fenix-beta": {
-        "title": ":testops-android: Android (Beta)",
+        "icon": ":testops-android:",
+        "product": "Firefox Android (Beta)",
         "looker_dashboard_url": (
             "https://mozilla.cloud.looker.com/dashboards/"
             "2667?Sentry+Project+ID=6295551&Created+Month=30+days"
@@ -204,7 +207,8 @@ def insert_json_content(json_data, versions):
 
 def init_json(project):
     now = DatetimeUtils.start_date('0')
-    platform = project_config.get(project).get('title')
+    icon = project_config.get(project).get('icon')
+    product = project_config.get(project).get('product')
     json_data = {
         "blocks": [
             {
@@ -212,8 +216,8 @@ def init_json(project):
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        "*:health: {0} Health Report ({1}) :sentry:*"
-                    ).format(platform, now)
+                        "*:health: {0} Product Health: {1} ({2}) :sentry:*"
+                    ).format(icon, product, now)
                 }
             }
         ]
