@@ -10,7 +10,7 @@ import inspect
 from database import (
     Database,
 )
-
+from sqlalchemy.exc import OperationalError
 
 _DB = None
 
@@ -31,6 +31,15 @@ def jira_delete(table):
     print(inspect.currentframe().f_code.co_name)
 
     db = _db()
+    # Check if there is at least one row
+    has_rows = db.session.query(table).first() is not None
+    if not has_rows:
+        print("Table is empty, skipping delete()")
+        return
 
-    db.session.query(table).delete()
-    db.session.commit()
+    try:
+        db.session.query(table).delete()
+        db.session.commit()
+    except OperationalError as e:
+        db.session.rollback()
+        print(f"Delete failed with OperationalError: {e}")
