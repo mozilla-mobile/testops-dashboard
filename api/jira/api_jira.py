@@ -7,17 +7,13 @@
 import os
 import sys
 
-from datetime import datetime
-
 import pandas as pd
 
-from api.jira.utils import adf_to_plain_text
 from lib.jira_conn import JiraAPIClient
 from database import (
     Database,
     ReportJiraQARequests,
     ReportJiraQANeeded,
-    ReportJiraSoftvisionWorklogs,
     ReportJIraQARequestsNewIssueType
 )
 from utils.datetime_utils import DatetimeUtils as dt
@@ -130,106 +126,6 @@ class JiraClient(Jira):
     def __init__(self):
         super().__init__()
         self.db = DatabaseJira()
-
-    def jira_softvision_worklogs(self):
-        worklog_data = []
-        issues = self.filter_sv_parent_in_board()
-
-        for issue in issues:
-            parent_key = (issue.get("fields", {}).get("parent") or {}).get("key", issue.get("key"))  # noqa
-            parent_name = issue.get("fields", {}).get("summary", "Unknown")
-
-            parent_name = issue["fields"]["summary"]
-            children = self.filter_child_issues(parent_key)
-            print(f"DIAGNOSTIC - children: {children}")
-
-            # ---- Get worklogs for the parent itself ----
-            parent_worklogs = self.filter_worklogs(parent_key)
-
-            for log in parent_worklogs:
-                author = log["author"]["displayName"]
-                time_spent = log["timeSpent"]
-                time_spent_seconds = log["timeSpentSeconds"]
-                started_raw = log["started"]
-
-                raw_comment = log.get("comment")
-                if isinstance(raw_comment, dict):
-                    comment = adf_to_plain_text(raw_comment) or "No Comment"
-                elif isinstance(raw_comment, str):
-                    comment = raw_comment.strip() or "No Comment"
-                else:
-                    comment = "No Comment"
-
-                try:
-                    started_dt = datetime.strptime(started_raw[:19], "%Y-%m-%dT%H:%M:%S") # noqa
-                    started_str = started_dt.strftime("%Y-%m-%d %H:%M:%S")
-                except Exception as e:
-                    print(f"Error parsing date {started_raw}: {e}")
-                    started_str = started_raw
-
-                worklog_data.append([
-                    parent_key,  # parent_key
-                    None,        # child_key is None for parent logs
-                    author,
-                    time_spent,
-                    time_spent_seconds,
-                    started_str,
-                    comment,
-                    parent_name
-                ])
-
-            # ---- Get worklogs for each child ----
-            for child in children:
-                child_key = child.get("key", "Unknown")
-                child_name = child.get("fields", {}).get("summary", "Unknown")
-
-                # Skip Unknown keys to avoid 404s like issue/Unknown/worklog
-                if child_key in (None, "", "Unknown"):
-                    print("⚠️ Skipping child without key:", child)
-                    continue
-
-                child_worklogs = self.filter_worklogs(child_key)
-
-                for log in child_worklogs:
-                    author = log["author"]["displayName"]
-                    time_spent = log["timeSpent"]
-                    time_spent_seconds = log["timeSpentSeconds"]
-                    started_raw = log["started"]
-
-                    raw_comment = log.get("comment")
-                    if isinstance(raw_comment, dict):
-                        comment = adf_to_plain_text(raw_comment) or "No Comment"
-                    elif isinstance(raw_comment, str):
-                        comment = raw_comment.strip() or "No Comment"
-                    else:
-                        comment = "No Comment"
-
-                    try:
-                        started_dt = datetime.strptime(started_raw[:19], "%Y-%m-%dT%H:%M:%S") # noqa
-                        started_str = started_dt.strftime("%Y-%m-%d %H:%M:%S")
-                    except Exception as e:
-                        print(f"Error parsing date {started_raw}: {e}")
-                        started_str = started_raw
-
-                    worklog_data.append([
-                        parent_key,
-                        child_key,
-                        author,
-                        time_spent,
-                        time_spent_seconds,
-                        started_str,
-                        comment,
-                        parent_name,
-                        child_name
-                    ])
-
-        df = pd.DataFrame(worklog_data, columns=[
-            "parent_key", "child_key", "author",
-            "time_spent", "time_seconds", "started_date",
-            "comment", "parent_name", "child_name",
-        ])
-        self.db.jira_worklogs_delete()
-        self.db.report_jira_sv_worklogs_insert(df)
 
     def jira_qa_requests(self):
         payload = self.filters()
@@ -440,22 +336,4 @@ class DatabaseJira(Database):
                                     jira_qa_needed_verified_nightly=payload[2])
 
         self.session.add(report)
-        self.session.commit()
-
-    def report_jira_sv_worklogs_insert(self, payload):
-        for index, row in payload.iterrows():
-            report = ReportJiraSoftvisionWorklogs(parent_key=row['parent_key'],
-                                                  child_key=row['child_key'],
-                                                  author=row['author'],
-                                                  time_spent=row['time_spent'],
-                                                  time_spent_seconds=row['time_seconds'], # noqa
-                                                  started_date=row['started_date'], # noqa
-                                                  comment=row['comment'],
-                                                  parent_name=row['parent_name'], # noqa
-                                                  child_name=row['child_name'],) # noqa
-            self.session.add(report)
-        self.session.commit()
-
-    def jira_worklogs_delete(self):
-        self.session.query(ReportJiraSoftvisionWorklogs).delete()
         self.session.commit()
