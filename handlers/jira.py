@@ -1,3 +1,4 @@
+import api.jira.report_qa_needed as qa_needed
 import api.jira.report_worklogs as worklogs
 from api.jira.api_jira import JiraClient
 
@@ -9,8 +10,7 @@ def handle_jira_qa_requests(args):
 
 
 def handle_jira_qa_needed(args):
-    client = JiraClient()
-    client.jira_qa_needed()
+    qa_needed.jira_qa_needed()
 
 
 def handle_jira_softvision_worklogs(args):

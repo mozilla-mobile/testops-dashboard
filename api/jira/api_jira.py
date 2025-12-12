@@ -13,7 +13,6 @@ from lib.jira_conn import JiraAPIClient
 from database import (
     Database,
     ReportJiraQARequests,
-    ReportJiraQANeeded,
     ReportJIraQARequestsNewIssueType
 )
 from utils.datetime_utils import DatetimeUtils as dt
@@ -149,13 +148,6 @@ class JiraClient(Jira):
         print(data_frame)
 
         self.db.report_jira_qa_requests_insert_new_issue_types(data_frame)
-
-    def jira_qa_needed(self):
-        payload = self.filter_qa_needed()
-        data_frame = self.db.report_jira_qa_needed(payload)
-        print(data_frame)
-
-        self.db.report_jira_qa_needed_insert(data_frame)
 
 
 class DatabaseJira(Database):
@@ -305,35 +297,4 @@ class DatabaseJira(Database):
                                                       jira_issue_type=row['jira_issue_type'], # noqa
                                                       jira_parent_link=row['jira_parent_link']) # noqa
             self.session.add(report)
-        self.session.commit()
-
-    def report_jira_qa_needed(self, payload):
-        # Normalize the JSON data
-        df = pd.json_normalize(payload, sep='_')
-        total_rows = len(df)
-
-        # Ensure 'fields_labels' exists
-        if 'fields_labels' not in df.columns:
-            df['fields_labels'] = [[] for _ in range(len(df))]
-
-        # Join list of labels into a single string
-        df['fields_labels'] = df['fields_labels'].apply(
-            lambda x: ','.join(x) if isinstance(x, list)
-            else (x if pd.notnull(x) else '')
-        )
-
-        # Calculate Nightly Verified label
-        verified_nightly_count = df['fields_labels'].str.contains(
-            'verified', case=False, na=False
-        ).sum()
-        not_verified_count = total_rows - verified_nightly_count
-
-        return [total_rows, not_verified_count, verified_nightly_count]
-
-    def report_jira_qa_needed_insert(self, payload):
-        report = ReportJiraQANeeded(jira_total_qa_needed=payload[0],
-                                    jira_qa_needed_not_verified=payload[1],
-                                    jira_qa_needed_verified_nightly=payload[2])
-
-        self.session.add(report)
         self.session.commit()
