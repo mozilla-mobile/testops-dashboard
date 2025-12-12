@@ -63,7 +63,7 @@ jobs:
             args: --report-type bugzilla-meta-bugs --meta-bug-id 1935100
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
@@ -82,7 +82,7 @@ jobs:
     name: Sentry reports and notifications
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
@@ -135,7 +135,7 @@ jobs:
     needs: [reports, sentry]
     if: always()
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set job log URL
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
       
