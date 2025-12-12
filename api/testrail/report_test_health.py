@@ -209,9 +209,8 @@ def report_test_health_update(payload):
         matching_row = db.session.query(ReportTestRailTestHealth).filter(
             ReportTestRailTestHealth.testrail_case_id == row["testrail_case_id"]
         )
-        if matching_row:
+        if matching_row.all():
             matching_row.update(row, synchronize_session="fetch")
         else:
-            db.session.add(ReportTestRailTestHealth(**payload))
-            db.session.commit()
+            db.session.add(ReportTestRailTestHealth(**row))
         db.session.commit()
