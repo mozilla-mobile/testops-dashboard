@@ -26,9 +26,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Confluence ENV vars
-ATLASSIAN_API_TOKEN = os.environ['ATLASSIAN_API_TOKEN']
-ATLASSIAN_USERNAME = os.environ['ATLASSIAN_USERNAME']
-ATLASSIAN_HOST = f"https://{os.environ['ATLASSIAN_HOST']}"
+try:
+    ATLASSIAN_API_TOKEN = os.environ['ATLASSIAN_API_TOKEN']
+    ATLASSIAN_USERNAME = os.environ['ATLASSIAN_USERNAME']
+    ATLASSIAN_HOST = f"https://{os.environ['ATLASSIAN_HOST']}"
+except KeyError as e:
+    print(f"ERROR: Missing Confluence env var: {e.args[0]}")
+    sys.exit(1)
+
 URL_WIKI_REST_API = f"{ATLASSIAN_HOST}/wiki/rest/api"
 
 auth = (ATLASSIAN_USERNAME, ATLASSIAN_API_TOKEN)

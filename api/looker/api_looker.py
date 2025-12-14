@@ -8,12 +8,18 @@ import requests
 import time
 import re
 import os
+import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
-LOOKER_HOST = os.environ["LOOKER_HOST"]
-LOOKER_CLIENT_ID = os.environ["LOOKER_CLIENT_ID"]
-LOOKER_SECRET = os.environ["LOOKER_SECRET"]
+try:
+    LOOKER_HOST = os.environ["LOOKER_HOST"]
+    LOOKER_CLIENT_ID = os.environ["LOOKER_CLIENT_ID"]
+    LOOKER_SECRET = os.environ["LOOKER_SECRET"]
+except KeyError as e:
+    print(f"ERROR: Missing Looker env var: {e.args[0]}")
+    sys.exit(1)
+
 # LOOKER_FOLDER_ID - identifies which folder to fetch visualizations from
 # Default: 1820 (MTE team folder)
 # To find folder IDs, see: config/looker/folder_ids.yaml
