@@ -74,6 +74,7 @@ jobs:
           creds: ${{ secrets.GCLOUD_AUTH }}
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          proxy_version: "1.37.11"
       - run: pip install -r requirements.txt
       - run: python ./__main__.py ${{ matrix.args }}
         continue-on-error: true
@@ -93,6 +94,7 @@ jobs:
           creds: ${{ secrets.GCLOUD_AUTH }}
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          proxy_version: "1.37.11"
       - run: pip install -r requirements.txt
       
       - name: Sentry query (iOS)
