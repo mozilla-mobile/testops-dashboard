@@ -1,12 +1,10 @@
 import api.jira.report_qa_needed as qa_needed
+import api.jira.report_qa_requests as requests
 import api.jira.report_worklogs as worklogs
-from api.jira.api_jira import JiraClient
-
 
 def handle_jira_qa_requests(args):
-    client = JiraClient()
-    client.jira_qa_requests()
-    client.jira_qa_requests_new_issue_types()
+    requests.jira_qa_requests()
+    requests.jira_qa_requests_new_issue_types()
 
 
 def handle_jira_qa_needed(args):

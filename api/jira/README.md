@@ -54,3 +54,41 @@ More implementation details in this [doc](https://docs.google.com/document/d/1vX
 
 ### Looker artifacts
 Looker graphs are owned by Softvision, in particular by Paul Oniegas.
+
+## Jira QA Requests - report_requests
+The aim of tracking Jira QA Requests is to provide observability into the workload of the Mobile QA team, allowing us to understand testing demand, capacity, and how work is distributed across releases, platforms, and testing cycles.
+
+### Table name & purpose
+Tables: *ReportJiraQARequests* and *ReportJIraQARequestsNewIssueType*
+
+Purpose: These tables store Jira QA Request data. QA Requests were represented by a single issue type (`Request`) and contained all workload-related fields (story points, platform labels, target release train).
+
+Starting in 2025, the Jira workflow was updated to support **Internal Tasks** and **Sub-tasks** as child issues of a QA Request. As a result, workload-related data (such as story points and tested trains) now lives on child issues rather than on the parent QA Request.  
+To support both historical data and the new Jira structure, we maintain:
+- the existing `ReportJiraQARequests` table for legacy and high-level request tracking
+- a new `ReportJIraQARequestsNewIssueType` table to capture data from Internal Tasks and Sub-tasks
+
+### Build & update logic
+QA Requests are still created by external teams and continue to represent **testing demand**, but the **actual workload** is now tracked in child issues created by the Softvision QA team:
+
+- **Internal Tasks** or **Sub-tasks** are created under each QA Request
+- These child issues contain:
+  - Story Points (workload is no longer on the parent request)
+  - Tested Train (`customfield_11930`, e.g. `b134`, `c134`)
+  - Labels (e.g. `android-qa`, `ios-qa`, or both)
+  - Issue Type (`Internal Task` or `Sub-task`)
+  - Parent reference (link back to the QA Request)
+
+Because of this structural change:
+- QA Requests may not have story points or tested trains
+- Workload metrics must be computed from child issues
+- Parent QA Requests are still useful for volume and platform tracking
+
+
+### Looker artifacts
+- Mobile Feature Testing Requests:
+https://mozilla.cloud.looker.com/dashboards/1854
+- iOS Feature Testing Requests:
+https://mozilla.cloud.looker.com/dashboards/1846
+- Android Feature Testing Requests:
+https://mozilla.cloud.looker.com/dashboards/1864
