@@ -33,13 +33,11 @@ class Jira:
 
     def __init__(self):
         try:
-
             # _url_host = os.environ['JIRA_HOST']
             _url_host = f"https://{HOST_JIRA}/rest/api/3"
             self.client = JiraAPIClient(_url_host)
             self.client.user = os.environ['JIRA_USER']
             self.client.password = os.environ['JIRA_PASSWORD']
-
         except KeyError:
             print("ERROR: Missing jira env var")
             sys.exit(1)
@@ -52,8 +50,6 @@ class Jira:
                 + FIREFOX_RELEASE_TRAIN + ',' \
                 + ENGINEERING_TEAM + '&' + MAX_RESULT
 
-        # TODO: remove diagnostic print
-        # return self.client.get_search(query, data_type='issues')
         tmp = self.client.get_search(query, data_type='issues')
         print("function: filters")
         print(f"DIAGNOSTIC - query: {query}")

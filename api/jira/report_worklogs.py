@@ -37,7 +37,6 @@ def _jira() -> Jira():
 
 
 def jira_worklogs():
-
     jira = _jira()
 
     worklog_data = []

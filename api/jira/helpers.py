@@ -23,7 +23,6 @@ def _db() -> Database():
 
 
 def jira_delete(table):
-
     # DIAGNOSTIC
     print("--------------------------------------")
     print("DIAGNOSTIC: helpers")
