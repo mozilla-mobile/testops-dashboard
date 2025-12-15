@@ -33,6 +33,7 @@ def _jira() -> Jira():
 # ORCHESTRATOR (BATCH)
 # ===================================================================
 
+
 def jira_qa_requests():
     jira = _jira()
     payload = jira.filters()
@@ -84,10 +85,9 @@ def jira_qa_requests():
     # Convert NaN values to 0 and ensure the column is of type int
     df_selected['jira_story_points'] = df_selected['jira_story_points'].fillna(0).astype(int) # noqa
 
-    df_selected
-    print(df_selected)
+    payload = df_selected
+    report_jira_qa_requests_insert(payload)
 
-    report_jira_qa_requests_insert(df_selected)
 
 def jira_qa_requests_new_issue_types():
     jira = _jira()
@@ -127,7 +127,6 @@ def jira_qa_requests_new_issue_types():
 
     # Select specific columns
     df_selected = df[selected_columns.keys()]
-    print(df_selected)
 
     # Rename columns
     df_selected = df_selected.rename(columns=selected_columns)
@@ -140,11 +139,10 @@ def jira_qa_requests_new_issue_types():
     # Convert NaN values to 0 and ensure the column is of type int
     df_selected['jira_story_points'] = df_selected['jira_story_points'].fillna(0).astype(int) # noqa
 
-    df_selected = df_selected.where(pd.notnull(df_selected), None)
+    payload = df_selected.where(pd.notnull(df_selected), None)
 
-    
-    print(df_selected)    
-    report_jira_qa_requests_new_issue_types_insert(df_selected)
+    print(payload)
+    report_jira_qa_requests_new_issue_types_insert(payload)
 
 # ===================================================================
 # DB INSERT
@@ -152,6 +150,12 @@ def jira_qa_requests_new_issue_types():
 
 
 def report_jira_qa_requests_insert(payload):
+    # DIAGNOSTIC
+    print("--------------------------------------")
+    print("Running: report_jira_qa_requests")
+    print(inspect.currentframe().f_code.co_name)
+    print("--------------------------------------")
+
     db = _db()
     print(payload)
 
@@ -169,7 +173,14 @@ def report_jira_qa_requests_insert(payload):
         db.session.add(report)
     db.session.commit()
 
+
 def report_jira_qa_requests_new_issue_types_insert(payload):
+    # DIAGNOSTIC
+    print("--------------------------------------")
+    print("Running: report_jira_qa_requests_new_issue_types")
+    print(inspect.currentframe().f_code.co_name)
+    print("--------------------------------------")
+
     db = _db()
     print(payload)
 
