@@ -2,7 +2,6 @@ name: Testops Confluence Update (DTE)
 
 # Daily @2am UTC
 on:
-  pull_request:
   schedule:
     - cron:  "0 2 * * *"
   workflow_dispatch:
@@ -71,7 +70,3 @@ jobs:
 
       - name: Update Confluence Page
         run: python3 ./api/confluence/api_confluence.py
-
-      - name: Query Test Run Average Health
-        run: python ./__main__.py --report-type testrail-test-health --project firefox-desktop --platform desktop --num-days 7
-        continue-on-error: true
