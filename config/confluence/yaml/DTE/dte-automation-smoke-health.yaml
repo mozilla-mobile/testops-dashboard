@@ -39,7 +39,7 @@ wiki_page:
         - report-title: "Full Weekly Test Health"
           report-description: "Weekly Test Health report for each testcase ran (includes pass rate, execution frequency, runtime and status histories)."
           attachment-filename: "full-weekly-test-health.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3161"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3162"
         - report-title: "Lowest Pass Rates"
           report-description: "Shows 10 test cases with the lowest pass rates."
           attachment-filename: "lowest-pass-rates.png"
