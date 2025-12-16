@@ -29,7 +29,7 @@ wiki_page:
           attachment-filename: "average-time-to-fix-in-workdays.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3146"
         - report-title: "Fixed vs Open defects (by release day)"
-          report-description: "[Draft]"
+          report-description: "Total valid issues reported by DTE and fixed by release day vs still open on release day, broken down by release version."
           attachment-filename: "fixed-vs-open-defects-by-release-day.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3160"
 
