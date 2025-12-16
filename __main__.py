@@ -30,10 +30,10 @@ from handlers.bugzilla import (
     handle_bugzilla_query_by_keyword,
 )
 
-# from handlers.confluence import (
-#     handle_confluence_build_validation,
-#     handle_confluence_updates,
-# )
+from handlers.confluence import (
+    handle_confluence_build_validation,
+    handle_confluence_updates,
+)
 
 from handlers.github import (
     handle_github_issue_regression,
@@ -178,8 +178,8 @@ COMMAND_MAP = {
     'bugzilla-meta-bugs': handle_bugzilla_meta_bugs,
     'bugzilla-qe-verify': handle_bugzilla_qe_verify,
     'bugzilla-query-by-keyword': handle_bugzilla_query_by_keyword,
-    # 'confluence-updates': handle_confluence_updates,
-    # 'confluence-build-validation': handle_confluence_build_validation,
+    'confluence-updates': handle_confluence_updates,
+    'confluence-build-validation': handle_confluence_build_validation,
     'github-issue-regression': handle_github_issue_regression,
     'jira-qa-needed': handle_jira_qa_needed,
     'jira-qa-requests': handle_jira_qa_requests,
