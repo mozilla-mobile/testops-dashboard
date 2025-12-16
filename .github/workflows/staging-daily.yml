@@ -64,7 +64,7 @@ jobs:
             args: --report-type bitrise-builds
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
@@ -75,6 +75,7 @@ jobs:
           creds: ${{ secrets.GCLOUD_AUTH }}
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          proxy_version: "1.37.11"
       - run: pip install -r requirements.txt
       - run: python ./__main__.py ${{ matrix.args }}
 
@@ -82,7 +83,7 @@ jobs:
     name: Sentry reports and notifications
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: '3.11'
@@ -93,6 +94,7 @@ jobs:
           creds: ${{ secrets.GCLOUD_AUTH }}
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          proxy_version: "1.37.11"
       - run: pip install -r requirements.txt
       
       - name: Sentry query (iOS)

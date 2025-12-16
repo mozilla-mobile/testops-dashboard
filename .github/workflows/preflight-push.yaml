@@ -75,7 +75,7 @@ jobs:
             args: --platform mobile --project firefox-ios --report-type bitrise-builds
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -86,6 +86,7 @@ jobs:
           creds: ${{ secrets.GCLOUD_AUTH }}
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          proxy_version: "1.37.11"
       - run: pip install -r requirements.txt
       - run: python ./__main__.py ${{ matrix.args }}
 
@@ -93,7 +94,7 @@ jobs:
     name: Sentry reports
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -104,12 +105,13 @@ jobs:
           creds: ${{ secrets.GCLOUD_AUTH }}
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          proxy_version: "1.37.11"
       - run: pip install -r requirements.txt
       - name: Sentry query (iOS)
         run: |
           python __main__.py --report-type sentry-issues --project firefox-ios
           python __main__.py --report-type sentry-rates --project firefox-ios
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: sentry_issues_firefox_ios
           path: ./sentry_issues_firefox-ios_*.csv
@@ -119,7 +121,7 @@ jobs:
         run: |
           python __main__.py --report-type sentry-issues --project fenix
           python __main__.py --report-type sentry-rates --project fenix
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: sentry_issues_fenix
           path: ./sentry_issues_fenix_*.csv
@@ -130,7 +132,7 @@ jobs:
           python __main__.py --report-type sentry-issues --project fenix-beta
           python __main__.py --report-type sentry-rates --project fenix-beta
         continue-on-error: true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: sentry_issues_fenix-beta
           path: ./sentry_issues_fenix-beta_*.csv
@@ -142,7 +144,7 @@ jobs:
     needs: [reports, sentry]
     if: always()
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
       - uses: slackapi/slack-github-action@v2.1.1
         env:
