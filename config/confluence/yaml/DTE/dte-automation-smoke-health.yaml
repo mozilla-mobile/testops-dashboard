@@ -34,3 +34,8 @@ wiki_page:
           report-description: "Shows the number of test runs executed over the past month, grouped weekly."
           attachment-filename: "test-runs-frequency.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3100"
+
+        - report-title: "Test Cases With the Lowest Pass Rate"
+          report-description: "Shows 10 test cases with the lowest pass rates."
+          attachment-filename: "test-cases-with-the-lowest-pass-rate.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3100"
