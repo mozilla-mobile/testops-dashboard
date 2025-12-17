@@ -1,5 +1,10 @@
+#! /usr/bin/env python3
+
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import inspect
-import pandas as pd
 
 from database import (
     Database,
@@ -8,8 +13,11 @@ from database import (
 )
 
 from api.jira.client import Jira
-from api.jira.helpers import jira_delete
-from utils.datetime_utils import DatetimeUtils as dt
+from api.jira.helpers import (
+    jira_delete,
+    prepare_jira_df,
+    select_and_transform_jira_df
+)
 
 
 _DB = None
@@ -40,25 +48,8 @@ def jira_qa_requests():
 
     jira_delete(ReportJiraQARequests)
 
-    # Normalize the JSON data
-    df = pd.json_normalize(payload, sep='_')
+    df = prepare_jira_df(payload)
 
-    # Ensure fields_labels exists
-    if 'fields_labels' not in df.columns:
-        df['fields_labels'] = [[] for _ in range(len(df))]
-
-    # Check if 'jira_assignee_username' exists
-    # if not use 'alternative_assignee_emailAddress'
-    if 'fields_assignee_emailAddress' not in df.columns:
-        df['fields_assignee_emailAddress'] = df.get('fields_assignee', "None") # noqa
-    else:
-        df['fields_assignee_emailAddress'] = df['fields_assignee_emailAddress'].fillna("Not Assigned") # noqa
-
-    # Drop the alternative column if it exists
-    if 'fields_assignee' in df.columns:
-        df.drop(columns=['fields_assignee'], inplace=True)
-
-    # Select specific columns
     selected_columns = {
         'key': 'jira_key',
         'fields_summary': 'jira_summary',
@@ -71,21 +62,7 @@ def jira_qa_requests():
         'fields_labels': 'jira_labels'
     }
 
-    # Select specific columns
-    df_selected = df[selected_columns.keys()]
-
-    # Rename columns
-    df_selected = df_selected.rename(columns=selected_columns)
-
-    df_selected['jira_created_at'] = df_selected['jira_created_at'].apply(dt.convert_to_utc) # noqa
-
-    # Join list of labels into a single string
-    df_selected['jira_labels'] = df_selected['jira_labels'].apply(lambda x: ','.join(x) if isinstance(x, list) else x) # noqa
-
-    # Convert NaN values to 0 and ensure the column is of type int
-    df_selected['jira_story_points'] = df_selected['jira_story_points'].fillna(0).astype(int) # noqa
-
-    payload = df_selected
+    payload = select_and_transform_jira_df(df, selected_columns)
     report_jira_qa_requests_insert(payload)
 
 
@@ -94,24 +71,8 @@ def jira_qa_requests_new_issue_types():
     payload = jira.filters_new_issue_type()
 
     jira_delete(ReportJIraQARequestsNewIssueType)
-    df = pd.json_normalize(payload, sep='_')
+    df = prepare_jira_df(payload)
 
-    # Ensure fields_labels exists
-    if 'fields_labels' not in df.columns:
-        df['fields_labels'] = [[] for _ in range(len(df))]
-
-    # Check if 'jira_assignee_username' exists
-    # if not use 'alternative_assignee_emailAddress'
-    if 'fields_assignee_emailAddress' not in df.columns:
-        df['fields_assignee_emailAddress'] = df.get('fields_assignee', "None") # noqa
-    else:
-        df['fields_assignee_emailAddress'] = df['fields_assignee_emailAddress'].fillna("Not Assigned") # noqa
-
-    # Drop the alternative column if it exists
-    if 'fields_assignee' in df.columns:
-        df.drop(columns=['fields_assignee'], inplace=True)
-
-    # Select specific columns
     selected_columns = {
         'key': 'jira_key',
         'fields_summary': 'jira_summary',
@@ -125,22 +86,7 @@ def jira_qa_requests_new_issue_types():
         'fields_parent_key': 'jira_parent_link'
     }
 
-    # Select specific columns
-    df_selected = df[selected_columns.keys()]
-
-    # Rename columns
-    df_selected = df_selected.rename(columns=selected_columns)
-
-    df_selected['jira_created_at'] = df_selected['jira_created_at'].apply(dt.convert_to_utc) # noqa
-
-    # Join list of labels into a single string
-    df_selected['jira_labels'] = df_selected['jira_labels'].apply(lambda x: ','.join(x) if isinstance(x, list) else x) # noqa
-
-    # Convert NaN values to 0 and ensure the column is of type int
-    df_selected['jira_story_points'] = df_selected['jira_story_points'].fillna(0).astype(int) # noqa
-
-    payload = df_selected.where(pd.notnull(df_selected), None)
-
+    payload = select_and_transform_jira_df(df, selected_columns)
     print(payload)
     report_jira_qa_requests_new_issue_types_insert(payload)
 
