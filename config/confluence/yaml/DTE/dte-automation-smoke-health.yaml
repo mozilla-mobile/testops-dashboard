@@ -3,17 +3,12 @@ wiki_page:
   page_title: "DTE - Automation Smoke Health Insights"
   show_approval_status: false
   sections:
-    - name: "Automation Smoke Health Overview"
+    - name: "Test Plan Health"
       reports:
         - report-title: "Monthly Test Plan Results Summary"
           report-description: "Displays the distribution of Passed, Blocked, Failed, and Retested test cases across all smoke automation test plans created in the past month."
           attachment-filename: "test-plan-counts.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3096"
-
-        - report-title: "Weekly Test Plan Creation Trends"
-          report-description: "Visualizes the frequency of new test plans generated from smoke automation suites over the past month, grouped by week."
-          attachment-filename: "test-plans-frequency.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3044"
 
         - report-title: "Test Plan Pass/Fail Ratio Analysis"
           report-description: "Highlights the percentage breakdown of Passed, Blocked, Failed, and Retested test cases for each smoke automation test plan created in the past month. "
@@ -25,16 +20,20 @@ wiki_page:
           attachment-filename: "test-plans-untested-count.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3099"
 
-        - report-title: "Desktop Suite – Top 5 Longest Running Tests"
-          report-description: "Lists the five longest-running automated smoke tests within the Desktop suite, along with their execution durations."
-          attachment-filename: "desktop-top-5-longest-tests.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3101"
+    - name: "Test Plan/Run Throughput"
+      reports:
+        - report-title: "Weekly Test Plan Creation Trends"
+          report-description: "Visualizes the frequency of new test plans generated from smoke automation suites over the past month, grouped by week."
+          attachment-filename: "test-plans-frequency.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3044"
 
         - report-title: "Weekly Test Run Activity"
           report-description: "Shows the number of test runs executed over the past month, grouped weekly."
           attachment-filename: "test-runs-frequency.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3100"
 
+    - name: "Test Case Health"
+      reports:
         - report-title: "Full Weekly Test Health"
           report-description: "Weekly Test Health report for each testcase ran (includes pass rate, execution frequency, runtime and status histories)."
           attachment-filename: "full-weekly-test-health.png"
@@ -45,12 +44,19 @@ wiki_page:
           attachment-filename: "lowest-pass-rates.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3161"
 
-        - report-title: "Test Cases with the longest average runtime"
-          report-description: "Shows 10 test cases that have the longest average runtime."
-          attachment-filename: "test-cases-with-the-longest-average-runtime.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3163"
-
         - report-title: "Test Cases with recent Failures"
           report-description: "Test Cases that passed previously but failed in the most recent run."
           attachment-filename: "test-cases-with-recent-failures.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3164"
+
+    - name: "Test Case Performance and Runtime Hotspots"
+      reports:
+        - report-title: "Desktop Suite – Top 5 Longest Running Tests"
+          report-description: "Lists the five longest-running automated smoke tests within the Desktop suite, along with their execution durations."
+          attachment-filename: "desktop-top-5-longest-tests.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3101"
+
+        - report-title: "Test Cases with the longest average runtime"
+          report-description: "Shows 10 test cases that have the longest average runtime."
+          attachment-filename: "test-cases-with-the-longest-average-runtime.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3163"
