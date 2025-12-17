@@ -44,3 +44,13 @@ wiki_page:
           report-description: "Shows 10 test cases with the lowest pass rates."
           attachment-filename: "lowest-pass-rates.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3161"
+
+        - report-title: "Test Cases with the longest average runtime"
+          report-description: "Shows 10 test cases that have the longest average runtime."
+          attachment-filename: "test-cases-with-the-longest-average-runtime.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3163"
+
+        - report-title: "Test Cases with recent Failures"
+          report-description: "Test Cases that passed previously but failed in the most recent run."
+          attachment-filename: "test-cases-with-recent-failures.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3164"
