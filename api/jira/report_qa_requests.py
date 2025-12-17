@@ -79,7 +79,7 @@ def jira_qa_requests():
     report_jira_qa_requests_insert(payload)
 
 
-def jira_qa_requests_new_issue_types():
+def jira_qa_requests_workload():
     jira = _jira()
 
     try:
@@ -114,7 +114,7 @@ def jira_qa_requests_new_issue_types():
 
     payload = select_and_transform_jira_df(df, selected_columns)
     print(payload)
-    report_jira_qa_requests_new_issue_types_insert(payload)
+    report_jira_qa_requests_workload_insert(payload)
 
 # ===================================================================
 # DB INSERT
@@ -146,7 +146,7 @@ def report_jira_qa_requests_insert(payload):
     db.session.commit()
 
 
-def report_jira_qa_requests_new_issue_types_insert(payload):
+def report_jira_qa_requests_workload_insert(payload):
     # DIAGNOSTIC
     print("--------------------------------------")
     print("Running: report_jira_qa_requests_new_issue_types")
