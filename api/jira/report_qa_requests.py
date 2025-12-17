@@ -5,6 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import inspect
+import logging
 
 from database import (
     Database,
@@ -22,6 +23,7 @@ from api.jira.helpers import (
 
 _DB = None
 _JIRA = None
+logger = logging.getLogger(__name__)
 
 
 def _db() -> Database():
@@ -44,11 +46,19 @@ def _jira() -> Jira():
 
 def jira_qa_requests():
     jira = _jira()
-    payload = jira.filters()
-
-    jira_delete(ReportJiraQARequests)
+    try:
+        payload = jira.filters()
+    except Exception as exc:
+        logger.exception("Jira filters call failed %. No DB changes made.", exc)
+        return
 
     df = prepare_jira_df(payload)
+
+    if df.empty:
+        logger.warning("Jira filtersreturned empty payload; no DB delete/insert.")
+        return
+
+    jira_delete(ReportJiraQARequests)
 
     selected_columns = {
         'key': 'jira_key',
@@ -61,6 +71,9 @@ def jira_qa_requests():
         'fields_assignee_emailAddress': 'jira_assignee_username',
         'fields_labels': 'jira_labels'
     }
+    missing_inputs = [c for c in selected_columns.keys() if c not in df.columns]
+    if missing_inputs:
+        logger.info("Input columns are missing from Jira payload: %s", missing_inputs)
 
     payload = select_and_transform_jira_df(df, selected_columns)
     report_jira_qa_requests_insert(payload)
@@ -68,10 +81,20 @@ def jira_qa_requests():
 
 def jira_qa_requests_new_issue_types():
     jira = _jira()
-    payload = jira.filters_new_issue_type()
+
+    try:
+        payload = jira.filters_new_issue_type()
+    except Exception as exc:
+        logger.exception("Jira filters call failed %. No DB changes made.", exc)
+        return
+
+    df = prepare_jira_df(payload)
+
+    if df.empty:
+        logger.warning("Empty payload; skipping DB delete/insert.")
+        return
 
     jira_delete(ReportJIraQARequestsNewIssueType)
-    df = prepare_jira_df(payload)
 
     selected_columns = {
         'key': 'jira_key',
@@ -85,6 +108,9 @@ def jira_qa_requests_new_issue_types():
         'fields_issuetype_name': 'jira_issue_type',
         'fields_parent_key': 'jira_parent_link'
     }
+    missing_inputs = [c for c in selected_columns.keys() if c not in df.columns]
+    if missing_inputs:
+        logger.info("Input columns are missing from Jira payload: %s", missing_inputs)
 
     payload = select_and_transform_jira_df(df, selected_columns)
     print(payload)
