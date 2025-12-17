@@ -5,7 +5,7 @@ import api.jira.report_worklogs as worklogs
 
 def handle_jira_qa_requests(args):
     requests.jira_qa_requests()
-    requests.jira_qa_requests_new_issue_types()
+    requests.jira_qa_requests_workload()
 
 
 def handle_jira_qa_needed(args):
