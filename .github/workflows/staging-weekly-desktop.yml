@@ -48,6 +48,10 @@ jobs:
         run: python ./__main__.py --report-type testrail-test-results --project firefox-desktop
         continue-on-error: true
 
+      - name: Query Test Run Average Health
+        run: python ./__main__.py --report-type testrail-test-health --project firefox-desktop --platform desktop --num-days 7
+        continue-on-error: true
+
       - name: Query Bugzilla Release Flags Bugs
         run: python ./__main__.py --report-type bugzilla-desktop-release-flags-for-bugs
         continue-on-error: true
