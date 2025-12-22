@@ -111,7 +111,7 @@ jobs:
         run: |
           python __main__.py --report-type sentry-issues --project firefox-ios
           python __main__.py --report-type sentry-rates --project firefox-ios
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: sentry_issues_firefox_ios
           path: ./sentry_issues_firefox-ios_*.csv
@@ -121,7 +121,7 @@ jobs:
         run: |
           python __main__.py --report-type sentry-issues --project fenix
           python __main__.py --report-type sentry-rates --project fenix
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: sentry_issues_fenix
           path: ./sentry_issues_fenix_*.csv
@@ -132,7 +132,7 @@ jobs:
           python __main__.py --report-type sentry-issues --project fenix-beta
           python __main__.py --report-type sentry-rates --project fenix-beta
         continue-on-error: true
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: sentry_issues_fenix-beta
           path: ./sentry_issues_fenix-beta_*.csv
