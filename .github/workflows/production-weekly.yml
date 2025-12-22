@@ -44,6 +44,9 @@ jobs:
             echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
             echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
             echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
+            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
+            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
 
       #- name: Update DB - test runs 
       #  run: python ./__main__.py --report-type test-run-counts --project ALL --num-days 7
