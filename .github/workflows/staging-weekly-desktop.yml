@@ -43,19 +43,22 @@ jobs:
             echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
             echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
             echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
+            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
+            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
+            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
+      
+      #- name: Query Test Plans and Runs
+      #  run: python ./__main__.py --report-type testrail-test-results --project firefox-desktop
+      #  continue-on-error: true
 
-      - name: Query Test Plans and Runs
-        run: python ./__main__.py --report-type testrail-test-results --project firefox-desktop
-        continue-on-error: true
+      #- name: Query Test Run Average Health
+      #  run: python ./__main__.py --report-type testrail-test-health --project firefox-desktop --platform desktop --num-days 7
+      #  continue-on-error: true
 
-      - name: Query Test Run Average Health
-        run: python ./__main__.py --report-type testrail-test-health --project firefox-desktop --platform desktop --num-days 7
-        continue-on-error: true
-
-      - name: Query Bugzilla Release Flags Bugs
-        run: python ./__main__.py --report-type bugzilla-desktop-release-flags-for-bugs
-        continue-on-error: true
-
+      #- name: Query Bugzilla Release Flags Bugs
+      #  run: python ./__main__.py --report-type bugzilla-desktop-release-flags-for-bugs
+      #  continue-on-error: true
+      
       - name: Query Bugzilla Overall Bugs
         run: python ./__main__.py --report-type bugzilla-desktop-overall-bugs
 
