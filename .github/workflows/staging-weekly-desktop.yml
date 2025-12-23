@@ -56,8 +56,11 @@ jobs:
             echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
             echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
             echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
-            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV`
             echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
+            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
+            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
+            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
       - run: python ./__main__.py ${{ matrix.args }}
         continue-on-error: true
 
