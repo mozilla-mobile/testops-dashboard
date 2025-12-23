@@ -92,9 +92,8 @@ def update_testrail_test_health_row(payload, update_list):
 
     def increment_average(starting_count, starting_average, new_value) -> float:
         return (
-                float(starting_average)
-                * (float(starting_count) / float(starting_count + 1))
-        ) + (float(new_value) * (1.0 / float(starting_count + 1)))
+                ((float(starting_average) * float(starting_count)) + float(new_value)) / (float(starting_count) + 1)
+        )
 
     new_row["testrail_case_id"] = payload.get("case_id")
     new_row["testrail_project_id"] = payload.get("project_id")
