@@ -9,7 +9,7 @@ on:
 
 jobs:
   reports:
-    name: Daily reports (${{ matrix.name }})
+    name: Weekly reports (${{ matrix.name }})
     runs-on: ubuntu-latest
 
     strategy:
