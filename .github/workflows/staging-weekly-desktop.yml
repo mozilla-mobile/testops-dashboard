@@ -2,6 +2,7 @@ name: Desktop Testops Report WEEKLY - Staging
 
 # Monday @8am CET
 on:
+  pull_request:
   schedule:
     - cron:  "0 8 * * 1"
   workflow_dispatch:
