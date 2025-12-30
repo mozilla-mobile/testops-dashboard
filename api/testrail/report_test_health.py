@@ -175,9 +175,9 @@ def testrail_test_health(project, num_days=1):
                         suite_cache[suite_id] = tr.test_suite(
                             suite_id).get("name")
                     print(f"Processing Run: {run.get('name')}...")
-                    test_run_results = tr.test_results_for_run(run_id).get("results", [])
-                    print(f"Processing {len(test_run_results)} test results...")
-                    for result in test_run_results:
+                    run_results = tr.test_results_for_run(run_id).get("results", [])
+                    print(f"Processing {len(run_results)} test results...")
+                    for result in run_results:
                         if not result.get("elapsed"):
                             continue
                         test_id = result.get("test_id")
