@@ -21,7 +21,6 @@ from database import (
 from api.testrail.client import TestRail
 from api.testrail.helpers import testrail_project_ids
 
-
 _DB = None
 _TR = None
 
@@ -93,9 +92,9 @@ def update_testrail_test_health_row(payload, update_list):
 
     def increment_average(starting_count, starting_average, new_value) -> float:
         return (
-            float(starting_average)
-            * (float(starting_count) / float(starting_count + 1))
-        ) + (float(new_value) * (1.0 / float(starting_count + 1)))
+                ((float(starting_average) * float(starting_count)) + float(new_value))
+                / (float(starting_count) + 1)
+        )
 
     new_row["testrail_case_id"] = payload.get("case_id")
     new_row["testrail_project_id"] = payload.get("project_id")
@@ -103,11 +102,8 @@ def update_testrail_test_health_row(payload, update_list):
     new_row["testrail_suite_name"] = payload.get("suite_name")
 
     try:
-        matching_update = [
-            u for u in update_list if u["testrail_case_id"] == payload["case_id"]
-        ]
-        if matching_update:
-            row = Update(**matching_update[0])
+        if payload["case_id"] in update_list:
+            row = Update(**(update_list.get(payload["case_id"])))
         else:
             row = db.session.scalars(
                 select(ReportTestRailTestHealth).where(
@@ -153,7 +149,9 @@ def testrail_test_health(project, num_days=1):
 
     # Dictionary of project ids and their respective service acct user id
     AUTOUSERS = {17: 976}
-    updates = []
+    suite_cache = {}
+    test_cache = {}
+    updates = {}
     project_ids_list = testrail_project_ids(project)[0]
     start_date = datetime.now() - timedelta(days=int(num_days))
     for project_id in project_ids_list:
@@ -171,12 +169,22 @@ def testrail_test_health(project, num_days=1):
             plan_details = tr.get_test_plan(plan.get("id"))
             for entry in plan_details.get("entries"):
                 for run in entry.get("runs"):
-                    for result in tr.test_results_for_run(run.get("id")).get("results"):
+                    run_id = run.get("id")
+                    suite_id = run.get("suite_id")
+                    if suite_id not in suite_cache:
+                        suite_cache[suite_id] = tr.test_suite(
+                            suite_id).get("name")
+                    print(f"Processing Run: {run.get('name')}...")
+                    run_results = tr.test_results_for_run(run_id).get("results", [])
+                    print(f"Processing {len(run_results)} test results...")
+                    for result in run_results:
                         if not result.get("elapsed"):
                             continue
-                        test = tr.get_test(result.get("test_id"))
-                        suite_name = tr.test_suite(
-                            run.get("suite_id")).get("name")
+                        test_id = result.get("test_id")
+                        if test_id not in test_cache:
+                            test_cache[test_id] = tr.get_test(test_id)
+                        test = test_cache.get(test_id)
+                        suite_name = suite_cache.get(suite_id)
                         update_payload = {
                             "case_id": test.get("case_id"),
                             "project_id": project_id,
@@ -191,23 +199,16 @@ def testrail_test_health(project, num_days=1):
                         new_row = update_testrail_test_health_row(
                             update_payload, updates
                         )
-                        matching_row = [
-                            u
-                            for u in updates
-                            if u.get("testrail_case_id") == new_row["testrail_case_id"]
-                        ]
-                        if matching_row:
-                            updates.remove(matching_row[0])
-                        updates.append(new_row)
+                        updates[new_row.get("testrail_case_id")] = new_row
 
     report_test_health_update(updates)
 
 
 def report_test_health_update(payload):
     db = _db()
-    for row in payload:
+    for testrail_case_id, row in payload.items():
         matching_row = db.session.query(ReportTestRailTestHealth).filter(
-            ReportTestRailTestHealth.testrail_case_id == row["testrail_case_id"]
+            ReportTestRailTestHealth.testrail_case_id == testrail_case_id
         )
         if matching_row.all():
             matching_row.update(row, synchronize_session="fetch")
