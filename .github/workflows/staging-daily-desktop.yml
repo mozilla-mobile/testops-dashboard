@@ -12,9 +12,19 @@ on:
         default: 'master'
 
 jobs:
-  deploy:
-    name: Desktop TestOps Report (DAILY)
+  reports:
+    name: Desktop DAILY TestOps Report (${{ matrix.name }})
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - name: Update DB - test coverage
+            args: --report-type testrail-test-case-coverage --platform desktop --project ALL
+          - name: Query Test Plans and Runs
+            args: --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
 
     steps:
       - name: Check out source repository
@@ -47,19 +57,13 @@ jobs:
             echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
             echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
             echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
-
             echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
-
             echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
             echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
             echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
-            
             echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
             echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
             echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
 
-      - name: Update DB - test coverage 
-        run: python ./__main__.py --report-type testrail-test-case-coverage --platform desktop --project ALL 
-
-      - name: Query Test Plans and Runs
-        run: python ./__main__.py --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
+      - run: python ./__main__.py ${{ matrix.args }}
+        continue-on-error: true
