@@ -1,6 +1,6 @@
-numpy
-pandas
-PyMySQL
+numpy==2.4.0
+pandas==2.3.3
+PyMySQL==1.1.2
 SQLAlchemy==2.0.45
 certifi
 charset-normalizer
@@ -12,3 +12,4 @@ atlassian-python-api==4.0.7
 PyYAML
 Jinja2
 beautifulsoup4
+pytz
