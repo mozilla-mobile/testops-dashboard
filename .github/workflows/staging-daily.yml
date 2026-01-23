@@ -123,7 +123,7 @@ jobs:
         with:
           payload-file-path: "./sentry-slack-fenix.json"
           payload-templated: true 
-          webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
 
       - name: Sentry query (Android Beta)
@@ -140,5 +140,5 @@ jobs:
         with:
           payload-file-path: "./sentry-slack-fenix-beta.json"
           payload-templated: true
-          webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
