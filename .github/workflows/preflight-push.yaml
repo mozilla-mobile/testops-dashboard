@@ -41,7 +41,7 @@ jobs:
   reports:
     name: Run reports (${{ matrix.name }})
     runs-on: ubuntu-latest
-
+    if: github.actor != 'dependabot[bot]'
     strategy:
       fail-fast: false
       max-parallel: 6
@@ -93,6 +93,7 @@ jobs:
   sentry:
     name: Sentry reports
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
