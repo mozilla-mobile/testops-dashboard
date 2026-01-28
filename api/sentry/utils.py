@@ -145,12 +145,9 @@ def insert_json_content(json_data, versions):
         json_data["blocks"].append(this_version)
 
 
-def _create_table_header_cell(text, emoji_name=None):
+def _create_table_header_cell(text):
     """Create a rich text table header cell with optional bold styling and emoji."""
     elements = [{"type": "text", "text": text, "style": {"bold": True}}]
-
-    if emoji_name:
-        elements.append({"type": "emoji", "name": emoji_name})
 
     return {
         "type": "rich_text",
@@ -167,9 +164,9 @@ def insert_table(json_data, table_rows):
     """Insert a table with headers for the Sentry health report."""
     header_row = [
         _create_table_header_cell("Version"),
-        _create_table_header_cell("Crash-Free Sessions", emoji_name="iphone"),
-        _create_table_header_cell("Crash-Free Users", emoji_name="bust_in_silhouette"),
-        _create_table_header_cell("Adoption Rate", emoji_name="rocket")
+        _create_table_header_cell("Crash-Free Sessions"),
+        _create_table_header_cell("Crash-Free Users"),
+        _create_table_header_cell("Adoption Rate")
     ]
 
     table = {
@@ -235,7 +232,7 @@ def insert_json_footer(json_data):
             },
             {
                 "type": "mrkdwn",
-                "text": "Created by Mobile Test Engineering"
+                "text": "Created by Mobile Test Engineering | Data From Sentry :sentry:"
             }
         ]
     }
@@ -258,7 +255,7 @@ def init_json(project):
                             "type": "mrkdwn",
                             "text": (
                                 "*:health: {0} Product Health: {1} "
-                                "({2}) :sentry:*"
+                                "({2})*"
                             ).format(icon, product, now)
                         }
                     }
