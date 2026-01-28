@@ -95,10 +95,10 @@ def insert_rates(json_data, csv_file, project):
                     flag_low_crash_free_rate_detected = True
 
                 table_row = [
-                    { "type": "raw_text", "text": release_version },
-                    { "type": "raw_text", "text": crash_free_rate_session+ "%" },
-                    { "type": "raw_text", "text": crash_free_rate_user+ "%" },
-                    { "type": "raw_text", "text": adoption_rate_user+ "%" },
+                    {"type": "raw_text", "text": release_version},
+                    {"type": "raw_text", "text": crash_free_rate_session + "%"},
+                    {"type": "raw_text", "text": crash_free_rate_user + "%"},
+                    {"type": "raw_text", "text": adoption_rate_user + "%"},
                 ]
                 table_rows.append(table_row)
                 print(
@@ -113,10 +113,10 @@ def insert_rates(json_data, csv_file, project):
             else:
                 print("Version {0}'s adoption rate is less than 1%. Skipping."
                       .format(row['release_version']))
-        
+
         insert_table(json_data, table_rows)
         insert_buttons(json_data, looker_dashboard_url, confluence_report_url)
-        
+
         if flag_low_crash_free_rate_detected:
             json_data["attachments"][0]["blocks"].append(
                 {
@@ -144,13 +144,14 @@ def insert_json_content(json_data, versions):
         }
         json_data["blocks"].append(this_version)
 
+
 def _create_table_header_cell(text, emoji_name=None):
     """Create a rich text table header cell with optional bold styling and emoji."""
     elements = [{"type": "text", "text": text, "style": {"bold": True}}]
-    
+
     if emoji_name:
         elements.append({"type": "emoji", "name": emoji_name})
-    
+
     return {
         "type": "rich_text",
         "elements": [
@@ -161,6 +162,7 @@ def _create_table_header_cell(text, emoji_name=None):
         ]
     }
 
+
 def insert_table(json_data, table_rows):
     """Insert a table with headers for the Sentry health report."""
     header_row = [
@@ -169,13 +171,14 @@ def insert_table(json_data, table_rows):
         _create_table_header_cell("Crash-Free Users", emoji_name="bust_in_silhouette"),
         _create_table_header_cell("Adoption Rate", emoji_name="rocket")
     ]
-    
+
     table = {
         "type": "table",
         "rows": [header_row] + table_rows
     }
-    
+
     json_data["attachments"][0]["blocks"].append(table)
+
 
 def insert_buttons(json_data, looker_dashboard_url, confluence_report_url):
     buttons_elements = []
@@ -214,6 +217,7 @@ def insert_buttons(json_data, looker_dashboard_url, confluence_report_url):
             "elements": buttons_elements
         })
 
+
 def insert_json_footer(json_data):
     divider = {
             "type": "divider"
@@ -223,7 +227,10 @@ def insert_json_footer(json_data):
         "elements": [
             {
                 "type": "image",
-                "image_url": "https://avatars.slack-edge.com/2025-06-24/9097205871668_a01e2ac8089c067ea5f8_72.png",
+                "image_url": (
+                    "https://avatars.slack-edge.com/2025-06-24/"
+                    "9097205871668_a01e2ac8089c067ea5f8_72.png"
+                ),
                 "alt_text": "TestOps logo"
             },
             {
@@ -243,14 +250,15 @@ def init_json(project):
     json_data = {
         "attachments": [
             {
-			    "color": "#008000",
-			    "blocks": [
+                "color": "#008000",
+                "blocks": [
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
                             "text": (
-                                "*:health: {0} Product Health: {1} ({2}) :sentry:*"
+                                "*:health: {0} Product Health: {1} "
+                                "({2}) :sentry:*"
                             ).format(icon, product, now)
                         }
                     }
