@@ -70,6 +70,7 @@ def insert_rates(json_data, csv_file, project):
         'confluence_report_url', None)
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
+        table_rows = []
         for row in rows:
             print(row)
             if float(row['adoption_rate_user']) > 1:
@@ -92,24 +93,14 @@ def insert_rates(json_data, csv_file, project):
                 if float(crash_free_rate_session) < low_crash_free_rate_threshold or \
                    float(crash_free_rate_user) < low_crash_free_rate_threshold:
                     flag_low_crash_free_rate_detected = True
-                json_data["blocks"].append(
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": (
-                                "*v{0}* :iphone: {1}%  "
-                                ":bust_in_silhouette: {2}% "
-                                ":rocket: {3}%"
-                            ).format(
-                                release_version,
-                                crash_free_rate_session,
-                                crash_free_rate_user,
-                                adoption_rate_user
-                            )
-                        }
-                    }
-                )
+
+                table_row = [
+                    { "type": "raw_text", "text": release_version },
+                    { "type": "raw_text", "text": crash_free_rate_session+ "%" },
+                    { "type": "raw_text", "text": crash_free_rate_user+ "%" },
+                    { "type": "raw_text", "text": adoption_rate_user+ "%" },
+                ]
+                table_rows.append(table_row)
                 print(
                     "crash_free_rate_user: {0}, crash_free_rate_session: {1}, "
                     "user_adoption_rate: {2}, release_version: {3}".format(
@@ -122,43 +113,12 @@ def insert_rates(json_data, csv_file, project):
             else:
                 print("Version {0}'s adoption rate is less than 1%. Skipping."
                       .format(row['release_version']))
-        buttons_elements = []
-        # Add Trends button if looker_dashboard_url is defined
-        if looker_dashboard_url:
-            buttons_elements.append({
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": ":chart_with_upwards_trend: Trends",
-                    "emoji": True
-                },
-                "value": "trends_click",
-                "action_id": "trends",
-                "url": looker_dashboard_url
-            })
-
-        # Add Report button if confluence_report_url is defined
-        if confluence_report_url:
-            buttons_elements.append({
-                "type": "button",
-                "text": {
-                    "type": "plain_text",
-                    "text": ":scroll: Report",
-                    "emoji": True
-                },
-                "value": "report_click",
-                "action_id": "report",
-                "url": confluence_report_url
-            })
-
-        # Only add the actions block if we have at least one button
-        if buttons_elements:
-            json_data["blocks"].append({
-                "type": "actions",
-                "elements": buttons_elements
-            })
+        
+        insert_table(json_data, table_rows)
+        insert_buttons(json_data, looker_dashboard_url, confluence_report_url)
+        
         if flag_low_crash_free_rate_detected:
-            json_data["blocks"].append(
+            json_data["attachments"][0]["blocks"].append(
                 {
                     "type": "context",
                     "elements": [
@@ -170,26 +130,6 @@ def insert_rates(json_data, csv_file, project):
                     ]
                 }
             )
-        json_data["blocks"].append(
-            {
-                "type": "divider"
-            }
-        )
-        json_data["blocks"].append(
-            {
-                "type": "context",
-                "elements": [
-                    {
-                        "type": "mrkdwn",
-                        "text": (
-                            ":iphone: Crash-Free Sessions "
-                            ":bust_in_silhouette: Crash-Free Users "
-                            ":rocket: User Adoption Rate"
-                        )
-                    }
-                ]
-            }
-        )
     return json_data
 
 
@@ -204,21 +144,117 @@ def insert_json_content(json_data, versions):
         }
         json_data["blocks"].append(this_version)
 
+def _create_table_header_cell(text, emoji_name=None):
+    """Create a rich text table header cell with optional bold styling and emoji."""
+    elements = [{"type": "text", "text": text, "style": {"bold": True}}]
+    
+    if emoji_name:
+        elements.append({"type": "emoji", "name": emoji_name})
+    
+    return {
+        "type": "rich_text",
+        "elements": [
+            {
+                "type": "rich_text_section",
+                "elements": elements
+            }
+        ]
+    }
+
+def insert_table(json_data, table_rows):
+    """Insert a table with headers for the Sentry health report."""
+    header_row = [
+        _create_table_header_cell("Version"),
+        _create_table_header_cell("Crash-Free Sessions", emoji_name="iphone"),
+        _create_table_header_cell("Crash-Free Users", emoji_name="bust_in_silhouette"),
+        _create_table_header_cell("Adoption Rate", emoji_name="rocket")
+    ]
+    
+    table = {
+        "type": "table",
+        "rows": [header_row] + table_rows
+    }
+    
+    json_data["attachments"][0]["blocks"].append(table)
+
+def insert_buttons(json_data, looker_dashboard_url, confluence_report_url):
+    buttons_elements = []
+    # Add Trends button if looker_dashboard_url is defined
+    if looker_dashboard_url:
+        buttons_elements.append({
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": ":chart_with_upwards_trend: Trends",
+                "emoji": True
+            },
+            "value": "trends_click",
+            "action_id": "trends",
+            "url": looker_dashboard_url
+        })
+
+    # Add Report button if confluence_report_url is defined
+    if confluence_report_url:
+        buttons_elements.append({
+            "type": "button",
+            "text": {
+                "type": "plain_text",
+                "text": ":scroll: Report",
+                "emoji": True
+            },
+            "value": "report_click",
+            "action_id": "report",
+            "url": confluence_report_url
+        })
+
+    # Only add the actions block if we have at least one button
+    if buttons_elements:
+        json_data["attachments"][0]["blocks"].append({
+            "type": "actions",
+            "elements": buttons_elements
+        })
+
+def insert_json_footer(json_data):
+    divider = {
+            "type": "divider"
+        }
+    footer_block = {
+        "type": "context",
+        "elements": [
+            {
+                "type": "image",
+                "image_url": "https://avatars.slack-edge.com/2025-06-24/9097205871668_a01e2ac8089c067ea5f8_72.png",
+                "alt_text": "TestOps logo"
+            },
+            {
+                "type": "mrkdwn",
+                "text": "Created by Mobile Test Engineering"
+            }
+        ]
+    }
+    json_data["attachments"][0]["blocks"].append(divider)
+    json_data["attachments"][0]["blocks"].append(footer_block)
+
 
 def init_json(project):
     now = DatetimeUtils.start_date('0')
     icon = project_config.get(project).get('icon')
     product = project_config.get(project).get('product')
     json_data = {
-        "blocks": [
+        "attachments": [
             {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": (
-                        "*:health: {0} Product Health: {1} ({2}) :sentry:*"
-                    ).format(icon, product, now)
-                }
+			    "color": "#008000",
+			    "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": (
+                                "*:health: {0} Product Health: {1} ({2}) :sentry:*"
+                            ).format(icon, product, now)
+                        }
+                    }
+                ]
             }
         ]
     }
@@ -228,6 +264,7 @@ def init_json(project):
 def main(file_csv: str, project: str) -> None:
     json_data = init_json(project)
     insert_rates(json_data, file_csv, project)
+    insert_json_footer(json_data)
 
     output_path = Path('sentry-slack-{0}.json'.format(project))
     output_path.write_text(json.dumps(json_data, indent=4))
