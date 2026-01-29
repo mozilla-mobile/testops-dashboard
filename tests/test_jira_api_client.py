@@ -31,6 +31,20 @@ class TestsJiraAPIClient(unittest.TestCase):
         self.assertEqual(params_used["fields"], "key,summary")
 
     @patch("lib.jira_conn.requests.get")
+    def test_get_search_url_construction(self, mock_get):
+        """Test that full URL is constructed correctly"""
+        page = {"issues": [], "isLast": True}
+        mock_get.return_value = MagicMock(status_code=200, json=lambda: page)
+
+        query = "search/jql?jql=project=MTE"
+        self.client.get_search(query, "issues")
+
+        # Verify the full URL passed to requests.get
+        called_url = mock_get.call_args.args[0]
+        expected_url = f"{JIRA_HOST}search/jql?jql=project=MTE"
+        self.assertEqual(called_url, expected_url)
+
+    @patch("lib.jira_conn.requests.get")
     def test_get_search_enhanced_with_fields_in_query(self, mock_get):
         """Test that fields param is not added if already in query"""
         page = {"issues": [], "isLast": True}
@@ -96,6 +110,20 @@ class TestsJiraAPIClient(unittest.TestCase):
         self.assertIn("Expected list", str(context.exception))
 
     @patch("lib.jira_conn.requests.get")
+    def test_get_search_worklog_url_construction(self, mock_get):
+        """Test that worklog URL is constructed correctly"""
+        response = {"worklogs": [], "total": 0, "maxResults": 100}
+        mock_get.return_value = MagicMock(status_code=200, json=lambda: response)
+
+        query = "issue/MTE-123/worklog"
+        self.client.get_search(query, "worklogs")
+
+        # Verify the full URL passed to requests.get
+        called_url = mock_get.call_args.args[0]
+        expected_url = f"{JIRA_HOST}issue/MTE-123/worklog"
+        self.assertEqual(called_url, expected_url)
+
+    @patch("lib.jira_conn.requests.get")
     def test_get_search_worklog_single_page(self, mock_get):
         """Test worklog endpoint with single page"""
         response = {
@@ -154,6 +182,20 @@ class TestsJiraAPIClient(unittest.TestCase):
 
         self.assertEqual(len(results), 0)
         self.assertEqual(mock_get.call_count, 1)
+
+    @patch("lib.jira_conn.requests.get")
+    def test_get_search_default_endpoint_url_construction(self, mock_get):
+        """Test that default endpoint URL is constructed correctly"""
+        response = {"projects": [{"key": "MTE"}]}
+        mock_get.return_value = MagicMock(status_code=200, json=lambda: response)
+
+        query = "project"
+        self.client.get_search(query, "projects")
+
+        # Verify the full URL passed to requests.get
+        called_url = mock_get.call_args.args[0]
+        expected_url = f"{JIRA_HOST}project"
+        self.assertEqual(called_url, expected_url)
 
     @patch("lib.jira_conn.requests.get")
     def test_get_search_default_endpoint_with_data_type(self, mock_get):
