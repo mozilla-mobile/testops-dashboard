@@ -5,9 +5,9 @@ class PayloadUtils:
 
     def extract_testing_status(description):
         if isinstance(description, str):  # Check if description is a string
-            match = re.search(r"TESTING_STATUS:\s*\[([A-Z]+)\]", description)
+            match = re.search(r"TESTING_STATUS:\s*\[\s*([A-Za-z]+)\s*\]", description)
             if match:
-                return match.group(1)
+                return match.group(1).upper()
         return None  # Return No
 
     def extract_testing_recommendation(description):
