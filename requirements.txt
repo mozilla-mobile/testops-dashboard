@@ -1,5 +1,5 @@
 numpy==2.4.0
-pandas==2.3.3
+pandas==3.0.0
 PyMySQL==1.1.2
 SQLAlchemy==2.0.45
 certifi
