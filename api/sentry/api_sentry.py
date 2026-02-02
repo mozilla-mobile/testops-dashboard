@@ -22,6 +22,9 @@ from database import (
 # The 2 major versions are beta and release.
 NUM_MAJOR_VERSIONS = 2
 
+# Threshold for spike issues
+SPIKE_ISSUE_THRESHOLD = 1000
+
 
 class Sentry:
 
@@ -199,7 +202,7 @@ class SentryClient(Sentry):
         # Insert into database
         self.db.issue_insert(df_issues)
 
-    def sentry_issues_spike(self, release=[], threshold=10):
+    def sentry_issues_spike(self, release=[], threshold=SPIKE_ISSUE_THRESHOLD):
         print("SentryClient.sentry_issues_spike()")
 
         if release == []:
