@@ -137,7 +137,7 @@ def jira_worklogs():
             ])
 
     # FIX: Replace NaN values with None for MySQL compatibility
-    df = df.where(pd.notna(df), None)
+    df = df.astype(object).where(df.notna(), None)
 
     jira_delete(ReportJiraSoftvisionWorklogs)
     report_jira_worklogs_insert(df)
