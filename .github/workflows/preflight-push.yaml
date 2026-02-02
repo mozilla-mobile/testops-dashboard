@@ -112,22 +112,40 @@ jobs:
         run: |
           python __main__.py --report-type sentry-issues --project firefox-ios
           python __main__.py --report-type sentry-rates --project firefox-ios
+          python __main__.py --report-type sentry-spike-issues --project firefox-ios
       - uses: actions/upload-artifact@v6
         with:
           name: sentry_issues_firefox_ios
           path: ./sentry_issues_firefox-ios_*.csv
-      - name: Construct JSON for Slack (iOS)
-        run: python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
+      - uses: actions/upload-artifact@v6
+        with:
+          name: sentry_spike_issues_firefox_ios
+          path: ./sentry_spike_issues_firefox-ios.csv
+      - name: Construct Product Health Messages for Slack (iOS)
+        run: |
+          python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios --type rates
+          if [ $(wc -l < ./sentry_spike_issues.csv) -gt 1 ]; then
+            python -m api.sentry.utils --file ./sentry_spike_issues.csv --project firefox-ios --type spike-issues
+          else
+            echo "👍 No spike issues found for firefox-ios."
+          fi
       - name: Sentry query (Android)
         run: |
           python __main__.py --report-type sentry-issues --project fenix
           python __main__.py --report-type sentry-rates --project fenix
+          python __main__.py --report-type sentry-spike-issues --project fenix
       - uses: actions/upload-artifact@v6
         with:
           name: sentry_issues_fenix
           path: ./sentry_issues_fenix_*.csv
-      - name: Construct JSON for Slack (Android)
-        run: python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
+      - name: Construct Product Health Messages for Slack (Android)
+        run: |
+          python -m api.sentry.utils --file ./sentry_rates.csv --project fenix --type rates
+          if [ $(wc -l < ./sentry_spike_issues.csv) -gt 1 ]; then
+            python -m api.sentry.utils --file ./sentry_spike_issues.csv --project fenix --type spike-issues
+          else
+            echo "👍 No spike issues found for fenix."
+          fi
       - name: Sentry query (Android Beta)
         run: |
           python __main__.py --report-type sentry-issues --project fenix-beta
@@ -137,7 +155,7 @@ jobs:
         with:
           name: sentry_issues_fenix-beta
           path: ./sentry_issues_fenix-beta_*.csv
-      - name: Construct JSON for Slack (Android Beta)
+      - name: Construct Product Health Message for Slack (Android Beta)
         run: python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
   notify:
     name: Slack notify
