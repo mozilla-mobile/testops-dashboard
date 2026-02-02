@@ -101,21 +101,27 @@ jobs:
         run: |
           python __main__.py --report-type sentry-issues --project firefox-ios
           python __main__.py --report-type sentry-rates --project firefox-ios
+          python __main__.py --report-type sentry-spike-issues --project firefox-ios
 
       - name: Construct JSON for Slack (iOS)
         run: |
-          python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
+          python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios --type rates
           ls sentry-slack-firefox-ios.json
+          python -m api.sentry.utils --file ./sentry_spike_issues.csv --project firefox-ios --type spike-issues
+          ls sentry-slack-firefox-ios-spike-issues.json
 
       - name: Sentry query (Android)
         run: |
           python __main__.py --report-type sentry-issues --project fenix
           python __main__.py --report-type sentry-rates --project fenix
+          python __main__.py --report-type sentry-spike-issues --project fenix
 
       - name: Construct JSON for Slack (Android)
         run: |
-          python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
+          python -m api.sentry.utils --file ./sentry_rates.csv --project fenix --type rates
           ls sentry-slack-fenix.json
+          python -m api.sentry.utils --file ./sentry_spike_issues.csv --project fenix --type spike-issues
+          ls sentry-slack-fenix-spike-issues.json
 
       - name: Send health notification to Slack (Android)
         id: slack-sentry-fenix
