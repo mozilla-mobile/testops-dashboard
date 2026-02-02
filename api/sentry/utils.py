@@ -313,16 +313,16 @@ def insert_spike_issues(json_data, file_csv):
         with open(file_csv, 'r') as csvfile:
             csv_reader = csv.DictReader(csvfile)
             issues = list(csv_reader)
-            
+
         # Add summary
         json_data["attachments"][0]["blocks"].append({
             "type": "section",
             "text": {
-                "type": "mrkdwn",  
+                "type": "mrkdwn",
                 "text": f":exclamation: *{len(issues)} spike issue(s) found*"
             }
         })
-        
+
         # Create table headers
         header_row = [
             _create_table_header_cell("Issue Title"),
@@ -331,7 +331,7 @@ def insert_spike_issues(json_data, file_csv):
             _create_table_header_cell("Count"),
             _create_table_header_cell("Version")
         ]
-        
+
         # Create table rows for each issue
         table_rows = []
         for issue in issues:
@@ -397,17 +397,17 @@ def insert_spike_issues(json_data, file_csv):
                 }
             ]
             table_rows.append(row)
-        
+
         # Insert the table
         table = {
             "type": "table",
             "rows": [header_row] + table_rows
         }
         json_data["attachments"][0]["blocks"].append(table)
-            
+
     except FileNotFoundError:
         json_data["attachments"][0]["blocks"].append({
-            "type": "section", 
+            "type": "section",
             "text": {
                 "type": "mrkdwn",
                 "text": ":warning: *Error:* Spike issues CSV file not found."
@@ -434,6 +434,7 @@ def main_spike_issues(file_csv: str, project: str) -> None:
 
     print(f"Spike issues Slack message written to {output_path.resolve()}")
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Generate Slack message from Sentry CSV data')
@@ -444,7 +445,7 @@ if __name__ == '__main__':
                         help='Type of Slack message to generate (default: rates)')
 
     args = parser.parse_args()
-    
+
     if args.type == 'spike-issues':
         main_spike_issues(args.file, args.project)
     else:

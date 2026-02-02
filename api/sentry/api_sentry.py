@@ -212,7 +212,7 @@ class SentryClient(Sentry):
             short_release_version = release_version.split('+')[0]
             issues = self.sentry_top_new_issues(short_release_version, statsPeriod=3)
             spike_issues = [
-                issue for issue in issues 
+                issue for issue in issues
                 if int(issue.get('lifetime', {}).get('userCount', 0)) > threshold
                 if int(issue.get('lifetime', {}).get('count', 0)) > threshold
                 if int(issue.get('filtered', {}).get('userCount', 0)) > threshold
@@ -231,7 +231,6 @@ class SentryClient(Sentry):
 
             # Insert issues from this release into the same dataframe
             df_issues = pd.concat([df_issues, df_issues_release], axis=0)
-
 
         # Output for Slack message
         df_issues.to_csv(
