@@ -425,6 +425,23 @@ def insert_spike_issues(json_data, file_csv):
 
 def main_spike_issues(file_csv: str, project: str) -> None:
     """Generate Slack message for spike issues."""
+    # Check if there are any spike issues before generating the JSON
+    try:
+        with open(file_csv, 'r') as csvfile:
+            csv_reader = csv.DictReader(csvfile)
+            issues = list(csv_reader)
+            
+        if not issues:
+            print("ℹ️ No spike issues found. Skipping JSON generation.")
+            return
+            
+    except FileNotFoundError:
+        print(f"⚠️ CSV file {file_csv} not found. Skipping JSON generation.")
+        return
+    except Exception as e:
+        print(f"⚠️ Error reading CSV file: {str(e)}. Skipping JSON generation.")
+        return
+    
     json_data = init_spike_json(project)
     insert_spike_issues(json_data, file_csv)
     insert_json_footer(json_data)
