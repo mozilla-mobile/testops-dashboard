@@ -104,11 +104,27 @@ jobs:
           python __main__.py --report-type sentry-spike-issues --project firefox-ios
 
       - name: Construct JSON for Slack (iOS)
+        id: construct-ios-json
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios --type rates
           ls sentry-slack-firefox-ios.json
-          python -m api.sentry.utils --file ./sentry_spike_issues.csv --project firefox-ios --type spike-issues
-          ls sentry-slack-firefox-ios-spike-issues.json
+          if [ $(wc -l < ./sentry_spike_issues.csv) -gt 1 ]; then
+            python -m api.sentry.utils --file ./sentry_spike_issues.csv --project firefox-ios --type spike-issues
+            echo "has_spike_issues=true" >> $GITHUB_OUTPUT
+          else
+            echo "👍 No spike issues found for firefox-ios."
+            echo "has_spike_issues=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Spike Issues to Slack (iOS)
+        id: slack-sentry-firefox-ios-spike
+        if: steps.construct-ios-json.outputs.has_spike_issues == 'true'
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./sentry-spike-slack-firefox-ios.json"
+          payload-templated: true 
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
 
       - name: Sentry query (Android)
         run: |
@@ -120,8 +136,13 @@ jobs:
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix --type rates
           ls sentry-slack-fenix.json
-          python -m api.sentry.utils --file ./sentry_spike_issues.csv --project fenix --type spike-issues
-          ls sentry-slack-fenix-spike-issues.json
+          if [ $(wc -l < ./sentry_spike_issues.csv) -gt 1 ]; then
+            python -m api.sentry.utils --file ./sentry_spike_issues.csv --project fenix --type spike-issues
+            echo "has_spike_issues=true" >> $GITHUB_OUTPUT
+          else
+            echo "👍 No spike issues found for fenix."
+            echo "has_spike_issues=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Send health notification to Slack (Android)
         id: slack-sentry-fenix
