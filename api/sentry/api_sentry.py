@@ -251,7 +251,8 @@ class SentryClient(Sentry):
                             payload.append(raw_version)
 
         # Sort all versions in descending order (newest first) using semantic versioning
-        # This properly handles cases like 142.0.10 > 142.0.9 and beta versions like 148.0b5
+        # This properly handles cases like 142.0.10 > 142.0.9 and beta versions 
+        # like 148.0b5
         payload.sort(key=lambda v: tuple(map(int, re.split(r'[.+b]', v)[:3])), reverse=False)
 
         # Just a list of released versions, not a dataframe
