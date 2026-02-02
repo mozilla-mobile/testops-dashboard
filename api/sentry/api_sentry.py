@@ -127,7 +127,7 @@ class Sentry:
                 release, self.sentry_project_id, self.environment)
         )
         return health_info_release
-    
+
     # API: New top issues
     def sentry_top_new_issues(self, release, statsPeriod=3):
         return self.client.http_get(
@@ -141,6 +141,7 @@ class Sentry:
                 statsPeriod
             )
         )
+
 
 class SentryClient(Sentry):
 

@@ -434,44 +434,6 @@ def main_spike_issues(file_csv: str, project: str) -> None:
 
     print(f"Spike issues Slack message written to {output_path.resolve()}")
 
-
-def init_json(project):
-    now = DatetimeUtils.start_date('0')
-    icon = project_config.get(project).get('icon')
-    product = project_config.get(project).get('product')
-    json_data = {
-        "attachments": [
-            {
-                "color": "#008000",
-                "blocks": [
-                    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": (
-                                "*:health: {0} Product Health: {1} "
-                                "({2})*"
-                            ).format(icon, product, now)
-                        }
-                    }
-                ]
-            }
-        ]
-    }
-    return json_data
-
-
-def main_rates(file_csv: str, project: str) -> None:
-    json_data = init_json(project)
-    insert_rates(json_data, file_csv, project)
-    insert_json_footer(json_data)
-
-    output_path = Path('sentry-slack-{0}.json'.format(project))
-    output_path.write_text(json.dumps(json_data, indent=4))
-
-    print(f"Slack message written to {output_path.resolve()}")
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Generate Slack message from Sentry CSV data')
