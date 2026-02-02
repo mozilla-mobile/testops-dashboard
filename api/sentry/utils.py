@@ -341,7 +341,7 @@ def insert_spike_issues(json_data, file_csv):
             count = issue['count']
             version = issue['release_version']
             permalink = issue['permalink']
-            
+
             # Create table row
             row = [
                 {
@@ -417,7 +417,7 @@ def insert_spike_issues(json_data, file_csv):
         json_data["attachments"][0]["blocks"].append({
             "type": "section",
             "text": {
-                "type": "mrkdwn", 
+                "type": "mrkdwn",
                 "text": f":warning: *Error processing spike issues:* {str(e)}"
             }
         })
