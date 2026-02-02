@@ -7,7 +7,7 @@
 import os
 import sys
 import requests
-
+import re
 import pandas as pd
 
 from lib.sentry_conn import APIClient
@@ -142,31 +142,6 @@ class SentryClient(Sentry):
         # api_*.py files.
         pass
 
-    def _version_key(self, version_str):
-        """Private method to create sorting key for semantic versioning.
-        Handles cases like 142.0.10 > 142.0.9 properly.
-        """
-        # Split by '+' to separate version from build code
-        parts = version_str.split('+')
-        version_part = parts[0]
-        build_code = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
-
-        # Split version by '.' and convert to integers with error handling
-        version_nums = []
-        for x in version_part.split('.'):
-            try:
-                version_nums.append(int(x))
-            except ValueError:
-                # Handle non-integer version parts (e.g., "0b8", "rc1", etc.)
-                # Use 0 as fallback for sorting consistency
-                version_nums.append(0)
-
-        # Pad with zeros to ensure consistent comparison (major, minor, patch)
-        while len(version_nums) < 3:
-            version_nums.append(0)
-
-        return (version_nums[0], version_nums[1], version_nums[2], build_code)
-
     # Now output the "long" version. Example: org.mozilla.firefox@142.0.1+2016110936
     def sentry_releases(self):
         print("SentryClient.sentry_releases()")
@@ -276,8 +251,8 @@ class SentryClient(Sentry):
                             payload.append(raw_version)
 
         # Sort all versions in descending order (newest first) using semantic versioning
-        # This properly handles cases like 142.0.10 > 142.0.9
-        payload.sort(key=self._version_key, reverse=False)
+        # This properly handles cases like 142.0.10 > 142.0.9 and beta versions like 148.0b5
+        payload.sort(key=lambda v: tuple(map(int, re.split(r'[.+b]', v)[:3])), reverse=False)
 
         # Just a list of released versions, not a dataframe
         return payload
