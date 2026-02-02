@@ -127,7 +127,20 @@ class Sentry:
                 release, self.sentry_project_id, self.environment)
         )
         return health_info_release
-
+    
+    # API: New top issues
+    def sentry_top_new_issues(self, release, statsPeriod=3):
+        return self.client.http_get(
+            (
+                'organizations/{0}/issues/'
+                '?project={1}'
+                '&query=release.version:{2} is:unassigned is:unresolved is:new'
+                '&sort=freq&statsPeriod={3}d'
+            ).format(
+                self.organization_slug, self.sentry_project_id, release,
+                statsPeriod
+            )
+        )
 
 class SentryClient(Sentry):
 
@@ -184,6 +197,47 @@ class SentryClient(Sentry):
 
         # Insert into database
         self.db.issue_insert(df_issues)
+
+    def sentry_issues_spike(self, release=[], threshold=10):
+        print("SentryClient.sentry_issues_spike()")
+
+        if release == []:
+            release_versions = self.sentry_releases()
+        else:
+            release_versions = [release]
+
+        df_issues = pd.DataFrame()
+        for release_version in release_versions:
+            short_release_version = release_version.split('+')[0]
+            issues = self.sentry_top_new_issues(short_release_version, statsPeriod=3)
+            spike_issues = [
+                issue for issue in issues 
+                if int(issue.get('lifetime', {}).get('userCount', 0)) > threshold
+                if int(issue.get('lifetime', {}).get('count', 0)) > threshold
+                if int(issue.get('filtered', {}).get('userCount', 0)) > threshold
+                if int(issue.get('filtered', {}).get('count', 0)) > threshold
+                if int(issue.get('userCount', 0)) > threshold
+                if int(issue.get('count', 0)) > threshold
+            ]
+
+            df_issues_release = self.db.report_issue_payload(spike_issues,
+                                                             short_release_version)
+            # output CSV for debugging
+            df_issues_release.to_csv(
+                "sentry_issues_{0}_{1}.csv"
+                .format(self.sentry_project, short_release_version),
+                index=False)
+
+            # Insert issues from this release into the same dataframe
+            df_issues = pd.concat([df_issues, df_issues_release], axis=0)
+
+
+        # Output for Slack message
+        df_issues.to_csv(
+            "sentry_spike_issues.csv",
+            index=False
+        )
+        # TODO: Return something
 
     def sentry_rates(self, releases=[]):
         print("SentryClient.sentry_rates()")
