@@ -136,6 +136,9 @@ def jira_worklogs():
             "comment", "parent_name", "child_name",
             ])
 
+    # FIX: Replace NaN values with None for MySQL compatibility
+    df = df.where(pd.notna(df), None)
+
     jira_delete(ReportJiraSoftvisionWorklogs)
     report_jira_worklogs_insert(df)
 

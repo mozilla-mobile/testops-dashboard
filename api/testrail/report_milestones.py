@@ -141,6 +141,9 @@ def testrail_milestones(project):
                     pl.extract_build_version
                 )
 
+            # FIX: Convert all pd.NA/NaN/NaT to None for MySQL compatibility
+            df_selected = df_selected.where(df_selected.notna(), None)
+
             # Insert into database only if there is data
             if not df_selected.empty:
                 report_milestones_insert(projects_id, df_selected)
