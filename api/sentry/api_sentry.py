@@ -254,7 +254,7 @@ class SentryClient(Sentry):
         # This properly handles cases like 142.0.10 > 142.0.9 and beta versions
         # like 148.0b5
         payload.sort(
-            key=lambda v: tuple(map(int, re.split(r'[.+b]', v)[:3])), 
+            key=lambda v: tuple(map(int, re.split(r'[.+b]', v)[:3])),
             reverse=False
         )
 
