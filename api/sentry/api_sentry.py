@@ -7,7 +7,7 @@
 import os
 import sys
 import requests
-
+import re
 import pandas as pd
 
 from lib.sentry_conn import APIClient
@@ -250,8 +250,13 @@ class SentryClient(Sentry):
                         if int(build_code) % 2 == 1:
                             payload.append(raw_version)
 
-        if not self.sentry_project == 'fenix-beta':
-            payload.sort()
+        # Sort all versions in descending order (newest first) using semantic versioning
+        # This properly handles cases like 142.0.10 > 142.0.9 and beta versions
+        # like 148.0b5
+        payload.sort(
+            key=lambda v: tuple(map(int, re.split(r'[.+b]', v)[:3])),
+            reverse=False
+        )
 
         # Just a list of released versions, not a dataframe
         return payload
