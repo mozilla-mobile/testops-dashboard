@@ -2,6 +2,7 @@ name: Testops Check All Jobs on Push
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
   push:
     branches: [ master ]
   workflow_dispatch:
@@ -10,6 +11,9 @@ on:
         description: "Default branch"
         required: true
         default: "master"
+
+permissions:
+  contents: read
 
 env:
   CLOUD_SQL_DATABASE_NAME: preflight
@@ -41,7 +45,16 @@ jobs:
   reports:
     name: Run reports (${{ matrix.name }})
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
+
+    # Gate Dependabot PRs unless a repo member applied the label.
+    if: >-
+      github.event_name != 'pull_request'
+      || github.event.pull_request.user.login != 'dependabot[bot]'
+      || (
+        github.event.action == 'labeled'
+        && github.event.label.name == 'run-testops'
+      )
+
     strategy:
       fail-fast: false
       max-parallel: 6
@@ -93,7 +106,15 @@ jobs:
   sentry:
     name: Sentry reports
     runs-on: ubuntu-latest
-    if: github.actor != 'dependabot[bot]'
+
+    if: >-
+      github.event_name != 'pull_request'
+      || github.event.pull_request.user.login != 'dependabot[bot]'
+      || (
+        github.event.action == 'labeled'
+        && github.event.label.name == 'run-testops'
+      )
+
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v5
@@ -139,11 +160,16 @@ jobs:
           path: ./sentry_issues_fenix-beta_*.csv
       - name: Construct JSON for Slack (Android Beta)
         run: python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
+
   notify:
     name: Slack notify
     runs-on: ubuntu-latest
     needs: [reports, sentry]
-    if: always()
+
+    if: >-
+      always() &&
+      (needs.reports.result != 'skipped' || needs.sentry.result != 'skipped')
+
     steps:
       - uses: actions/checkout@v6
       - run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
