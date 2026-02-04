@@ -216,12 +216,12 @@ class SentryClient(Sentry):
             issues = self.sentry_top_new_issues(short_release_version, statsPeriod=3)
             spike_issues = [
                 issue for issue in issues
-                if int(issue.get('lifetime', {}).get('userCount', 0)) > threshold
-                if int(issue.get('lifetime', {}).get('count', 0)) > threshold
-                if int(issue.get('filtered', {}).get('userCount', 0)) > threshold
-                if int(issue.get('filtered', {}).get('count', 0)) > threshold
-                if int(issue.get('userCount', 0)) > threshold
-                if int(issue.get('count', 0)) > threshold
+                if (int(issue.get('lifetime', {}).get('userCount', 0)) > threshold or
+                    int(issue.get('lifetime', {}).get('count', 0)) > threshold or
+                    int(issue.get('filtered', {}).get('userCount', 0)) > threshold or
+                    int(issue.get('filtered', {}).get('count', 0)) > threshold or
+                    int(issue.get('userCount', 0)) > threshold or
+                    int(issue.get('count', 0)) > threshold)
             ]
 
             df_issues_release = self.db.report_issue_payload(spike_issues,

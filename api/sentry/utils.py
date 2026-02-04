@@ -295,7 +295,7 @@ def init_spike_json(project):
                         "text": {
                             "type": "mrkdwn",
                             "text": (
-                                "*:rotating_light: {0} Spike Issues Alert: {1} "
+                                "*{0} Spike Issues Alert: {1} "
                                 "({2})*"
                             ).format(icon, product, now)
                         }
@@ -314,21 +314,9 @@ def insert_spike_issues(json_data, file_csv):
             csv_reader = csv.DictReader(csvfile)
             issues = list(csv_reader)
 
-        # Add summary
-        json_data["attachments"][0]["blocks"].append({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f":exclamation: *{len(issues)} spike issue(s) found*"
-            }
-        })
-
         # Create table headers
         header_row = [
-            _create_table_header_cell("Issue Title"),
-            _create_table_header_cell("Culprit"),
-            _create_table_header_cell("Users"),
-            _create_table_header_cell("Count"),
+            _create_table_header_cell("Issue"),
             _create_table_header_cell("Version")
         ]
 
@@ -336,9 +324,6 @@ def insert_spike_issues(json_data, file_csv):
         table_rows = []
         for issue in issues:
             title = issue['title']
-            culprit = issue['culprit'] if issue['culprit'] else "N/A"
-            user_count = issue['user_count']
-            count = issue['count']
             version = issue['release_version']
             permalink = issue['permalink']
 
@@ -356,33 +341,6 @@ def insert_spike_issues(json_data, file_csv):
                                     "url": permalink
                                 }
                             ]
-                        }
-                    ]
-                },
-                {
-                    "type": "rich_text",
-                    "elements": [
-                        {
-                            "type": "rich_text_section",
-                            "elements": [{"type": "text", "text": culprit}]
-                        }
-                    ]
-                },
-                {
-                    "type": "rich_text",
-                    "elements": [
-                        {
-                            "type": "rich_text_section",
-                            "elements": [{"type": "text", "text": user_count}]
-                        }
-                    ]
-                },
-                {
-                    "type": "rich_text",
-                    "elements": [
-                        {
-                            "type": "rich_text_section",
-                            "elements": [{"type": "text", "text": count}]
                         }
                     ]
                 },
