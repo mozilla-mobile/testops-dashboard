@@ -182,14 +182,11 @@ jobs:
   notify:
     name: Slack notify
     runs-on: ubuntu-latest
-    needs: [reports, sentry]
+    needs: [reports, sentry, unit-tests]
 
     if: >-
       always() &&
       (needs.reports.result != 'skipped' || needs.sentry.result != 'skipped')
-
-    needs: [unit-tests, reports, sentry]
-    if: always()
     steps:
       - uses: actions/checkout@v6
       - run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
