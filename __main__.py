@@ -48,6 +48,7 @@ from handlers.jira import (
 from handlers.sentry import (
     handle_sentry_issues,
     handle_sentry_rates,
+    handle_sentry_issues_spike,
 )
 
 from handlers.testrail import (
@@ -185,6 +186,7 @@ COMMAND_MAP = {
     'jira-qa-requests': handle_jira_qa_requests,
     'jira-softvision-worklogs': handle_jira_softvision_worklogs,
     'sentry-issues': handle_sentry_issues,
+    'sentry-spike-issues': handle_sentry_issues_spike,
     'sentry-rates': handle_sentry_rates,
     'testrail-milestones': handle_testrail_milestones,
     'testrail-users': handle_testrail_users,
