@@ -68,8 +68,6 @@ jobs:
         github.event.action == 'labeled'
         && github.event.label.name == 'run-testops'
       )
-
-    if: github.actor != 'dependabot[bot]'
     needs: [unit-tests]
     strategy:
       fail-fast: false
@@ -130,8 +128,6 @@ jobs:
         github.event.action == 'labeled'
         && github.event.label.name == 'run-testops'
       )
-
-    if: github.actor != 'dependabot[bot]'
     needs: [unit-tests]
     steps:
       - uses: actions/checkout@v6
