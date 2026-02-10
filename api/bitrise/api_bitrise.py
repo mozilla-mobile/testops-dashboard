@@ -55,6 +55,7 @@ class BitriseClient(Bitrise):
 
         payload = pd.DataFrame(data, columns=["build_number", "branch", "status", "status_text", "triggered_workflow", "triggered_by", "triggered_at"]) # noqa
         payload_filtered = payload[payload["status_text"] != "in-progress"]
+        payload_filtered = payload_filtered.where(pd.notna(payload_filtered), None)
         print(payload_filtered)
 
         self.db.report_bitrise_builds_info(payload_filtered)
