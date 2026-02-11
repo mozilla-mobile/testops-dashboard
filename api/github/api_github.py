@@ -5,6 +5,10 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import requests
+import os
+from datetime import datetime, timedelta, UTC
+
+from lib.github_conn import APIClient
 
 from database import (
     Database
@@ -32,6 +36,15 @@ DATE_TYPES = [
 
 
 class Github:
+
+    def __init__(self):
+        try:
+            self.client = APIClient(API_BASE)
+        except KeyError as e:
+            missing = e.args[0]
+            print(f"ERROR: Missing environment variable {missing}")
+            sys.exit(1)
+
     '''
     try:
         API_TOKEN = os.environ['GITHUB_TOKEN']
@@ -97,6 +110,19 @@ class Github:
         url = '{0}+is:issue'.format(url_base)
         url = '{0}+created:>=2020-08-15'.format(url_base)
         return url
+
+    def new_bugs(self, project, since_timestamp):
+        # return self.client.http_get(
+        #     'repos/{0}/{1}/issues?state=open&labels=Bug%20🐞&since={2}'
+        #     .format(OWNER, project, since_timestamp) # noqa
+        # )
+        return self.client.http_get(
+            'repos/{0}/{1}/issues?state=open&since={2}'
+            .format(OWNER, project, since_timestamp) # noqa
+        )
+    
+    def mozilla_mobile_members(self):
+        return self.client.http_get('orgs/{0}/members?filter=all'.format(OWNER))
 
     # URL: PULLS
     def pulls_url_base(self, project):
@@ -179,6 +205,24 @@ class GithubClient(Github):
         table = self.paginate(project, table)
         print(table)
 
+    # URL: New Bugs
+    def github_new_bugs(self, project, num_days=1):
+        since_when = datetime.now(UTC) - timedelta(days=int(num_days))
+        since_timestamp = since_when.strftime('%Y-%m-%dT%H:%M:%SZ')
+        all_bugs = self.new_bugs(project, since_timestamp)
+        members = self.mozilla_mobile_members()
+        disregard_users = members + ["data-sync-user", "dependabot[bot]", "dependabot-preview[bot]", "dependabot-core[bot]"] # noqa
+        
+        # Filter out PRs (issues with 'pull_request' field are PRs)
+        all_bugs = [bug for bug in all_bugs if 'pull_request' not in bug]
+        
+        # Filter out bugs from disregarded users
+        all_bugs = [bug for bug in all_bugs if bug.get('user', {}).get('login') not in disregard_users]
+        
+        # Print all bug titles using list comprehension
+        [print(bug.get('title', 'No title')) for bug in all_bugs]
+
+        return all_bugs, members
 
 class DatabaseGithub(Database):
 
