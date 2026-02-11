@@ -77,7 +77,6 @@ jobs:
           proxy_version: "1.37.11"
       - run: pip install -r requirements.txt
       - run: python ./__main__.py ${{ matrix.args }}
-        continue-on-error: true
 
   sentry:
     name: Sentry reports and notifications
