@@ -14,6 +14,8 @@ from database import (
     Database
 )
 
+import pandas as pd
+
 
 API_BASE = 'https://api.github.com'
 OWNER = 'mozilla-mobile'
@@ -111,6 +113,7 @@ class Github:
         url = '{0}+created:>=2020-08-15'.format(url_base)
         return url
 
+    # URL: New Issues last n days
     def new_bugs(self, project, since_timestamp):
         # return self.client.http_get(
         #     'repos/{0}/{1}/issues?state=open&labels=Bug%20🐞&since={2}'
@@ -222,7 +225,27 @@ class GithubClient(Github):
         # Print all bug titles using list comprehension
         [print(bug.get('title', 'No title')) for bug in all_bugs]
 
-        return all_bugs, members
+        # Create DataFrame with bug data
+        bug_data = []
+        for bug in all_bugs:
+            bug_data.append({
+                'title': bug.get('title', '(No title)'),
+                'url': bug.get('url', ''),
+                'created_at': bug.get('created_at', ''),
+                'user': bug.get('user', '').get('login', '')
+            })
+
+        df_new_bugs = pd.DataFrame(bug_data)
+        
+        # Save to CSV with today's date
+        today = datetime.now().strftime('%Y-%m-%d')
+        csv_filename = f'github_new_bugs_{project}_{today}.csv'
+        df_new_bugs.to_csv(csv_filename, index=False)
+        print(f"Saved {len(df_new_bugs)} bugs to {csv_filename}")
+
+        # TODO: Insert new bugs to a database
+
+        return df_new_bugs 
 
 class DatabaseGithub(Database):
 

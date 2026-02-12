@@ -79,6 +79,31 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python ./__main__.py ${{ matrix.args }}
 
+
+  github_new_bugs:
+    name: New Github issues from non-members of Mozilla Mobile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - name: Query new Github issues
+        run: |
+          python __main__.py --report-type github-new-bugs --project firefox-ios --num-days 1
+      - name: Construct Slack report
+        run: |
+          python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json
+      - name: Send notification to Slack
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./github-new-issues-slack.json"
+          payload-templated: true
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+
   sentry:
     name: Sentry reports and notifications
     runs-on: ubuntu-latest
