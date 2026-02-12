@@ -43,7 +43,7 @@ class APIClient:
 
             link_header = response.headers.get("Link", "")
             next_url = None
-            
+
             if link_header:
                 for link in link_header.split(','):
                     link = link.strip()

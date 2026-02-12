@@ -85,7 +85,8 @@ def create_slack_json_message(issues: list) -> dict:
                     "type": "header",
                     "text": {
                         "type": "plain_text",
-                        "text": f":white_check_mark: No New GitHub Issues ({current_date})",
+                        "text": f":white_check_mark: No New GitHub Issues "
+                                f"({current_date})",
                         "emoji": True
                     }
                 },
@@ -94,7 +95,11 @@ def create_slack_json_message(issues: list) -> dict:
                     "elements": [
                         {
                             "type": "mrkdwn",
-                            "text": ":testops-notify: created by <https://mozilla-hub.atlassian.net/wiki/spaces/MTE/overview|Mobile Test Engineering>"
+                            "text": (
+                                ":testops-notify: created by "
+                                "<https://mozilla-hub.atlassian.net/"
+                                "wiki/spaces/MTE/overview|Mobile Test Engineering>"
+                            )
                         }
                     ]
                 }
@@ -102,6 +107,12 @@ def create_slack_json_message(issues: list) -> dict:
         }
 
     # Create blocks with each issue as a section
+    current_date = datetime.now(UTC).strftime('%Y-%m-%d')
+    blocks = [
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
                 "text": f":github: New GitHub Issues ({current_date})",
                 "emoji": True
             }
@@ -117,14 +128,18 @@ def create_slack_json_message(issues: list) -> dict:
                 "text": f"<{issue['url']}|{issue['title']}>"
             }
         })
-    
+
     # Add footer
     blocks.append({
         "type": "context",
         "elements": [
             {
                 "type": "mrkdwn",
-                "text": ":testops-notify: Created by <https://mozilla-hub.atlassian.net/wiki/spaces/MTE/overview|Mobile Test Engineering>"
+                "text": (
+                    ":testops-notify: Created by "
+                    "<https://mozilla-hub.atlassian.net/"
+                    "wiki/spaces/MTE/overview|Mobile Test Engineering>"
+                )
             }
         ]
     })

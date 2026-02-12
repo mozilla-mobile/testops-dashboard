@@ -123,7 +123,7 @@ class Github:
             'repos/{0}/{1}/issues?state=open&since={2}'
             .format(OWNER, project, since_timestamp) # noqa
         )
-    
+
     def mozilla_mobile_members(self):
         return self.client.http_get('orgs/{0}/members?filter=all'.format(OWNER))
 
