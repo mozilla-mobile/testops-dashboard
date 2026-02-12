@@ -128,6 +128,12 @@ jobs:
           cache: "pip"
           cache-dependency-path: requirements.txt
       - run: pip install -r requirements.txt
+      - uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GCLOUD_AUTH }}
+          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          proxy_version: "1.37.11"
       - name: Query new Github issues
         run: |
           python __main__.py --report-type github-new-bugs --project firefox-ios --num-days 1
