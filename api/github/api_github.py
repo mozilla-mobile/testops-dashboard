@@ -4,8 +4,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import sys
 import requests
-import os
 from datetime import datetime, timedelta, UTC
 
 from lib.github_conn import APIClient
@@ -245,7 +245,8 @@ class GithubClient(Github):
 
         # TODO: Insert new bugs to a database
 
-        return df_new_bugs 
+        return df_new_bugs
+
 
 class DatabaseGithub(Database):
 
