@@ -214,14 +214,21 @@ class GithubClient(Github):
         since_timestamp = since_when.strftime('%Y-%m-%dT%H:%M:%SZ')
         all_bugs = self.new_bugs(project, since_timestamp)
         members = self.mozilla_mobile_members()
-        disregard_users = members + ["data-sync-user", "dependabot[bot]", "dependabot-preview[bot]", "dependabot-core[bot]"] # noqa
-        
+        disregard_users = members + [
+            "data-sync-user", "dependabot[bot]",
+            "dependabot-preview[bot]", "dependabot-core[bot]"
+        ]
+
         # Filter out PRs (issues with 'pull_request' field are PRs)
         all_bugs = [bug for bug in all_bugs if 'pull_request' not in bug]
-        
+
         # Filter out bugs from disregarded users
-        all_bugs = [bug for bug in all_bugs if bug.get('user', {}).get('login') not in disregard_users]
-        
+        filtered_bugs = [
+            bug for bug in all_bugs
+            if bug.get('user', {}).get('login') not in disregard_users
+        ]
+        all_bugs = filtered_bugs
+
         # Print all bug titles using list comprehension
         [print(bug.get('title', 'No title')) for bug in all_bugs]
 
@@ -236,7 +243,7 @@ class GithubClient(Github):
             })
 
         df_new_bugs = pd.DataFrame(bug_data)
-        
+
         # Save to CSV with today's date
         today = datetime.now().strftime('%Y-%m-%d')
         csv_filename = f'github_new_bugs_{project}_{today}.csv'

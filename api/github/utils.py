@@ -3,6 +3,7 @@ import sys
 import json
 from datetime import datetime, UTC
 
+
 def main():
     """Main function to handle command line arguments"""
     if len(sys.argv) != 2:
@@ -101,12 +102,6 @@ def create_slack_json_message(issues: list) -> dict:
         }
 
     # Create blocks with each issue as a section
-    current_date = datetime.now(UTC).strftime('%Y-%m-%d')
-    blocks = [
-        {
-            "type": "header",
-            "text": {
-                "type": "plain_text",
                 "text": f":github: New GitHub Issues ({current_date})",
                 "emoji": True
             }
