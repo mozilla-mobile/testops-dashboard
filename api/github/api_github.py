@@ -114,14 +114,16 @@ class Github:
         return url
 
     # URL: New Issues last n days
-    def new_bugs(self, project, since_timestamp):
-        # return self.client.http_get(
-        #     'repos/{0}/{1}/issues?state=open&labels=Bug%20🐞&since={2}'
-        #     .format(OWNER, project, since_timestamp) # noqa
-        # )
+    def new_bugs(self, project, timestamp):
+        # Use search API to get newly created issues, not updated issues
+        # Exclude data-sync-user and dependabot users directly in the query
+        # query = ('repo:{0}/{1}+created:>={2}').format(OWNER, project, timestamp)
+        # return self.client.http_get('search/issues?q={0}'.format(query))
+
+        # Old method - gets issues updated since timestamp (not created)
         return self.client.http_get(
-            'repos/{0}/{1}/issues?state=open&since={2}'
-            .format(OWNER, project, since_timestamp) # noqa
+            'search/issues?q=repo:{0}/{1}+is:issue+created:>={2}+-author:data-sync-user'
+            .format(OWNER, project, timestamp) # noqa
         )
 
     def mozilla_mobile_members(self):
@@ -211,23 +213,11 @@ class GithubClient(Github):
     # URL: New Bugs
     def github_new_bugs(self, project, num_days=1):
         since_when = datetime.now(UTC) - timedelta(days=int(num_days))
-        since_timestamp = since_when.strftime('%Y-%m-%dT%H:%M:%SZ')
-        all_bugs = self.new_bugs(project, since_timestamp)
-        members = self.mozilla_mobile_members()
-        disregard_users = members + [
-            "data-sync-user", "dependabot[bot]",
-            "dependabot-preview[bot]", "dependabot-core[bot]"
-        ]
+        timestamp = since_when.strftime('%Y-%m-%dT%H:%M:%SZ')
+        search_result = self.new_bugs(project, timestamp)
 
-        # Filter out PRs (issues with 'pull_request' field are PRs)
-        all_bugs = [bug for bug in all_bugs if 'pull_request' not in bug]
-
-        # Filter out bugs from disregarded users
-        filtered_bugs = [
-            bug for bug in all_bugs
-            if bug.get('user', {}).get('login') not in disregard_users
-        ]
-        all_bugs = filtered_bugs
+        # Extract items from search API response
+        all_bugs = search_result.get('items', []) if search_result else []
 
         # Print all bug titles using list comprehension
         [print(bug.get('title', 'No title')) for bug in all_bugs]
@@ -237,9 +227,9 @@ class GithubClient(Github):
         for bug in all_bugs:
             bug_data.append({
                 'title': bug.get('title', '(No title)'),
-                'url': bug.get('url', ''),
+                'url': bug.get('html_url', ''),
                 'created_at': bug.get('created_at', ''),
-                'user': bug.get('user', '').get('login', '')
+                'user': bug.get('user', {}).get('login', '')
             })
 
         df_new_bugs = pd.DataFrame(bug_data)

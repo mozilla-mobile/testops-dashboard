@@ -21,58 +21,33 @@ def csv_to_slack_message(csv_filename):
     issues = []
 
     try:
-        with open(csv_filename, 'r') as csvfile:
+        with open(csv_filename, 'r', encoding='utf-8', newline='') as csvfile:
             reader = csv.DictReader(csvfile)
-            for row in reader:
-                # Convert GitHub API URL to browser URL
-                browser_url = row['url'].replace(
-                    'api.github.com/repos/', 'github.com/'
-                )
-                browser_url = browser_url.replace('/issues/', '/issues/')
-
+            print(f"CSV headers: {reader.fieldnames}", file=sys.stderr)
+            row_count = 0
+            for i, row in enumerate(reader):
+                print(f"Row {i}: {row}", file=sys.stderr)
                 issues.append({
                     'title': row['title'],
-                    'url': browser_url,
+                    'url': row['url'],
                     'user': row['user'],
                     'created_at': row['created_at']
                 })
+                row_count += 1
+
+        print(f"Total issues found: {len(issues)}", file=sys.stderr)
+
+        if row_count == 0:
+            print("No data rows found after headers")
 
     except FileNotFoundError:
-        print(f"CSV file {csv_filename} not found")
-        return None
+        print(f"CSV file {csv_filename} not found", file=sys.stderr)
+        issues = []
+    except UnicodeDecodeError as e:
+        print(f"Encoding error reading CSV: {e}", file=sys.stderr)
+        issues = []
 
     return create_slack_json_message(issues)
-
-
-def csv_to_slack_text(csv_filename):
-    """Read CSV file and convert to simple Slack text format"""
-    try:
-        with open(csv_filename, 'r') as csvfile:
-            reader = csv.DictReader(csvfile)
-            issues = list(reader)
-
-        if not issues:
-            return ":white_check_mark: No new GitHub issues found"
-
-        current_date = datetime.now().strftime('%Y-%m-%d')
-        message = f":github: *New GitHub Issues ({current_date})*\n\n"
-
-        for issue in issues:
-            # Convert API URL to browser URL
-            browser_url = issue['url'].replace(
-                'api.github.com/repos/', 'github.com/'
-            )
-            browser_url = browser_url.replace('/issues/', '/issues/')
-
-            title = issue['title']
-            user = issue['user']
-            message += f"• <{browser_url}|{title}> (by {user})\n"
-
-        message += f"\n_Found {len(issues)} new issues_"
-        return message
-
-    except FileNotFoundError:
-        return f"Error: CSV file {csv_filename} not found"
 
 
 def create_slack_json_message(issues: list) -> dict:
