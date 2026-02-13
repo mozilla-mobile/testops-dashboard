@@ -36,6 +36,10 @@ PROJECTS_SENTRY = [
     "firefox-ios",
 ]
 
+PROJECTS_GITHUB_NEW_BUGS = [
+    "firefox-ios"
+]
+
 REPORT_TYPES = [
     "bitrise-builds",
     "bugzilla-desktop-bugs",
@@ -48,6 +52,7 @@ REPORT_TYPES = [
     "confluence-new-page",
     "confluence-build-validation",
     "github-issue-regression",
+    "github-new-bugs",
     "jira-qa-needed",
     "jira-qa-requests",
     "jira-qa-requests-new-issue-types",
