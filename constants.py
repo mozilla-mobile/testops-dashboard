@@ -60,6 +60,7 @@ REPORT_TYPES = [
     "testrail-test-plans-and-runs",
     "testrail-test-results",
     "sentry-issues",
+    "sentry-spike-issues",
     "sentry-rates",
 ]
 
