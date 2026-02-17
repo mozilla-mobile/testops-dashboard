@@ -1,0 +1,11 @@
+wiki_page:
+  page_id: 2208628737
+  page_title: "Team Delivery Insights 2026"
+  show_approval_status: false
+  sections:
+    - name: "Testing"
+      reports:
+        - report-title: "Workload Per Platform 2026"
+          report-description: "Number of Feature Requests Per Platform in 2026"
+          attachment-filename: "workload-per-platform-2026.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3199"
