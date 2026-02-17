@@ -123,9 +123,9 @@ jobs:
           path: ./sentry_spike_issues_firefox-ios.csv
       - name: Construct Product Health Messages for Slack (iOS)
         run: |
-          python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios --type rates
+          python -m api.sentry.utils_slack_rates --file ./sentry_rates.csv --project firefox-ios --type rates
           if [ $(wc -l < ./sentry_spike_issues.csv) -gt 1 ]; then
-            python -m api.sentry.utils --file ./sentry_spike_issues.csv --project firefox-ios --type spike-issues
+            python -m api.sentry.utils_slack_spike --file ./sentry_spike_issues.csv --project firefox-ios --type spike-issues
           else
             echo "👍 No spike issues found for firefox-ios."
           fi
@@ -140,9 +140,9 @@ jobs:
           path: ./sentry_issues_fenix_*.csv
       - name: Construct Product Health Messages for Slack (Android)
         run: |
-          python -m api.sentry.utils --file ./sentry_rates.csv --project fenix --type rates
+          python -m api.sentry.utils_slack_rates --file ./sentry_rates.csv --project fenix --type rates
           if [ $(wc -l < ./sentry_spike_issues.csv) -gt 1 ]; then
-            python -m api.sentry.utils --file ./sentry_spike_issues.csv --project fenix --type spike-issues
+            python -m api.sentry.utils_slack_spike --file ./sentry_spike_issues.csv --project fenix --type spike-issues
           else
             echo "👍 No spike issues found for fenix."
           fi
@@ -156,7 +156,7 @@ jobs:
           name: sentry_issues_fenix-beta
           path: ./sentry_issues_fenix-beta_*.csv
       - name: Construct Product Health Message for Slack (Android Beta)
-        run: python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
+        run: python -m api.sentry.utils_slack_rates --file ./sentry_rates.csv --project fenix-beta
   notify:
     name: Slack notify
     runs-on: ubuntu-latest
