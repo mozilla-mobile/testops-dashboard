@@ -9,7 +9,6 @@ import sys
 
 
 from constants import (
-    PROJECTS_GITHUB_NEW_BUGS,
     PROJECTS_MOBILE,
     PROJECTS_ECOSYSTEM,
     PROJECTS_DESKTOP,
@@ -129,10 +128,10 @@ def validate_project(platform, project, report_type):
         sys.exit(1)
 
     if (report_type in ('github-new-bugs')
-            and project not in PROJECTS_GITHUB_NEW_BUGS):
+            and project not in PROJECTS_MOBILE):
         print(
             f"Error: Invalid project '{project}' for GitHub new bugs report. "
-            f"Valid options are {PROJECTS_GITHUB_NEW_BUGS}"
+            f"Valid options are {PROJECTS_MOBILE}"
         )
         sys.exit(1)
 

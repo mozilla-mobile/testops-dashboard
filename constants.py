@@ -36,10 +36,6 @@ PROJECTS_SENTRY = [
     "firefox-ios",
 ]
 
-PROJECTS_GITHUB_NEW_BUGS = [
-    "firefox-ios"
-]
-
 REPORT_TYPES = [
     "bitrise-builds",
     "bugzilla-desktop-bugs",
