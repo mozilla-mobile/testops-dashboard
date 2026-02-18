@@ -40,7 +40,7 @@ env:
 
 jobs:
   github_new_bugs:
-    name: New Github issues from non-members of Mozilla Mobile
+    name: New Github issues
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6

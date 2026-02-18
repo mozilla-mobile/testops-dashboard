@@ -118,7 +118,7 @@ jobs:
       - run: python ./__main__.py ${{ matrix.args }}
 
   github_new_bugs:
-    name: New Github issues from non-members of Mozilla Mobile
+    name: New Github issues
     if: >-
       github.event_name != 'pull_request'
       || github.event.pull_request.user.login != 'dependabot[bot]'
