@@ -144,7 +144,7 @@ jobs:
           proxy_version: "1.37.11"
       - name: Query new Github issues
         run: |
-          python __main__.py --report-type github-new-bugs --project firefox-ios --num-days 1
+          python __main__.py --report-type github-new-bugs --project firefox-ios --num-days 7
       - name: Construct Slack report
         run: |
           python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json

@@ -116,11 +116,7 @@ class Github:
     # URL: New Issues last n days
     def new_bugs(self, project, timestamp):
         # Use search API to get newly created issues, not updated issues
-        # Exclude data-sync-user and dependabot users directly in the query
-        # query = ('repo:{0}/{1}+created:>={2}').format(OWNER, project, timestamp)
-        # return self.client.http_get('search/issues?q={0}'.format(query))
-
-        # Old method - gets issues updated since timestamp (not created)
+        # Exclude data-sync-user directly in the query
         return self.client.http_get(
             'search/issues?q=repo:{0}/{1}+is:issue+created:>={2}+-author:data-sync-user'
             .format(OWNER, project, timestamp) # noqa
