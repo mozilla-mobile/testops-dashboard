@@ -118,7 +118,7 @@ class Github:
         # Use search API to get newly created issues, not updated issues
         # Exclude data-sync-user directly in the query
         return self.client.http_get(
-            'search/issues?q=repo:{0}/{1}+is:issue+created:>={2}+-author:data-sync-user'
+            'search/issues?q=repo:{0}/{1}+is:issue+created:>={2}+-author:data-sync-user+assignee=none'
             .format(OWNER, project, timestamp) # noqa
         )
 
