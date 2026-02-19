@@ -4,11 +4,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import sys
 import requests
+from datetime import datetime, timedelta, UTC
+
+from lib.github_conn import APIClient
 
 from database import (
     Database
 )
+
+import pandas as pd
 
 
 API_BASE = 'https://api.github.com'
@@ -32,6 +38,15 @@ DATE_TYPES = [
 
 
 class Github:
+
+    def __init__(self):
+        try:
+            self.client = APIClient(API_BASE)
+        except KeyError as e:
+            missing = e.args[0]
+            print(f"ERROR: Missing environment variable {missing}")
+            sys.exit(1)
+
     '''
     try:
         API_TOKEN = os.environ['GITHUB_TOKEN']
@@ -97,6 +112,19 @@ class Github:
         url = '{0}+is:issue'.format(url_base)
         url = '{0}+created:>=2020-08-15'.format(url_base)
         return url
+
+    # URL: New Issues last n days
+    def new_bugs(self, project, timestamp):
+        # Use search API to get newly created issues, not updated issues
+        # Exclude data-sync-user directly in the query
+        return self.client.http_get(
+            'search/issues?q=repo:{0}/{1}+is:issue+state:open+'
+            'no:assignee+created:>={2}+-author:data-sync-user'
+            .format(OWNER, project, timestamp) # noqa
+        )
+
+    def mozilla_mobile_members(self):
+        return self.client.http_get('orgs/{0}/members?filter=all'.format(OWNER))
 
     # URL: PULLS
     def pulls_url_base(self, project):
@@ -178,6 +206,40 @@ class GithubClient(Github):
         table.align['user'] = "l"
         table = self.paginate(project, table)
         print(table)
+
+    # URL: New Bugs
+    def github_new_bugs(self, project, num_days=1):
+        since_when = datetime.now(UTC) - timedelta(days=int(num_days))
+        timestamp = since_when.strftime('%Y-%m-%dT%H:%M:%SZ')
+        search_result = self.new_bugs(project, timestamp)
+
+        # Extract items from search API response
+        all_bugs = search_result.get('items', []) if search_result else []
+
+        # Print all bug titles using list comprehension
+        [print(bug.get('title', 'No title')) for bug in all_bugs]
+
+        # Create DataFrame with bug data
+        bug_data = []
+        for bug in all_bugs:
+            bug_data.append({
+                'title': bug.get('title', '(No title)'),
+                'url': bug.get('html_url', ''),
+                'created_at': bug.get('created_at', ''),
+                'user': bug.get('user', {}).get('login', '')
+            })
+
+        df_new_bugs = pd.DataFrame(bug_data)
+
+        # Save to CSV with today's date
+        today = datetime.now().strftime('%Y-%m-%d')
+        csv_filename = f'github_new_bugs_{project}_{today}.csv'
+        df_new_bugs.to_csv(csv_filename, index=False)
+        print(f"Saved {len(df_new_bugs)} bugs to {csv_filename}")
+
+        # TODO: Insert new bugs to a database
+
+        return df_new_bugs
 
 
 class DatabaseGithub(Database):
