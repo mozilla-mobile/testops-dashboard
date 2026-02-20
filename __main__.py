@@ -44,6 +44,7 @@ from handlers.jira import (
     handle_jira_qa_requests,
     handle_jira_qa_needed,
     handle_jira_softvision_worklogs,
+    handle_jira_qa_requests_desktop,
 )
 
 from handlers.sentry import (
@@ -193,6 +194,7 @@ COMMAND_MAP = {
     'github-new-bugs': handle_github_new_bugs,
     'jira-qa-needed': handle_jira_qa_needed,
     'jira-qa-requests': handle_jira_qa_requests,
+    'jira-qa-requests-desktop': handle_jira_qa_requests_desktop,
     'jira-softvision-worklogs': handle_jira_softvision_worklogs,
     'sentry-issues': handle_sentry_issues,
     'sentry-rates': handle_sentry_rates,

@@ -52,6 +52,7 @@ REPORT_TYPES = [
     "jira-qa-needed",
     "jira-qa-requests",
     "jira-qa-requests-new-issue-types",
+    "jira-qa-requests-desktop",
     "jira-softvision-worklogs",
     "testrail-milestones",
     "testrail-users",
@@ -81,6 +82,9 @@ FILTER_ID_ALL_REQUEST_ISSUE_TYPE = "14323"
 # JQL query All QA Needed iOS filter_id: 13789
 FILTER_ID_QA_NEEDED_iOS = "13789"
 
+# JQL query All QA Requests Desktop filter_id: 24973
+FILTER_ID_ALL_REQUESTS_DESKTOP = "24973"
+
 # JQL Softvision Worklogs
 QATT_FIELDS = "key,summary"
 QATT_BOARD = "15948"
@@ -91,12 +95,14 @@ WORKLOG_URL_TEMPLATE = "issue/{issue_key}/worklog"
 JQL_QUERY = "jql=filter="
 
 STORY_POINTS = "customfield_10037"
-FIREFOX_RELEASE_TRAIN = "customfield_10155"
+FIREFOX_RELEASE_TRAIN = "customfield_10155"  # also used as Target release for desktop
 ENGINEERING_TEAM = "customfield_10134"
 DEFAULT_COLUMNS = "id,key,status,created,summary,labels,assignee"
 COLUMNS_ISSUE_TYPE = ",issuetype,parent"
 
 TESTED_TRAINS = "customfield_11930"
+PRODUCT = "customfield_10147"
+TIMELINE = "customfield_10509"
 
 # Bugzilla queries
 BUGZILLA_URL = "bugzilla.mozilla.org"
