@@ -145,16 +145,13 @@ jobs:
       - name: Query new Github issues
         run: |
           python __main__.py --report-type github-new-bugs --project firefox-ios --num-days 8
+      - uses: actions/upload-artifact@v6
+        with:
+          name: github_new_issues
+          path: ./github_new_bugs_firefox-ios_*.csv
       - name: Construct Slack report
         run: |
           python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json
-      - name: Send notification to Slack
-        uses: slackapi/slack-github-action@v2.1.0
-        with:
-          payload-file-path: "./github-new-issues-slack.json"
-          payload-templated: true
-          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
-          webhook-type: incoming-webhook
 
   sentry:
     name: Sentry reports
