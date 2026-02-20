@@ -117,9 +117,6 @@ def jira_qa_requests_desktop():
     )
     payload['jira_timeline'] = payload['jira_timeline'].apply(extract_adf_text)
 
-    # FIX: Convert pd.NA to None for MySQL compatibility
-    payload = payload.astype(object).where(payload.notna(), None)
-
     # DIAGNOSTIC: dump raw df columns and transformed payload to CSV
     df.to_csv("desktop_raw_df.csv", index=False)
     payload.to_csv("desktop_payload.csv", index=False)

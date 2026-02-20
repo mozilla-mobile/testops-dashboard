@@ -110,4 +110,4 @@ def select_and_transform_jira_df(
             df_selected['jira_story_points'].fillna(0).astype(int)
         )
 
-    return df_selected.where(pd.notnull(df_selected), None)
+    return df_selected.astype(object).where(pd.notnull(df_selected), None)
