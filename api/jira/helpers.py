@@ -95,6 +95,11 @@ def select_and_transform_jira_df(
             dt.convert_to_utc
         )
 
+    if 'jira_updated_at' in df_selected.columns:
+        df_selected['jira_updated_at'] = df_selected['jira_updated_at'].apply(
+            dt.convert_to_utc
+        )
+
     if 'jira_labels' in df_selected.columns:
         df_selected['jira_labels'] = df_selected['jira_labels'].apply(
             lambda x: ','.join(x) if isinstance(x, list) else x
