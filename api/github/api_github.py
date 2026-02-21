@@ -11,8 +11,10 @@ from datetime import datetime, timedelta, UTC
 from lib.github_conn import APIClient
 
 from database import (
-    Database
+    Database,
+    ReportNewGithubIssues
 )
+from sqlalchemy.exc import IntegrityError
 
 import pandas as pd
 
@@ -223,6 +225,7 @@ class GithubClient(Github):
         bug_data = []
         for bug in all_bugs:
             bug_data.append({
+                'number': bug.get('number', ''),
                 'title': bug.get('title', '(No title)'),
                 'url': bug.get('html_url', ''),
                 'created_at': bug.get('created_at', ''),
@@ -238,6 +241,7 @@ class GithubClient(Github):
         print(f"Saved {len(df_new_bugs)} bugs to {csv_filename}")
 
         # TODO: Insert new bugs to a database
+        self.database.issue_insert(df_new_bugs)
 
         return df_new_bugs
 
@@ -270,3 +274,23 @@ class DatabaseGithub(Database):
                 self.session.add(report)
                 self.session.commit()
                 """
+
+    def issue_insert(self, payload):
+        for index, row in payload.iterrows():
+            print(row)
+            created_at = datetime.strptime(
+                row['created_at'], '%Y-%m-%dT%H:%M:%SZ'
+            ) if row['created_at'] else None
+            issue = ReportNewGithubIssues(
+                number=row['number'],
+                title=row['title'],
+                url=row['url'],
+                created_at=created_at,
+                user=row['user']
+            )
+            try:
+                self.db.session.add(issue)
+                self.db.session.commit()
+            except IntegrityError:
+                self.db.session.rollback()
+                print(f"Skipping duplicate issue #{row['number']}")

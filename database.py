@@ -121,6 +121,10 @@ class ReportBugzillaOverallBugs(Base):
     __table__ = Table('report_bugzilla_overall_bugs', Base.metadata, autoload_with=pool)  # noqa
 
 
+class ReportNewGithubIssues(Base):
+    __table__ = Table('report_new_github_issues', Base.metadata, autoload_with=pool)  # noqa
+
+
 class Database:
     def __init__(self):
         self.session = Session()

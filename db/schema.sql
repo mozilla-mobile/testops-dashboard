@@ -775,3 +775,20 @@ CREATE TABLE `report_bugzilla_overall_bugs` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `bugzilla_key` (`bugzilla_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+
+DROP TABLE IF EXISTS `report_new_github_issues`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_new_github_issues` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `number` int NOT NULL,
+  `title` varchar(250) DEFAULT NULL,
+  `url` varchar(250) DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `user` varchar(250) DEFAULT NULL,
+  `created_timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `number` (`number`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
