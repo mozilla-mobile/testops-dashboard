@@ -787,8 +787,8 @@ CREATE TABLE `report_new_github_issues` (
   `url` varchar(250) DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   `user` varchar(250) DEFAULT NULL,
+  `project` varchar(250) DEFAULT NULL,
   `created_timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `number` (`number`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;

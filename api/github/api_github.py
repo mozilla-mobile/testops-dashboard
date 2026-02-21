@@ -240,8 +240,8 @@ class GithubClient(Github):
         df_new_bugs.to_csv(csv_filename, index=False)
         print(f"Saved {len(df_new_bugs)} bugs to {csv_filename}")
 
-        # TODO: Insert new bugs to a database
-        self.database.issue_insert(df_new_bugs)
+        # Insert issues to the database
+        self.database.issue_insert(df_new_bugs, project)
 
         return df_new_bugs
 
@@ -275,7 +275,7 @@ class DatabaseGithub(Database):
                 self.session.commit()
                 """
 
-    def issue_insert(self, payload):
+    def issue_insert(self, payload, project):
         for index, row in payload.iterrows():
             print(row)
             created_at = datetime.strptime(
@@ -286,7 +286,8 @@ class DatabaseGithub(Database):
                 title=row['title'],
                 url=row['url'],
                 created_at=created_at,
-                user=row['user']
+                user=row['user'],
+                project=project
             )
             try:
                 self.db.session.add(issue)
