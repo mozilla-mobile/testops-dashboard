@@ -30,8 +30,7 @@ def csv_to_slack_message(csv_filename):
                 issues.append({
                     'title': row['title'],
                     'url': row['url'],
-                    'user': row['user'],
-                    'created_at': row['created_at']
+                    'user': row['user']
                 })
                 row_count += 1
 
@@ -100,7 +99,7 @@ def create_slack_json_message(issues: list) -> dict:
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"<{issue['url']}|{issue['title']}>"
+                "text": f"<{issue['url']}|{issue['title']}> ({issue['user']})"
             }
         })
 
