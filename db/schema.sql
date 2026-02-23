@@ -785,8 +785,12 @@ CREATE TABLE `report_new_github_issues` (
   `number` int NOT NULL,
   `title` varchar(250) DEFAULT NULL,
   `url` varchar(250) DEFAULT NULL,
-  `created_at` datetime DEFAULT NULL,
+  `state` varchar(50) DEFAULT NULL,
+  `issue_created_at` datetime DEFAULT NULL,
+  `issue_updated_at` datetime DEFAULT NULL,
+  `issue_closed_at` datetime DEFAULT NULL,
   `user` varchar(250) DEFAULT NULL,
+  `author_association` varchar(100) DEFAULT NULL,
   `project` varchar(250) DEFAULT NULL,
   `created_timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)

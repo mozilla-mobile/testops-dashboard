@@ -227,9 +227,13 @@ class GithubClient(Github):
             bug_data.append({
                 'number': bug.get('number', ''),
                 'title': bug.get('title', '(No title)'),
+                'state': bug.get('state', ''),
                 'url': bug.get('html_url', ''),
-                'created_at': bug.get('created_at', ''),
-                'user': bug.get('user', {}).get('login', '')
+                'issue_created_at': bug.get('created_at', ''),
+                'issue_updated_at': bug.get('updated_at', ''),
+                'issue_closed_at': bug.get('closed_at', ''),
+                'user': bug.get('user', {}).get('login', ''),
+                'author_association': bug.get('author_association', '')
             })
 
         df_new_bugs = pd.DataFrame(bug_data)
@@ -278,15 +282,25 @@ class DatabaseGithub(Database):
     def issue_insert(self, payload, project):
         for index, row in payload.iterrows():
             print(row)
-            created_at = datetime.strptime(
-                row['created_at'], '%Y-%m-%dT%H:%M:%SZ'
-            ) if row['created_at'] else None
+            issue_created_at = datetime.strptime(
+                row['issue_created_at'], '%Y-%m-%dT%H:%M:%SZ'
+            ) if row['issue_created_at'] else None
+            issue_updated_at = datetime.strptime(
+                row['issue_updated_at'], '%Y-%m-%dT%H:%M:%SZ'
+            ) if row['issue_updated_at'] else None
+            issue_closed_at = datetime.strptime(
+                row['issue_closed_at'], '%Y-%m-%dT%H:%M:%SZ'
+            ) if row['issue_closed_at'] else None
             issue = ReportNewGithubIssues(
                 number=row['number'],
                 title=row['title'],
                 url=row['url'],
-                created_at=created_at,
+                issue_created_at=issue_created_at,
+                issue_updated_at=issue_updated_at,
+                issue_closed_at=issue_closed_at,
                 user=row['user'],
+                author_association=row['author_association'],
+                state=row['state'],
                 project=project
             )
             try:
