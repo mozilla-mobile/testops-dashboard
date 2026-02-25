@@ -188,9 +188,9 @@ class GithubClient(Github):
         date_upper_limit = '2021-10-01'
 
         g = Github()
-        b = g.issues_url_base(project)
-        u = g.url_is_issue(project, 'intermit', issue_status,
-                           date_lower_limit, date_upper_limit)
+        g.issues_url_base(project)
+        g.url_is_issue(project, 'intermit', issue_status,
+                       date_lower_limit, date_upper_limit)
         label_matcher = 'INTERMIT'
         g.path_labels(label_matcher)
 
