@@ -782,17 +782,17 @@ DROP TABLE IF EXISTS `report_new_github_issues`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `report_new_github_issues` (
   `id` int NOT NULL AUTO_INCREMENT,
-  `number` int NOT NULL,
-  `title` varchar(250) DEFAULT NULL,
-  `url` varchar(250) DEFAULT NULL,
-  `state` varchar(50) DEFAULT NULL,
-  `issue_created_at` datetime DEFAULT NULL,
-  `issue_updated_at` datetime DEFAULT NULL,
-  `issue_closed_at` datetime DEFAULT NULL,
-  `user` varchar(250) DEFAULT NULL,
-  `author_association` varchar(100) DEFAULT NULL,
-  `project` varchar(250) DEFAULT NULL,
-  `created_timestamp` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `github_number` int NOT NULL,
+  `github_title` varchar(250) DEFAULT NULL,
+  `github_url` varchar(250) DEFAULT NULL,
+  `github_state` varchar(50) DEFAULT NULL,
+  `github_created_at` datetime DEFAULT NULL,
+  `github_updated_at` datetime DEFAULT NULL,
+  `github_closed_at` datetime DEFAULT NULL,
+  `github_user` varchar(250) DEFAULT NULL,
+  `github_author_association` varchar(100) DEFAULT NULL,
+  `github_project` varchar(250) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;

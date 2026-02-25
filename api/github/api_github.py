@@ -183,18 +183,14 @@ class GithubClient(Github):
         return table
 
     def github_issue_regression(self, project):
-        # type_type = created_at, updated_at, closed_at, merged_at
         issue_status = 'created'
         date_lower_limit = '2021-09-01'
         date_upper_limit = '2021-10-01'
 
         g = Github()
         b = g.issues_url_base(project)
-        # p = g.pulls_url_base(project)
         u = g.url_is_issue(project, 'intermit', issue_status,
                            date_lower_limit, date_upper_limit)
-        print(u)
-        print(b)
         label_matcher = 'INTERMIT'
         g.path_labels(label_matcher)
 
@@ -225,15 +221,15 @@ class GithubClient(Github):
         bug_data = []
         for bug in all_bugs:
             bug_data.append({
-                'number': bug.get('number', ''),
-                'title': bug.get('title', '(No title)'),
-                'state': bug.get('state', ''),
-                'url': bug.get('html_url', ''),
-                'issue_created_at': bug.get('created_at', ''),
-                'issue_updated_at': bug.get('updated_at', ''),
-                'issue_closed_at': bug.get('closed_at', ''),
-                'user': bug.get('user', {}).get('login', ''),
-                'author_association': bug.get('author_association', '')
+                'github_number': bug.get('number', ''),
+                'github_title': bug.get('title', '(No title)'),
+                'github_state': bug.get('state', ''),
+                'github_url': bug.get('html_url', ''),
+                'github_created_at': bug.get('created_at', ''),
+                'github_updated_at': bug.get('updated_at', ''),
+                'github_closed_at': bug.get('closed_at', ''),
+                'github_user': bug.get('user', {}).get('login', ''),
+                'github_author_association': bug.get('author_association', '')
             })
 
         df_new_bugs = pd.DataFrame(bug_data)
@@ -283,29 +279,29 @@ class DatabaseGithub(Database):
         for index, row in payload.iterrows():
             print(row)
             issue_created_at = datetime.strptime(
-                row['issue_created_at'], '%Y-%m-%dT%H:%M:%SZ'
-            ) if row['issue_created_at'] else None
+                row['github_created_at'], '%Y-%m-%dT%H:%M:%SZ'
+            ) if row['github_created_at'] else None
             issue_updated_at = datetime.strptime(
-                row['issue_updated_at'], '%Y-%m-%dT%H:%M:%SZ'
-            ) if row['issue_updated_at'] else None
+                row['github_updated_at'], '%Y-%m-%dT%H:%M:%SZ'
+            ) if row['github_updated_at'] else None
             issue_closed_at = datetime.strptime(
-                row['issue_closed_at'], '%Y-%m-%dT%H:%M:%SZ'
-            ) if row['issue_closed_at'] else None
+                row['github_closed_at'], '%Y-%m-%dT%H:%M:%SZ'
+            ) if row['github_closed_at'] else None
             issue = ReportNewGithubIssues(
-                number=row['number'],
-                title=row['title'],
-                url=row['url'],
-                issue_created_at=issue_created_at,
-                issue_updated_at=issue_updated_at,
-                issue_closed_at=issue_closed_at,
-                user=row['user'],
-                author_association=row['author_association'],
-                state=row['state'],
-                project=project
+                github_number=row['github_number'],
+                github_title=row['github_title'],
+                github_url=row['github_url'],
+                github_created_at=issue_created_at,
+                github_updated_at=issue_updated_at,
+                github_closed_at=issue_closed_at,
+                github_user=row['github_user'],
+                github_author_association=row['github_author_association'],
+                github_state=row['github_state'],
+                github_project=project
             )
             try:
                 self.db.session.add(issue)
                 self.db.session.commit()
             except IntegrityError:
                 self.db.session.rollback()
-                print(f"Skipping duplicate issue #{row['number']}")
+                print(f"Skipping duplicate issue #{row['github_number']}")
