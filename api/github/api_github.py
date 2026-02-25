@@ -124,6 +124,12 @@ class Github:
             'no:assignee+created:>={2}+-author:data-sync-user'
             .format(OWNER, project, timestamp) # noqa
         )
+    
+    # URL: Get info on an existing issue.
+    def get_existing_issue_by_number(self, project, github_number):
+        return self.client.http_get(
+            'repos/{0}/{1}/issues/{2}'.format(OWNER, project, github_number)
+        )
 
     def mozilla_mobile_members(self):
         return self.client.http_get('orgs/{0}/members?filter=all'.format(OWNER))
@@ -245,6 +251,24 @@ class GithubClient(Github):
 
         return df_new_bugs
 
+    # URL: Bugs from open to closed
+    def github_newly_resolved_bugs(self, project):
+        # Get all open issues
+        open_issues = self.database.get_open_issues(project)
+        # Is the issue closed
+        print(f"Found {len(open_issues)} open issues. Checking for updates...")
+        updated_count = 0
+
+        for issue in open_issues:
+            print("Issue: {} - {}".format(issue.github_number, issue.github_title))
+            issue_data = self.get_existing_issue_by_number(issue.github_project, issue.github_number)
+            # If the issue is now closed, update the record in the database
+            if issue_data and issue_data.get('state') == 'closed':
+                self.database.close_issue(issue_data, issue.github_project)
+                updated_count += 1
+
+        print(f"Updated {updated_count} newly closed issues.")
+
 
 class DatabaseGithub(Database):
 
@@ -305,3 +329,31 @@ class DatabaseGithub(Database):
             except IntegrityError:
                 self.db.session.rollback()
                 print(f"Skipping duplicate issue #{row['github_number']}")
+
+    def get_open_issues(self, project):
+        return self.db.session.query(ReportNewGithubIssues).filter(
+            ReportNewGithubIssues.github_state == 'open',
+            ReportNewGithubIssues.github_project == project
+        ).all()
+
+    def close_issue(self, issue_data, project):
+        record = self.db.session.query(ReportNewGithubIssues).filter(
+            ReportNewGithubIssues.github_number == issue_data['number'],
+            ReportNewGithubIssues.github_project == project
+        ).first()
+
+        if not record:
+            print(f"Issue #{issue_data['number']} not found in DB, skipping.")
+            return
+        
+        closed_at = datetime.strptime(issue_data['closed_at'], '%Y-%m-%dT%H:%M:%SZ').date() if issue_data.get('closed_at') else None
+        created_at = datetime.strptime(issue_data['created_at'], '%Y-%m-%dT%H:%M:%SZ').date() if issue_data.get('created_at') else None
+
+        days_open = (closed_at - created_at).days if closed_at and created_at else None
+
+        record.github_state = issue_data.get('state')
+        record.github_updated_at = datetime.strptime(issue_data['updated_at'], '%Y-%m-%dT%H:%M:%SZ') if issue_data.get('updated_at') else None
+        record.days_open = days_open
+
+        self.db.session.commit()
+        print(f"Closed issue #{issue_data['number']} after {days_open} days.")

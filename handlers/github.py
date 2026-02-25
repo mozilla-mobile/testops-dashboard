@@ -9,3 +9,8 @@ def handle_github_issue_regression(args):
 def handle_github_new_bugs(args):
     client = GithubClient()
     client.github_new_bugs(args.project, args.num_days)
+
+
+def handle_github_newly_resolved_bugs(args):
+    client = GithubClient()
+    client.github_newly_resolved_bugs(args.project)
