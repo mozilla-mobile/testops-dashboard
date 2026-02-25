@@ -124,7 +124,7 @@ class Github:
             'no:assignee+created:>={2}+-author:data-sync-user'
             .format(OWNER, project, timestamp) # noqa
         )
-    
+
     # URL: Get info on an existing issue.
     def get_existing_issue_by_number(self, project, github_number):
         return self.client.http_get(
@@ -261,7 +261,9 @@ class GithubClient(Github):
 
         for issue in open_issues:
             print("Issue: {} - {}".format(issue.github_number, issue.github_title))
-            issue_data = self.get_existing_issue_by_number(issue.github_project, issue.github_number)
+            issue_data = self.get_existing_issue_by_number(
+                issue.github_project, issue.github_number
+            )
             # If the issue is now closed, update the record in the database
             if issue_data and issue_data.get('state') == 'closed':
                 self.database.close_issue(issue_data, issue.github_project)
@@ -345,14 +347,24 @@ class DatabaseGithub(Database):
         if not record:
             print(f"Issue #{issue_data['number']} not found in DB, skipping.")
             return
-        
-        closed_at = datetime.strptime(issue_data['closed_at'], '%Y-%m-%dT%H:%M:%SZ').date() if issue_data.get('closed_at') else None
-        created_at = datetime.strptime(issue_data['created_at'], '%Y-%m-%dT%H:%M:%SZ').date() if issue_data.get('created_at') else None
+
+        fmt = '%Y-%m-%dT%H:%M:%SZ'
+        closed_at = (
+            datetime.strptime(issue_data['closed_at'], fmt).date()
+            if issue_data.get('closed_at') else None
+        )
+        created_at = (
+            datetime.strptime(issue_data['created_at'], fmt).date()
+            if issue_data.get('created_at') else None
+        )
 
         days_open = (closed_at - created_at).days if closed_at and created_at else None
 
         record.github_state = issue_data.get('state')
-        record.github_updated_at = datetime.strptime(issue_data['updated_at'], '%Y-%m-%dT%H:%M:%SZ') if issue_data.get('updated_at') else None
+        record.github_updated_at = (
+            datetime.strptime(issue_data['updated_at'], fmt)
+            if issue_data.get('updated_at') else None
+        )
         record.days_open = days_open
 
         self.db.session.commit()
