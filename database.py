@@ -61,6 +61,10 @@ class ReportJIraQARequestsNewIssueType(Base):
     __table__ = Table('report_jira_qa_requests_new_issue_types', Base.metadata, autoload_with=pool)  # noqa
 
 
+class ReportJiraQARequestsDesktop(Base):
+    __table__ = Table('report_jira_qa_requests_desktop', Base.metadata, autoload_with=pool)  # noqa
+
+
 class ReportJiraQANeeded(Base):
     __table__ = Table('report_jira_qa_needed', Base.metadata, autoload_with=pool)  # noqa
 

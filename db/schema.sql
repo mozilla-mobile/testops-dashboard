@@ -1,3 +1,4 @@
+
 -- MySQL dump 10.13  Distrib 8.4.6, for macos15.4 (arm64)
 --
 -- Host: 127.0.0.1    Database: staging
@@ -775,3 +776,43 @@ CREATE TABLE `report_bugzilla_overall_bugs` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `bugzilla_key` (`bugzilla_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+  -- Table structure for table `report_jira_qa_requests_desktop`
+  --
+
+  DROP TABLE IF EXISTS `report_jira_qa_requests_desktop`;
+  /*!40101 SET @saved_cs_client     = @@character_set_client */;
+  /*!50503 SET character_set_client = utf8mb4 */;
+  CREATE TABLE `report_jira_qa_requests_desktop` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `jira_key` varchar(25) NOT NULL,
+    `jira_summary` varchar(500) DEFAULT NULL,
+    `jira_created_at` timestamp NULL DEFAULT NULL,
+    `jira_updated_at` timestamp NULL DEFAULT NULL,
+    `jira_status` varchar(100) DEFAULT NULL,
+    `jira_assignee_username` varchar(100) DEFAULT NULL,
+    `jira_reporter_username` varchar(100) DEFAULT NULL,
+    `jira_priority` varchar(50) DEFAULT NULL,
+    `jira_issue_type` varchar(100) DEFAULT NULL,
+    `jira_labels` text DEFAULT NULL,
+    `jira_subtasks` text DEFAULT NULL,
+    `jira_story_points` int DEFAULT NULL,
+    `jira_target_release` varchar(100) DEFAULT NULL,
+    `jira_engineering_team` varchar(100) DEFAULT NULL,
+    `jira_tested_trains` varchar(100) DEFAULT NULL,
+    `jira_product` varchar(100) DEFAULT NULL,
+    `jira_timeline` text DEFAULT NULL,
+    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  /*!40101 SET character_set_client = @saved_cs_client */;
+
+  --
+  -- Dumping data for table `report_jira_qa_requests_desktop`
+  --
+
+  LOCK TABLES `report_jira_qa_requests_desktop` WRITE;
+  /*!40000 ALTER TABLE `report_jira_qa_requests_desktop` DISABLE KEYS */;
+  /*!40000 ALTER TABLE `report_jira_qa_requests_desktop` ENABLE KEYS */;
+  UNLOCK TABLES;
