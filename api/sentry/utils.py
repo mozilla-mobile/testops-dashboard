@@ -116,20 +116,20 @@ def insert_rates(json_data, csv_file, project):
                 print("Version {0}'s adoption rate is less than 1%. Skipping."
                       .format(row['release_version']))
 
-        # If no rates are reported, add a warning message rather than 
+        # If no rates are reported, add a warning message rather than
         # sending a blank message.
         if len(table_rows) == 0:
             explanation = ":warning: No rates reported"
             if is_low_adoption:
                 explanation = ":information_source: Adoption rate(s) less than 1%."
             json_data["attachments"][0]["blocks"].append(
-				{
-					"type": "section",
-					"text": {
-						"type": "mrkdwn",
-						"text": explanation
-					}
-				},
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": explanation
+                    }
+                },
             )
         else:
             insert_table(json_data, table_rows)
