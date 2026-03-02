@@ -155,6 +155,9 @@ jobs:
           payload-templated: true
           webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
+      - name: Update Github bugs
+        run: |
+          python __main__.py --report-type github-update-bugs --project firefox-ios
 
   sentry:
     name: Sentry reports
