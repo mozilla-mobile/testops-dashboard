@@ -12,7 +12,7 @@ from lib.github_conn import APIClient
 
 from database import (
     Database,
-    ReportNewGithubIssues
+    ReportGithubBugs
 )
 from sqlalchemy.exc import IntegrityError
 
@@ -251,25 +251,28 @@ class GithubClient(Github):
 
         return df_new_bugs
 
-    # URL: Bugs from open to closed
-    def github_newly_resolved_bugs(self, project):
-        # Get all open issues
-        open_issues = self.database.get_open_issues(project)
-        # Is the issue closed
-        print(f"Found {len(open_issues)} open issues. Checking for updates...")
+    # URL: Update bugs
+    def github_update_bugs(self, project):
+        issues = self.database.get_all_issues(project)
+        print(f"Found {len(issues)} issues. Checking for updates...")
         updated_count = 0
 
-        for issue in open_issues:
-            print("Issue: {} - {}".format(issue.github_number, issue.github_title))
+        for issue in issues:
             issue_data = self.get_existing_issue_by_number(
                 issue.github_project, issue.github_number
             )
-            # If the issue is now closed, update the record in the database
-            if issue_data and issue_data.get('state') == 'closed':
-                self.database.close_issue(issue_data, issue.github_project)
+            if not issue_data:
+                continue
+            api_updated_at = issue_data.get('updated_at')
+            db_updated_at = (
+                issue.github_updated_at.strftime('%Y-%m-%dT%H:%M:%SZ')
+                if issue.github_updated_at else None
+            )
+            if api_updated_at != db_updated_at:
+                self.database.update_issue(issue_data, issue.github_project)
                 updated_count += 1
 
-        print(f"Updated {updated_count} newly closed issues.")
+        print(f"Updated {updated_count} issues.")
 
 
 class DatabaseGithub(Database):
@@ -303,7 +306,8 @@ class DatabaseGithub(Database):
 
     def issue_insert(self, payload, project):
         for index, row in payload.iterrows():
-            print(row)
+            print("Updating Issue: {} - {}".format(
+                row['github_number'], row['github_title']))
             issue_created_at = datetime.strptime(
                 row['github_created_at'], '%Y-%m-%dT%H:%M:%SZ'
             ) if row['github_created_at'] else None
@@ -313,7 +317,7 @@ class DatabaseGithub(Database):
             issue_closed_at = datetime.strptime(
                 row['github_closed_at'], '%Y-%m-%dT%H:%M:%SZ'
             ) if row['github_closed_at'] else None
-            issue = ReportNewGithubIssues(
+            issue = ReportGithubBugs(
                 github_number=row['github_number'],
                 github_title=row['github_title'],
                 github_url=row['github_url'],
@@ -332,16 +336,15 @@ class DatabaseGithub(Database):
                 self.db.session.rollback()
                 print(f"Skipping duplicate issue #{row['github_number']}")
 
-    def get_open_issues(self, project):
-        return self.db.session.query(ReportNewGithubIssues).filter(
-            ReportNewGithubIssues.github_state == 'open',
-            ReportNewGithubIssues.github_project == project
+    def get_all_issues(self, project):
+        return self.db.session.query(ReportGithubBugs).filter(
+            ReportGithubBugs.github_project == project
         ).all()
 
-    def close_issue(self, issue_data, project):
-        record = self.db.session.query(ReportNewGithubIssues).filter(
-            ReportNewGithubIssues.github_number == issue_data['number'],
-            ReportNewGithubIssues.github_project == project
+    def update_issue(self, issue_data, project):
+        record = self.db.session.query(ReportGithubBugs).filter(
+            ReportGithubBugs.github_number == issue_data['number'],
+            ReportGithubBugs.github_project == project
         ).first()
 
         if not record:
@@ -349,23 +352,24 @@ class DatabaseGithub(Database):
             return
 
         fmt = '%Y-%m-%dT%H:%M:%SZ'
-        closed_at = (
-            datetime.strptime(issue_data['closed_at'], fmt).date()
-            if issue_data.get('closed_at') else None
-        )
-        created_at = (
-            datetime.strptime(issue_data['created_at'], fmt).date()
+
+        record.github_title = issue_data.get('title')
+        record.github_url = issue_data.get('html_url')
+        record.github_state = issue_data.get('state')
+        record.github_user = issue_data.get('user', {}).get('login')
+        record.github_author_association = issue_data.get('author_association')
+        record.github_created_at = (
+            datetime.strptime(issue_data['created_at'], fmt)
             if issue_data.get('created_at') else None
         )
-
-        days_open = (closed_at - created_at).days if closed_at and created_at else None
-
-        record.github_state = issue_data.get('state')
         record.github_updated_at = (
             datetime.strptime(issue_data['updated_at'], fmt)
             if issue_data.get('updated_at') else None
         )
-        record.days_open = days_open
+        record.github_closed_at = (
+            datetime.strptime(issue_data['closed_at'], fmt)
+            if issue_data.get('closed_at') else None
+        )
 
         self.db.session.commit()
-        print(f"Closed issue #{issue_data['number']} after {days_open} days.")
+        print(f"Updated issue #{issue_data['number']}.")

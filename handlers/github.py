@@ -11,6 +11,6 @@ def handle_github_new_bugs(args):
     client.github_new_bugs(args.project, args.num_days)
 
 
-def handle_github_newly_resolved_bugs(args):
+def handle_github_update_bugs(args):
     client = GithubClient()
-    client.github_newly_resolved_bugs(args.project)
+    client.github_update_bugs(args.project)

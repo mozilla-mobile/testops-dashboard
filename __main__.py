@@ -38,7 +38,7 @@ from handlers.confluence import (
 from handlers.github import (
     handle_github_issue_regression,
     handle_github_new_bugs,
-    handle_github_newly_resolved_bugs,
+    handle_github_update_bugs,
 )
 
 from handlers.jira import (
@@ -128,7 +128,7 @@ def validate_project(platform, project, report_type):
         )
         sys.exit(1)
 
-    if (report_type in ('github-new-bugs', 'github-newly-resolved-bugs')
+    if (report_type in ('github-new-bugs', 'github-update-bugs')
             and project not in PROJECTS_MOBILE):
         print(
             f"Error: Invalid project '{project}' for GitHub new bugs report. "
@@ -192,7 +192,7 @@ COMMAND_MAP = {
     'confluence-build-validation': handle_confluence_build_validation,
     'github-issue-regression': handle_github_issue_regression,
     'github-new-bugs': handle_github_new_bugs,
-    'github-newly-resolved-bugs': handle_github_newly_resolved_bugs,
+    'github-update-bugs': handle_github_update_bugs,
     'jira-qa-needed': handle_jira_qa_needed,
     'jira-qa-requests': handle_jira_qa_requests,
     'jira-softvision-worklogs': handle_jira_softvision_worklogs,
