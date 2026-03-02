@@ -68,6 +68,7 @@ def insert_rates(json_data, csv_file, project):
         'looker_dashboard_url', None)
     confluence_report_url = project_config.get(project).get(
         'confluence_report_url', None)
+    is_low_adoption = False
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
         table_rows = []
@@ -111,10 +112,27 @@ def insert_rates(json_data, csv_file, project):
                     )
                 )
             else:
+                is_low_adoption = True
                 print("Version {0}'s adoption rate is less than 1%. Skipping."
                       .format(row['release_version']))
 
-        insert_table(json_data, table_rows)
+        # If no rates are reported, add a warning message rather than 
+        # sending a blank message.
+        if len(table_rows) == 0:
+            explanation = ":warning: No rates reported"
+            if is_low_adoption:
+                explanation = ":information_source: Adoption rate(s) less than 1%."
+            json_data["attachments"][0]["blocks"].append(
+				{
+					"type": "section",
+					"text": {
+						"type": "mrkdwn",
+						"text": explanation
+					}
+				},
+            )
+        else:
+            insert_table(json_data, table_rows)
         insert_buttons(json_data, looker_dashboard_url, confluence_report_url)
 
         if flag_low_crash_free_rate_detected:
