@@ -77,9 +77,6 @@ def jira_qa_requests():
 
     payload = select_and_transform_jira_df(df, selected_columns)
 
-    # FIX: Convert pd.NA to None for MySQL compatibility
-    payload = payload.astype(object).where(payload.notna(), None)
-
     report_jira_qa_requests_insert(payload)
 
 
@@ -117,9 +114,6 @@ def jira_qa_requests_workload():
         logger.info("Input columns are missing from Jira payload: %s", missing_inputs)
 
     payload = select_and_transform_jira_df(df, selected_columns)
-
-    # FIX: Convert pd.NA to None for MySQL compatibility
-    payload = payload.astype(object).where(payload.notna(), None)
 
     print(payload)
     report_jira_qa_requests_workload_insert(payload)

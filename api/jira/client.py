@@ -43,12 +43,13 @@ class Jira:
             sys.exit(1)
 
     # API: Filters
-    def filters(self):
-        query = SEARCH + '?' + JQL_QUERY + FILTER_ID_ALL_REQUESTS_2022 \
-                + '&fields=' \
-                + DEFAULT_COLUMNS + ',' + STORY_POINTS + ',' \
-                + FIREFOX_RELEASE_TRAIN + ',' \
-                + ENGINEERING_TEAM + '&' + MAX_RESULT
+    def filters(self, filter_id=FILTER_ID_ALL_REQUESTS_2022, extra_fields=None):
+        if extra_fields is None:
+            extra_fields = [STORY_POINTS, FIREFOX_RELEASE_TRAIN, ENGINEERING_TEAM]
+
+        fields = DEFAULT_COLUMNS + ',' + ','.join(extra_fields)
+        query = SEARCH + '?' + JQL_QUERY + filter_id \
+            + '&fields=' + fields + '&' + MAX_RESULT
 
         tmp = self.client.get_search(query, data_type='issues')
         print("function: filters")

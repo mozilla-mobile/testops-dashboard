@@ -134,11 +134,11 @@ jobs:
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
           ls sentry-slack-fenix-beta.json
-      - name: Send health notification to Slack (Android Beta)
-        id: slack-sentry-fenix-beta
-        uses: slackapi/slack-github-action@v2.1.0
-        with:
-          payload-file-path: "./sentry-slack-fenix-beta.json"
-          payload-templated: true
-          webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
-          webhook-type: incoming-webhook
+      # - name: Send health notification to Slack (Android Beta)
+      #   id: slack-sentry-fenix-beta
+      #   uses: slackapi/slack-github-action@v2.1.0
+      #   with:
+      #     payload-file-path: "./sentry-slack-fenix-beta.json"
+      #     payload-templated: true
+      #     webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
+      #     webhook-type: incoming-webhook
