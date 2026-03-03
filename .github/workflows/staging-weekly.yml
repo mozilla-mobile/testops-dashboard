@@ -56,9 +56,9 @@ jobs:
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
           proxy_version: "1.37.11"
-      - name: Query new Github issues
+      - name: Update Github database
         run: |
-          python __main__.py --report-type github-new-bugs --project firefox-ios --num-days 8
+          python __main__.py --report-type github-update-database --project firefox-ios --num-days 8
       - name: Construct Slack report
         run: |
           python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json

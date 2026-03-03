@@ -211,7 +211,12 @@ class GithubClient(Github):
         table = self.paginate(project, table)
         print(table)
 
-    # URL: New Bugs
+    # URL: Entry point to update existing bugs and add new bugs from last n days
+    def github_update_database(self, project, num_days=1):
+        self.github_update_bugs(project)
+        self.github_new_bugs(project, num_days)
+
+    # URL: New bugs last n days
     def github_new_bugs(self, project, num_days=1):
         since_when = datetime.now(UTC) - timedelta(days=int(num_days))
         timestamp = since_when.strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -219,6 +224,13 @@ class GithubClient(Github):
 
         # Extract items from search API response
         all_bugs = search_result.get('items', []) if search_result else []
+
+        # Filter out bugs from org members and contributors
+        EXCLUDED_ASSOCIATIONS = {'OWNER', 'MEMBER'}
+        all_bugs = [
+            bug for bug in all_bugs
+            if bug.get('author_association') not in EXCLUDED_ASSOCIATIONS
+        ]
 
         # Print all bug titles using list comprehension
         [print(bug.get('title', 'No title')) for bug in all_bugs]
@@ -251,7 +263,7 @@ class GithubClient(Github):
 
         return df_new_bugs
 
-    # URL: Update bugs
+    # URL: Update bugs fetched from last time
     def github_update_bugs(self, project):
         issues = self.database.get_all_issues(project)
         print(f"Found {len(issues)} issues. Checking for updates...")

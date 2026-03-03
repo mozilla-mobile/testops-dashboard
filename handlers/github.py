@@ -6,11 +6,6 @@ def handle_github_issue_regression(args):
     client.github_issue_regression(args.project)
 
 
-def handle_github_new_bugs(args):
+def handle_github_update_database(args):
     client = GithubClient()
-    client.github_new_bugs(args.project, args.num_days)
-
-
-def handle_github_update_bugs(args):
-    client = GithubClient()
-    client.github_update_bugs(args.project)
+    client.github_update_database(args.project, args.num_days)
