@@ -139,7 +139,7 @@ def insert_rates(json_data, csv_file, project):
         insert_buttons(json_data, looker_dashboard_url, confluence_report_url)
 
         if flag_low_crash_free_rate_detected:
-            json_data["attachments"][0]["blocks"].append(
+            json_data["blocks"].append(
                 {
                     "type": "context",
                     "elements": [
@@ -195,7 +195,7 @@ def insert_table(json_data, table_rows):
         "rows": [header_row] + table_rows
     }
 
-    json_data["attachments"][0]["blocks"].append(table)
+    json_data["blocks"].append(table)
 
 
 def insert_buttons(json_data, looker_dashboard_url, confluence_report_url):
@@ -230,28 +230,22 @@ def insert_buttons(json_data, looker_dashboard_url, confluence_report_url):
 
     # Only add the actions block if we have at least one button
     if buttons_elements:
-        json_data["attachments"][0]["blocks"].append({
+        json_data["blocks"].append({
             "type": "actions",
             "elements": buttons_elements
         })
 
 
-def init_json(project):
-    icon = project_config.get(project).get('icon')
-    product = project_config.get(project).get('product')
+def init_json():
     json_data = {
-        "attachments": [
+        "blocks": [
             {
-                "blocks": [
-                    {
-                        "type": "header",
-                        "text": {
-                            "type": "plain_text",
-                            "text": "{0} Product Health: {1}".format(icon, product),
-                            "emoji": True
-                        }
-                    }
-                ]
+                "type": "header",
+                "text": {
+                    "type": "plain_text",
+                    "text": ":sentry: Product Health",
+                    "emoji": True
+                }
             }
         ]
     }
@@ -259,7 +253,7 @@ def init_json(project):
 
 
 def main(file_csv: str, project: str) -> None:
-    json_data = init_json(project)
+    json_data = init_json()
     insert_rates(json_data, file_csv, project)
 
     output_path = Path('sentry-slack-{0}.json'.format(project))
