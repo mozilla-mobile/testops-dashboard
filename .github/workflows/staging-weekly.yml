@@ -56,16 +56,18 @@ jobs:
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
           proxy_version: "1.37.11"
-      - name: Get crash free rates
+      - name: Get crash free rates report
         run: |
           python __main__.py --report-type sentry-rates --project firefox-ios
-      - name: Get new Github issues
+          python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
+      - name: Get new Github issues report
         run: |
           python __main__.py --report-type github-new-bugs --project firefox-ios --num-days 8
+          python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json
       - name: Set report date
         id: date
         run: echo "value=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-      - name: Construct Slack report
+      - name: Start Slack thread with health summary
         id: slack-health
         uses: slackapi/slack-github-action@v2.1.0
         with:
@@ -79,17 +81,30 @@ jobs:
                 text:
                   type: mrkdwn
                   text: ":health: Health Monitoring Deep Dive - ${{ steps.date.outputs.value }}"
-      - name: Reply in thread
+      - name: Prepare payloads
+        run: |
+          jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}" \
+             --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
+             '. + {channel: $channel, thread_ts: $thread_ts}' \
+             sentry-slack-firefox-ios.json > sentry-slack-firefox-ios-thread.json
+          jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}" \
+             --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
+             '. + {channel: $channel, thread_ts: $thread_ts}' \
+             github-new-issues-slack.json > github-new-issues-slack-thread.json          
+      - name: Report crash free rates
         uses: slackapi/slack-github-action@v2.1.0
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
-          payload: |
-            channel: "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}"
-            thread_ts: "${{ steps.slack-health.outputs.ts }}"
-            text: "hello world!"
+          payload-file-path: "./sentry-slack-firefox-ios-thread.json"
+      - name: Report new Github issues
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
+          payload-file-path: "./github-new-issues-slack-thread.json"
 
-      
+
   github_new_bugs:
     name: New Github issues
     if: false
