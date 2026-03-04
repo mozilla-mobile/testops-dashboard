@@ -77,10 +77,11 @@ jobs:
             channel: "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}"
             text: ":health: Health Monitoring Deep Dive - ${{ steps.date.outputs.value }}"
             blocks:
-              - type: section
+              - type: header
                 text:
-                  type: mrkdwn
-                  text: ":health: *Health Monitoring Deep Dive - ${{ steps.date.outputs.value }}* :thread:"
+                  type: plain_text
+                  text: ":health: :testops-apple: Health Monitoring Deep Dive - ${{ steps.date.outputs.value }}"
+                  emoji: true
       - name: Prepare payloads
         run: |
           jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}" \
