@@ -128,7 +128,7 @@ def validate_project(platform, project, report_type):
         )
         sys.exit(1)
 
-    if (report_type == 'github-update-database'
+    if (report_type == 'github-issues'
             and project not in PROJECTS_MOBILE):
         print(
             f"Error: Invalid project '{project}' for GitHub new bugs report. "
@@ -191,7 +191,7 @@ COMMAND_MAP = {
     'confluence-updates': handle_confluence_updates,
     'confluence-build-validation': handle_confluence_build_validation,
     'github-issue-regression': handle_github_issue_regression,
-    'github-update-database': handle_github_update_database,
+    'github-issues': handle_github_update_database,
     'jira-qa-needed': handle_jira_qa_needed,
     'jira-qa-requests': handle_jira_qa_requests,
     'jira-qa-requests-desktop': handle_jira_qa_requests_desktop,

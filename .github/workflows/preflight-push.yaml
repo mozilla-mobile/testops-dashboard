@@ -144,7 +144,7 @@ jobs:
           proxy_version: "1.37.11"
       - name: Update Github database
         run: |
-          python __main__.py --report-type github-update-database --project firefox-ios --num-days 8
+          python __main__.py --report-type github-issues --project firefox-ios --num-days 8
       - uses: actions/upload-artifact@v6
         with:
           name: github_new_issues
