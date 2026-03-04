@@ -119,9 +119,13 @@ def insert_rates(json_data, csv_file, project):
         # If no rates are reported, add a warning message rather than
         # sending a blank message.
         if len(table_rows) == 0:
-            explanation = ":warning: No rates reported"
             if is_low_adoption:
-                explanation = ":information_source: Adoption rate(s) less than 1%."
+                explanation = (
+                    ":information_source: Adoption rate(s) for all "
+                    "versions are less than 1%."
+                )
+            else:
+                explanation = ":warning: No data available"
             json_data["attachments"][0]["blocks"].append(
                 {
                     "type": "section",

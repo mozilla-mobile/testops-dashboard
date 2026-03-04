@@ -155,6 +155,10 @@ class SentryClient(Sentry):
             get_train_release = self.get_latest_train_release()[-1]
         release_versions = self._report_version_strings(
             releases, get_train_release)
+        if not release_versions:
+            raise ValueError(
+                "No releases reported for project '{0}'.".format(
+                    self.sentry_project))
         print(release_versions)
         return release_versions
 
@@ -217,6 +221,11 @@ class SentryClient(Sentry):
                 df_rates = pd.concat(
                     [df_rate, df_rates], axis=0
                 )
+
+        if df_rates.empty:
+            raise ValueError(
+                "No rates retrieved for project '{0}'.".format(
+                    self.sentry_project))
 
         # Output for Slack message
         df_rates.to_csv(
