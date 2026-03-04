@@ -84,6 +84,16 @@ jobs:
                 elements:
                   - type: mrkdwn
                     text: ":testops-notify: Created by Mobile Test Engineering"
+      - name: Reply in thread
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
+          payload: |
+            channel: "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}"
+            thread_ts: "${{ steps.slack-health.outputs.ts }}"
+            text: "hello world!"
+
       
   github_new_bugs:
     name: New Github issues
