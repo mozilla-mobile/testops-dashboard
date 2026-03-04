@@ -5,7 +5,6 @@ from pathlib import Path
 import requests
 import yaml
 
-from utils.datetime_utils import DatetimeUtils
 
 project_config = {
     "firefox-ios": {
@@ -263,22 +262,19 @@ def insert_json_footer(json_data):
 
 
 def init_json(project):
-    now = DatetimeUtils.start_date('0')
     icon = project_config.get(project).get('icon')
     product = project_config.get(project).get('product')
     json_data = {
         "attachments": [
             {
-                "color": "#008000",
                 "blocks": [
                     {
                         "type": "section",
                         "text": {
                             "type": "mrkdwn",
                             "text": (
-                                "*:health: {0} Product Health: {1} "
-                                "({2})*"
-                            ).format(icon, product, now)
+                                "*{0} Product Health: {1}*"
+                            ).format(icon, product)
                         }
                     }
                 ]
