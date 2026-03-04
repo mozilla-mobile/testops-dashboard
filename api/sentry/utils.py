@@ -214,31 +214,6 @@ def insert_buttons(json_data, looker_dashboard_url, confluence_report_url):
         })
 
 
-def insert_json_footer(json_data):
-    divider = {
-            "type": "divider"
-        }
-    footer_block = {
-        "type": "context",
-        "elements": [
-            {
-                "type": "image",
-                "image_url": (
-                    "https://avatars.slack-edge.com/2025-06-24/"
-                    "9097205871668_a01e2ac8089c067ea5f8_72.png"
-                ),
-                "alt_text": "TestOps logo"
-            },
-            {
-                "type": "mrkdwn",
-                "text": "Created by Mobile Test Engineering | Data From Sentry :sentry:"
-            }
-        ]
-    }
-    json_data["attachments"][0]["blocks"].append(divider)
-    json_data["attachments"][0]["blocks"].append(footer_block)
-
-
 def init_json(project):
     icon = project_config.get(project).get('icon')
     product = project_config.get(project).get('product')
@@ -247,12 +222,11 @@ def init_json(project):
             {
                 "blocks": [
                     {
-                        "type": "section",
+                        "type": "header",
                         "text": {
-                            "type": "mrkdwn",
-                            "text": (
-                                "*{0} Product Health: {1}*"
-                            ).format(icon, product)
+                            "type": "plain_text",
+                            "text": "{0} Product Health: {1}".format(icon, product),
+                            "emoji": True
                         }
                     }
                 ]
@@ -265,7 +239,6 @@ def init_json(project):
 def main(file_csv: str, project: str) -> None:
     json_data = init_json(project)
     insert_rates(json_data, file_csv, project)
-    insert_json_footer(json_data)
 
     output_path = Path('sentry-slack-{0}.json'.format(project))
     output_path.write_text(json.dumps(json_data, indent=4))

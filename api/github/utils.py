@@ -60,19 +60,6 @@ def create_slack_json_message(issues: list) -> dict:
                         "text": ":white_check_mark: No New GitHub Issues",
                         "emoji": True
                     }
-                },
-                {
-                    "type": "context",
-                    "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": (
-                                ":testops-notify: created by "
-                                "<https://mozilla-hub.atlassian.net/"
-                                "wiki/spaces/MTE/overview|Mobile Test Engineering>"
-                            )
-                        }
-                    ]
                 }
             ]
         }
@@ -98,21 +85,6 @@ def create_slack_json_message(issues: list) -> dict:
                 "text": f"<{issue['url']}|{issue['title']}>"
             }
         })
-
-    # Add footer
-    blocks.append({
-        "type": "context",
-        "elements": [
-            {
-                "type": "mrkdwn",
-                "text": (
-                    ":testops-notify: Created by "
-                    "<https://mozilla-hub.atlassian.net/"
-                    "wiki/spaces/MTE/overview|Mobile Test Engineering>"
-                )
-            }
-        ]
-    })
 
     return {
         "blocks": blocks
