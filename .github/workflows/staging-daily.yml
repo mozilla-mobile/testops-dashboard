@@ -134,11 +134,42 @@ jobs:
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
           ls sentry-slack-fenix-beta.json
-      # - name: Send health notification to Slack (Android Beta)
-      #   id: slack-sentry-fenix-beta
-      #   uses: slackapi/slack-github-action@v2.1.0
-      #   with:
-      #     payload-file-path: "./sentry-slack-fenix-beta.json"
-      #     payload-templated: true
-      #     webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
-      #     webhook-type: incoming-webhook
+      - name: Send health notification to Slack (Android Beta)
+        id: slack-sentry-fenix-beta
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload-file-path: "./sentry-slack-fenix-beta.json"
+          payload-templated: true
+          webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
+          webhook-type: incoming-webhook
+      - name: Notify Slack on any type of failure
+        if: failure()
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          payload: |
+            {
+              "text": ":x: *Sentry report failed*\nWorkflow: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }} #${{ github.run_number }}>",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ":x: *Sentry report failed*\nWorkflow: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }} #${{ github.run_number }}>"
+                  }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": ":testops-notify: Created by Mobile Test Engineering"
+                    }
+                  ]
+                }
+              ]
+            }
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
