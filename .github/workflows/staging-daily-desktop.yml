@@ -25,7 +25,8 @@ jobs:
             args: --report-type testrail-test-case-coverage --platform desktop --project ALL
           - name: Query Test Plans and Runs
             args: --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
-
+          - name: Query Jira Features
+            args: --platform desktop --project firefox-desktop --report-type jira-requests-desktop
     steps:
       - name: Check out source repository
         uses: actions/checkout@v6
