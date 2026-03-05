@@ -48,7 +48,7 @@ REPORT_TYPES = [
     "confluence-new-page",
     "confluence-build-validation",
     "github-issue-regression",
-    "github-new-bugs",
+    "github-issues",
     "jira-qa-needed",
     "jira-qa-requests",
     "jira-qa-requests-new-issue-types",

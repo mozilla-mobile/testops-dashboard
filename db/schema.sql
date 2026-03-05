@@ -777,6 +777,28 @@ CREATE TABLE `report_bugzilla_overall_bugs` (
   UNIQUE KEY `bugzilla_key` (`bugzilla_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
+
+DROP TABLE IF EXISTS `report_github_bugs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_github_bugs` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `github_number` int NOT NULL,
+  `github_title` varchar(250) DEFAULT NULL,
+  `github_url` varchar(250) DEFAULT NULL,
+  `github_state` varchar(50) DEFAULT NULL,
+  `github_created_at` datetime DEFAULT NULL,
+  `github_updated_at` datetime DEFAULT NULL,
+  `github_closed_at` datetime DEFAULT NULL,
+  `github_user` varchar(250) DEFAULT NULL,
+  `github_author_association` varchar(100) DEFAULT NULL,
+  `github_project` varchar(250) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_github_number_project` (`github_number`, `github_project`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 --
   -- Table structure for table `report_jira_qa_requests_desktop`
   --
