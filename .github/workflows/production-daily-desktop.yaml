@@ -27,6 +27,8 @@ jobs:
             args: --report-type testrail-test-case-coverage --platform desktop --project ALL
           - name: Query Bugzilla Softvision Bugs
             args: --platform desktop --project firefox-desktop --report-type bugzilla-desktop-bugs
+          - name: Query Jira Features
+            args: --platform desktop --project firefox-desktop --report-type jira-requests-desktop
     steps:
       - name: Check out source repository
         uses: actions/checkout@v6
