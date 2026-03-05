@@ -39,7 +39,7 @@ env:
   SENTRY_FENIX_BETA_PROJECT_ID: ${{ secrets.SENTRY_FENIX_BETA_PROJECT_ID }}
 
 jobs:
-  github_new_bugs:
+  fetch-github-issues:
     name: New Github issues
     runs-on: ubuntu-latest
     steps:
@@ -56,7 +56,7 @@ jobs:
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
           proxy_version: "1.37.11"
-      - name: Update Github database
+      - name: Fetch Github Issues
         run: |
           python __main__.py --report-type github-issues --project firefox-ios --num-days 8
       - name: Construct Slack report
