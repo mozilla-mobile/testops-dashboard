@@ -318,8 +318,6 @@ class DatabaseGithub(Database):
 
     def issue_insert(self, payload, project):
         for index, row in payload.iterrows():
-            print("Updating Issue: {} - {}".format(
-                row['github_number'], row['github_title']))
             issue_created_at = datetime.strptime(
                 row['github_created_at'], '%Y-%m-%dT%H:%M:%SZ'
             ) if row['github_created_at'] else None
@@ -341,6 +339,8 @@ class DatabaseGithub(Database):
                 github_state=row['github_state'],
                 github_project=project
             )
+            print("Inserted Issue: {} - {}".format(
+                row['github_number'], row['github_title']))
             try:
                 self.db.session.add(issue)
                 self.db.session.commit()

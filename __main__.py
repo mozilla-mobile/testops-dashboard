@@ -37,7 +37,7 @@ from handlers.confluence import (
 
 from handlers.github import (
     handle_github_issue_regression,
-    handle_github_update_database,
+    handle_github_issues,
 )
 
 from handlers.jira import (
@@ -191,7 +191,7 @@ COMMAND_MAP = {
     'confluence-updates': handle_confluence_updates,
     'confluence-build-validation': handle_confluence_build_validation,
     'github-issue-regression': handle_github_issue_regression,
-    'github-issues': handle_github_update_database,
+    'github-issues': handle_github_issues,
     'jira-qa-needed': handle_jira_qa_needed,
     'jira-qa-requests': handle_jira_qa_requests,
     'jira-qa-requests-desktop': handle_jira_qa_requests_desktop,
