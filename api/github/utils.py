@@ -93,15 +93,18 @@ def create_slack_json_message(issues: list) -> dict:
         }
     ]
 
-    # Add each issue as a separate section
+    # Add all issues as bullet points in a single section
+    issue_text = ""
     for issue in issues:
-        blocks.append({
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f"<{issue['url']}|{issue['title']}> ({issue['user']})"
-            }
-        })
+        issue_text += f"• <{issue['url']}|{issue['title']}> ({issue['user']})\n"
+    
+    blocks.append({
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": issue_text.rstrip()
+        }
+    })
 
     # Add footer
     blocks.append({
