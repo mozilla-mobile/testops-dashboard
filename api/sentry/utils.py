@@ -152,7 +152,7 @@ def insert_rates(json_data, csv_file, project):
             )
         else:
             insert_table(json_data, table_rows)
-        insert_buttons(json_data, looker_dashboard_url, confluence_report_url)
+        # insert_buttons(json_data, looker_dashboard_url, confluence_report_url)
 
         if flag_low_crash_free_rate_detected:
             json_data["blocks"].append(
