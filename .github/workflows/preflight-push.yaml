@@ -117,7 +117,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python ./__main__.py ${{ matrix.args }}
 
-  github_new_bugs:
+  fetch-github-issues:
     name: New Github issues
     if: >-
       github.event_name != 'pull_request'
@@ -142,9 +142,9 @@ jobs:
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
           proxy_version: "1.37.11"
-      - name: Query new Github issues
+      - name: Fetch Github Issues
         run: |
-          python __main__.py --report-type github-new-bugs --project firefox-ios --num-days 8
+          python __main__.py --report-type github-issues --project firefox-ios --num-days 8
       - uses: actions/upload-artifact@v6
         with:
           name: github_new_issues
