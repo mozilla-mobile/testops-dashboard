@@ -17,6 +17,12 @@ project_config = {
         "confluence_report_url": (
             "https://mozilla-hub.atlassian.net/wiki/spaces/"
             "MTE/pages/1631911951/iO+Health+Monitor+Report"
+        ),
+        "sentry_url": (
+            "https://mozilla.sentry.io/explore/releases/?"
+            "environment=Production&project=6176941&"
+            "query=release.package%3Aorg.mozilla.ios.Firefox&"
+            "statsPeriod=14d"
         )
     },
     "fenix": {
@@ -29,6 +35,11 @@ project_config = {
         "confluence_report_url": (
             "https://mozilla-hub.atlassian.net/wiki/spaces/"
             "MTE/pages/1695154291/Android+Health+Monitor+Report"
+        ),
+        "sentry_url": (
+            "https://mozilla.sentry.io/explore/releases/?"
+            "project=6375561&query=release.package%3Aorg.mozilla.firefox"
+            "&statsPeriod=14d"
         )
     },
     "fenix-beta": {
@@ -41,6 +52,11 @@ project_config = {
         "confluence_report_url": (
             "https://mozilla-hub.atlassian.net/wiki/spaces/"
             "MTE/pages/1695154291/Android+Health+Monitor+Report"
+        ),
+        "sentry_url": (
+            "https://mozilla.sentry.io/explore/releases/?"
+            "project=6295551&query=release.package%3Aorg.mozilla.firefox_beta"
+            "&statsPeriod=14d"
         )
     }
 }
@@ -236,15 +252,15 @@ def insert_buttons(json_data, looker_dashboard_url, confluence_report_url):
         })
 
 
-def init_json():
+def init_json(project):
+    sentry_url = project_config.get(project).get('sentry_url')
     json_data = {
         "blocks": [
             {
-                "type": "header",
+                "type": "section",
                 "text": {
-                    "type": "plain_text",
-                    "text": ":sentry: Product Health",
-                    "emoji": True
+                    "type": "mrkdwn",
+                    "text": "<{0}|:sentry2: Sentry>".format(sentry_url)
                 }
             }
         ]
@@ -253,7 +269,7 @@ def init_json():
 
 
 def main(file_csv: str, project: str) -> None:
-    json_data = init_json()
+    json_data = init_json(project)
     insert_rates(json_data, file_csv, project)
 
     output_path = Path('sentry-slack-{0}.json'.format(project))
