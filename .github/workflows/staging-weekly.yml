@@ -59,6 +59,8 @@ jobs:
       - name: Get crash free rates report
         run: |
           python __main__.py --report-type sentry-rates --project firefox-ios
+          head -3 ./sentry_rates.csv > tmp.csv
+          mv tmp.csv ./sentry_rates.csv
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
       - name: Get new Github issues report
         run: |
