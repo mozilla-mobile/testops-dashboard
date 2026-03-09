@@ -64,7 +64,7 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
       - name: Get new Github issues report
         run: |
-          python __main__.py --report-type github-new-bugs --project firefox-ios --num-days 8
+          python __main__.py --report-type github-issues --project firefox-ios --num-days 8
           python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json
       - name: Set report date
         id: date
