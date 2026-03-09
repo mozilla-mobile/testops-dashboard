@@ -97,7 +97,7 @@ def create_slack_json_message(issues: list) -> dict:
     issue_text = ""
     for issue in issues:
         issue_text += f"• <{issue['url']}|{issue['title']}> ({issue['user']})\n"
-    
+
     blocks.append({
         "type": "section",
         "text": {
