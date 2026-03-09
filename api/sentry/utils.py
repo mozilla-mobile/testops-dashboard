@@ -260,7 +260,7 @@ def init_json(project):
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": "<{0}|:sentry2: Sentry>".format(sentry_url)
+                    "text": ":sentry2: <{0}|Sentry>".format(sentry_url)
                 }
             }
         ]
