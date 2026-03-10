@@ -154,7 +154,7 @@ def insert_rates(json_data, csv_file, project, shortform=False):
             )
         else:
             insert_table(json_data, table_rows, shortform)
-        
+
         if not shortform:
             insert_buttons(json_data, looker_dashboard_url, confluence_report_url)
 
@@ -211,7 +211,7 @@ def insert_table(json_data, table_rows, shortform=False):
     ]
 
     if shortform:
-        table_rows = table_rows[:2] 
+        table_rows = table_rows[:2]
 
     table = {
         "type": "table",
@@ -257,6 +257,7 @@ def insert_buttons(json_data, looker_dashboard_url, confluence_report_url):
             "type": "actions",
             "elements": buttons_elements
         })
+
 
 def insert_json_footer(json_data):
     divider = {
