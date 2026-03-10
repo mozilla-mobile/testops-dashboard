@@ -77,12 +77,12 @@ jobs:
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
           payload: |
             channel: "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}"
-            text: ":health: Health Monitoring Deep Dive - ${{ steps.date.outputs.value }} :thread:"
+            text: ":health: Health Monitoring Deep Dive - (${{ steps.date.outputs.value }})"
             blocks:
               - type: section
                 text:
                   type: mrkdwn
-                  text: ":health: Health Monitoring Deep Dive - ${{ steps.date.outputs.value }}"
+                  text: ":health: Health Monitoring Deep Dive (${{ steps.date.outputs.value }})* :thread:"
       - name: Prepare payloads
         run: |
           jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}" \
