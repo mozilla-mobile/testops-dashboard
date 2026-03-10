@@ -82,7 +82,7 @@ jobs:
               - type: header
                 text:
                   type: plain_text
-                  text: ":health: :testops-apple: Health Monitoring Deep Dive - ${{ steps.date.outputs.value }}"
+                  text: ":health: Health Monitoring Deep Dive - ${{ steps.date.outputs.value }}"
                   emoji: true
       - name: Prepare payloads
         run: |

@@ -54,11 +54,10 @@ def create_slack_json_message(issues: list) -> dict:
         return {
             "blocks": [
                 {
-                    "type": "header",
+                    "type": "section",
                     "text": {
-                        "type": "plain_text",
-                        "text": ":white_check_mark: No New GitHub Issues",
-                        "emoji": True
+                        "type": "mrkdwn",
+                        "text": ":white_check_mark: No New GitHub Issues"
                     }
                 }
             ]
