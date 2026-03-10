@@ -5,6 +5,8 @@ from pathlib import Path
 import requests
 import yaml
 
+from utils.datetime_utils import DatetimeUtils
+
 
 project_config = {
     "firefox-ios": {
@@ -70,7 +72,7 @@ def get_all_future_versions():
         return sorted(list(response.json().keys()))
 
 
-def insert_rates(json_data, csv_file, project):
+def insert_rates(json_data, csv_file, project, shortform=False):
     all_future_versions = get_all_future_versions()
     print(all_future_versions)
     low_crash_free_rate_threshold = None
@@ -79,6 +81,10 @@ def insert_rates(json_data, csv_file, project):
         low_crash_free_rate_threshold = rules.get(project).get(
             'LOW_CRASH_FREE_RATE_THRESHOLD', 99.5)
     flag_low_crash_free_rate_detected = False
+    looker_dashboard_url = project_config.get(project).get(
+        'looker_dashboard_url', None)
+    confluence_report_url = project_config.get(project).get(
+        'confluence_report_url', None)
     is_low_adoption = False
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
@@ -137,7 +143,7 @@ def insert_rates(json_data, csv_file, project):
                 )
             else:
                 explanation = ":warning: No data available"
-            json_data["attachments"][0]["blocks"].append(
+            json_data["blocks"].append(
                 {
                     "type": "section",
                     "text": {
@@ -147,8 +153,10 @@ def insert_rates(json_data, csv_file, project):
                 },
             )
         else:
-            insert_table(json_data, table_rows)
-        # insert_buttons(json_data, looker_dashboard_url, confluence_report_url)
+            insert_table(json_data, table_rows, shortform)
+        
+        if not shortform:
+            insert_buttons(json_data, looker_dashboard_url, confluence_report_url)
 
         if flag_low_crash_free_rate_detected:
             json_data["blocks"].append(
@@ -193,7 +201,7 @@ def _create_table_header_cell(text):
     }
 
 
-def insert_table(json_data, table_rows):
+def insert_table(json_data, table_rows, shortform=False):
     """Insert a table with headers for the Sentry health report."""
     header_row = [
         _create_table_header_cell("Version"),
@@ -201,6 +209,9 @@ def insert_table(json_data, table_rows):
         _create_table_header_cell("Crash-Free Users"),
         _create_table_header_cell("Adoption Rate")
     ]
+
+    if shortform:
+        table_rows = table_rows[:2] 
 
     table = {
         "type": "table",
@@ -247,27 +258,70 @@ def insert_buttons(json_data, looker_dashboard_url, confluence_report_url):
             "elements": buttons_elements
         })
 
-
-def init_json(project):
-    sentry_url = project_config.get(project).get('sentry_url')
-    json_data = {
-        "blocks": [
+def insert_json_footer(json_data):
+    divider = {
+            "type": "divider"
+        }
+    footer_block = {
+        "type": "context",
+        "elements": [
             {
-                "type": "section",
-                "text": {
-                    "type": "mrkdwn",
-                    "text": (":bar_chart: <{0}|Release Monitoring> "
-                             "(from Sentry :sentry2:)").format(sentry_url)
-                }
+                "type": "image",
+                "image_url": (
+                    "https://avatars.slack-edge.com/2025-06-24/"
+                    "9097205871668_a01e2ac8089c067ea5f8_72.png"
+                ),
+                "alt_text": "TestOps logo"
+            },
+            {
+                "type": "mrkdwn",
+                "text": "Created by Mobile Test Engineering | Data From Sentry :sentry:"
             }
         ]
     }
+    json_data["blocks"].append(divider)
+    json_data["blocks"].append(footer_block)
+
+
+def init_json(project, shortform=False):
+    if shortform:
+        sentry_url = project_config.get(project).get('sentry_url')
+        json_data = {
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": (":bar_chart: <{0}|Release Monitoring> "
+                                 "(from Sentry :sentry2:)").format(sentry_url)
+                    }
+                }
+            ]
+        }
+    else:
+        now = DatetimeUtils.start_date('0')
+        icon = project_config.get(project).get('icon')
+        product = project_config.get(project).get('product')
+        json_data = {
+            "blocks": [
+                {
+                    "type": "section",
+                    "text": {
+                        "type": "mrkdwn",
+                        "text": (
+                            "*:health: {0} Product Health: {1} "
+                            "({2})*"
+                        ).format(icon, product, now)
+                    }
+                }
+            ]
+        }
     return json_data
 
 
-def main(file_csv: str, project: str) -> None:
-    json_data = init_json(project)
-    insert_rates(json_data, file_csv, project)
+def main(file_csv: str, project: str, shortform: bool = False) -> None:
+    json_data = init_json(project, shortform)
+    insert_rates(json_data, file_csv, project, shortform)
 
     output_path = Path('sentry-slack-{0}.json'.format(project))
     output_path.write_text(json.dumps(json_data, indent=4))
@@ -281,6 +335,8 @@ if __name__ == '__main__':
     parser.add_argument('--file', required=True, help='Path to the input CSV file')
     parser.add_argument('--project', required=True,
                         help='Sentry project name (firefox-ios or fenix)')
+    parser.add_argument('--shortform', action='store_true', default=False,
+                        help='Generate a shorter version of the report')
 
     args = parser.parse_args()
-    main(args.file, args.project)
+    main(args.file, args.project, args.shortform)
