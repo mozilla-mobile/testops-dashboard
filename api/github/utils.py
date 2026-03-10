@@ -49,7 +49,10 @@ def csv_to_slack_message(csv_filename):
 
 
 def create_slack_json_message(issues: list) -> dict:
-    GITHUB_URL = "https://github.com/mozilla-mobile/firefox-ios/issues?q=is%3Aopen%20is%3Aissue%20no%3Aassignee%20-author%3Adata-sync-user"
+    GITHUB_URL = (
+        "https://github.com/mozilla-mobile/firefox-ios/issues?"
+        "q=is%3Aopen%20is%3Aissue%20no%3Aassignee%20-author%3Adata-sync-user"
+    )
     if not issues:
         return {
             "blocks": [

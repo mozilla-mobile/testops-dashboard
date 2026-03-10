@@ -79,10 +79,6 @@ def insert_rates(json_data, csv_file, project):
         low_crash_free_rate_threshold = rules.get(project).get(
             'LOW_CRASH_FREE_RATE_THRESHOLD', 99.5)
     flag_low_crash_free_rate_detected = False
-    looker_dashboard_url = project_config.get(project).get(
-        'looker_dashboard_url', None)
-    confluence_report_url = project_config.get(project).get(
-        'confluence_report_url', None)
     is_low_adoption = False
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
@@ -260,7 +256,8 @@ def init_json(project):
                 "type": "section",
                 "text": {
                     "type": "mrkdwn",
-                    "text": ":bar_chart: <{0}|Release Monitoring> (from Sentry :sentry2:)".format(sentry_url)
+                    "text": (":bar_chart: <{0}|Release Monitoring> "
+                             "(from Sentry :sentry2:)").format(sentry_url)
                 }
             }
         ]
