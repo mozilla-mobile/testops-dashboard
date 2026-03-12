@@ -28,7 +28,7 @@ jobs:
           - name: Query Bugzilla Softvision Bugs
             args: --platform desktop --project firefox-desktop --report-type bugzilla-desktop-bugs
           - name: Query Jira Features
-            args: --platform desktop --project firefox-desktop --report-type jira-requests-desktop
+            args: --platform desktop --project firefox-desktop --report-type jira-qa-requests-desktop
     steps:
       - name: Check out source repository
         uses: actions/checkout@v6
@@ -68,7 +68,6 @@ jobs:
             echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
             echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
       - run: python ./__main__.py ${{ matrix.args }}
-        continue-on-error: true
 
 
   notify:
@@ -86,8 +85,8 @@ jobs:
         env:
           WORKFLOW_NAME: ${{ github.workflow }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
-          JOB_STATUS: ${{ job.status == 'success' && ':white_check_mark:' || job.status == 'failure' && ':x:' }}
-          JOB_STATUS_COLOR: ${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#FF0000' }}
+          JOB_STATUS: ${{ needs.reports.result == 'success' && ':white_check_mark:' || needs.reports.result == 'failure' && ':x:' || ':warning:' }}
+          JOB_STATUS_COLOR: ${{ needs.reports.result == 'success' && '#36a64f' || needs.reports.result == 'failure' && '#FF0000' || '#FFA500' }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         with:
