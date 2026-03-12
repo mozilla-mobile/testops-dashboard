@@ -13,3 +13,4 @@ PyYAML
 Jinja2
 beautifulsoup4
 pytz
+packaging
