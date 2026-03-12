@@ -7,7 +7,6 @@
 import os
 import sys
 import requests
-import re
 import pandas as pd
 
 from packaging.version import Version
