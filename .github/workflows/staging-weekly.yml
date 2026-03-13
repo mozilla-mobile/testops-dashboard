@@ -1,9 +1,9 @@
 name: Mobile Testops Report WEEKLY - Staging
 
-# Weekly on Tuesdays at 8am GMT
+# Weekly on Mondays @4am UTC
 on:
   schedule:
-    - cron:  0 8 * * 2
+    - cron:  "0 4 * * 1"
 
   workflow_dispatch:
     inputs:
@@ -39,14 +39,14 @@ env:
   SENTRY_FENIX_BETA_PROJECT_ID: ${{ secrets.SENTRY_FENIX_BETA_PROJECT_ID }}
 
 jobs:
-  iOS_health_deepdive:
-    name: Weekly Health Monitoring Deep Dive
+  fetch-github-issues:
+    name: New Github issues
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.13'
+          python-version: '3.11'
           cache: "pip"
           cache-dependency-path: requirements.txt
       - run: pip install -r requirements.txt
@@ -56,50 +56,16 @@ jobs:
           instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
           proxy_version: "1.37.11"
-      - name: Get crash free rates report
-        run: |
-          python __main__.py --report-type sentry-rates --project firefox-ios
-          python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios --shortform
-      - name: Get new Github issues report
+      - name: Fetch Github Issues
         run: |
           python __main__.py --report-type github-issues --project firefox-ios --num-days 8
-          python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json
-      - name: Set report date
-        id: date
-        run: echo "value=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-      - name: Create Slack thread
-        id: slack-health
-        uses: slackapi/slack-github-action@v3.0.1
-        with:
-          method: chat.postMessage
-          token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
-          payload: |
-            channel: "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}"
-            text: ":health: Health Monitoring Deep Dive - (${{ steps.date.outputs.value }})"
-            blocks:
-              - type: section
-                text:
-                  type: mrkdwn
-                  text: ":health: *Health Monitoring Deep Dive (${{ steps.date.outputs.value }})* :thread:"
-      - name: Create Slack payloads
+      - name: Construct Slack report
         run: |
-          jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}" \
-             --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
-             '. + {channel: $channel, thread_ts: $thread_ts}' \
-             sentry-slack-firefox-ios.json > sentry-slack-firefox-ios-thread.json
-          jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}" \
-             --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
-             '. + {channel: $channel, thread_ts: $thread_ts}' \
-             github-new-issues-slack.json > github-new-issues-slack-thread.json          
-      - name: "Post to Slack: Crash Free Rates"
-        uses: slackapi/slack-github-action@v3.0.1
+          python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json
+      - name: Send notification to Slack
+        uses: slackapi/slack-github-action@v2.1.0
         with:
-          method: chat.postMessage
-          token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
-          payload-file-path: "./sentry-slack-firefox-ios-thread.json"
-      - name: "Post to Slack: New Github Issues"
-        uses: slackapi/slack-github-action@v3.0.1
-        with:
-          method: chat.postMessage
-          token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
-          payload-file-path: "./github-new-issues-slack-thread.json"
+          payload-file-path: "./github-new-issues-slack.json"
+          payload-templated: true
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
