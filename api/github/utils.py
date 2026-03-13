@@ -1,7 +1,6 @@
 import csv
 import sys
 import json
-from datetime import datetime, UTC
 
 
 def main():
@@ -50,45 +49,30 @@ def csv_to_slack_message(csv_filename):
 
 
 def create_slack_json_message(issues: list) -> dict:
-    current_date = datetime.now(UTC).strftime('%Y-%m-%d')
-
+    GITHUB_URL = (
+        "https://github.com/mozilla-mobile/firefox-ios/issues?"
+        "q=is%3Aopen%20is%3Aissue%20no%3Aassignee%20-author%3Adata-sync-user"
+    )
     if not issues:
         return {
             "blocks": [
                 {
-                    "type": "header",
+                    "type": "section",
                     "text": {
-                        "type": "plain_text",
-                        "text": f":white_check_mark: No New GitHub Issues "
-                                f"({current_date})",
-                        "emoji": True
+                        "type": "mrkdwn",
+                        "text": ":white_check_mark: No New GitHub Issues"
                     }
-                },
-                {
-                    "type": "context",
-                    "elements": [
-                        {
-                            "type": "mrkdwn",
-                            "text": (
-                                ":testops-notify: created by "
-                                "<https://mozilla-hub.atlassian.net/"
-                                "wiki/spaces/MTE/overview|Mobile Test Engineering>"
-                            )
-                        }
-                    ]
                 }
             ]
         }
 
     # Create blocks with each issue as a section
-    current_date = datetime.now(UTC).strftime('%Y-%m-%d')
     blocks = [
         {
-            "type": "header",
+            "type": "section",
             "text": {
-                "type": "plain_text",
-                "text": f":github: New GitHub Issues ({current_date})",
-                "emoji": True
+                "type": "mrkdwn",
+                "text": ":github: <{0}|GitHub>".format(GITHUB_URL)
             }
         }
     ]
@@ -104,21 +88,6 @@ def create_slack_json_message(issues: list) -> dict:
             "type": "mrkdwn",
             "text": issue_text.rstrip()
         }
-    })
-
-    # Add footer
-    blocks.append({
-        "type": "context",
-        "elements": [
-            {
-                "type": "mrkdwn",
-                "text": (
-                    ":testops-notify: Created by "
-                    "<https://mozilla-hub.atlassian.net/"
-                    "wiki/spaces/MTE/overview|Mobile Test Engineering>"
-                )
-            }
-        ]
     })
 
     return {
