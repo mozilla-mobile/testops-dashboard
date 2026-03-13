@@ -226,7 +226,7 @@ class GithubClient(Github):
         all_bugs = search_result.get('items', []) if search_result else []
 
         # Filter out bugs from org members and contributors
-        EXCLUDED_ASSOCIATIONS = {'OWNER', 'MEMBER'}
+        EXCLUDED_ASSOCIATIONS = {'OWNER', 'MEMBER', 'COLLABORATOR'}
         all_bugs = [
             bug for bug in all_bugs
             if bug.get('author_association') not in EXCLUDED_ASSOCIATIONS
