@@ -91,13 +91,13 @@ jobs:
              --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
              '. + {channel: $channel, thread_ts: $thread_ts}' \
              github-new-issues-slack.json > github-new-issues-slack-thread.json          
-      - name: Post to Slack: Crash Free Rates
+      - name: "Post to Slack: Crash Free Rates"
         uses: slackapi/slack-github-action@v3.0.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
           payload-file-path: "./sentry-slack-firefox-ios-thread.json"
-      - name: Post to Slack: New Github Issues
+      - name: "Post to Slack: New Github Issues"
         uses: slackapi/slack-github-action@v3.0.1
         with:
           method: chat.postMessage
