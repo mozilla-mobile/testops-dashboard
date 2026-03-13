@@ -1,6 +1,6 @@
 name: Firefox iOS Health Monitoring Deep Dive - WEEKLY - Production
 
-# Weekly on Tuesdays at 10am GMT
+# Weekly on Tuesdays at 8am GMT
 on:
   schedule:
     - cron:  0 8 * * 2
@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.13'
           cache: "pip"
           cache-dependency-path: requirements.txt
       - run: pip install -r requirements.txt
@@ -67,9 +67,9 @@ jobs:
       - name: Set report date
         id: date
         run: echo "value=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-      - name: Start Slack thread with health summary
+      - name: Create Slack thread
         id: slack-health
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v3.0.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
@@ -81,7 +81,7 @@ jobs:
                 text:
                   type: mrkdwn
                   text: ":health: *Health Monitoring Deep Dive (${{ steps.date.outputs.value }})* :thread:"
-      - name: Prepare payloads for Slack thread
+      - name: Create Slack payloads
         run: |
           jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV }}" \
              --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
@@ -91,14 +91,14 @@ jobs:
              --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
              '. + {channel: $channel, thread_ts: $thread_ts}' \
              github-new-issues-slack.json > github-new-issues-slack-thread.json          
-      - name: Report crash free rates
-        uses: slackapi/slack-github-action@v2.1.0
+      - name: Post to Slack: Crash Free Rates
+        uses: slackapi/slack-github-action@v3.0.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
           payload-file-path: "./sentry-slack-firefox-ios-thread.json"
-      - name: Report new Github issues
-        uses: slackapi/slack-github-action@v2.1.0
+      - name: Post to Slack: New Github Issues
+        uses: slackapi/slack-github-action@v3.0.1
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
