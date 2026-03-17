@@ -1,9 +1,9 @@
 name: Firefox iOS Health Monitoring Deep Dive - WEEKLY - Production
 
-# Weekly on Tuesdays at 8am GMT
+# Weekly on Tuesdays at 10am GMT
 on:
   schedule:
-    - cron:  0 8 * * 2
+    - cron:  0 10 * * 2
 
   workflow_dispatch:
     inputs:
