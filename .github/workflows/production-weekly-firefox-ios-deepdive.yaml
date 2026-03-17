@@ -90,7 +90,16 @@ jobs:
           jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV }}" \
              --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
              '. + {channel: $channel, thread_ts: $thread_ts}' \
-             github-new-issues-slack.json > github-new-issues-slack-thread.json          
+             github-new-issues-slack.json > github-new-issues-slack-thread.json
+      - name: "Post to Slack: Looker Dashboard"
+        uses: slackapi/slack-github-action@v3.0.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
+          payload: |
+            channel: "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV }}"
+            thread_ts: "${{ steps.slack-health.outputs.ts }}"
+            text: "<https://mozilla.cloud.looker.com/dashboards/operational_monitoring::firefox_ios_health?Date=&Percentile=50|Looker Dashboard>"
       - name: "Post to Slack: Crash Free Rates"
         uses: slackapi/slack-github-action@v3.0.1
         with:
