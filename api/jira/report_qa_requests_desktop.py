@@ -154,12 +154,16 @@ def report_jira_qa_requests_desktop_insert(payload):
             jira_priority=row['jira_priority'],
             jira_issue_type=row['jira_issue_type'],
             jira_labels=row['jira_labels'],
-            jira_subtasks=row['jira_subtasks'] if isinstance(row['jira_subtasks'], str) else None,
+            jira_subtasks=(
+                row['jira_subtasks'] if isinstance(row['jira_subtasks'], str) else None
+            ),
             jira_story_points=row['jira_story_points'],
             jira_target_release=row['jira_target_release'],
             jira_engineering_team=row['jira_engineering_team'],
             jira_tested_trains=row['jira_tested_trains'],
             jira_product=row['jira_product'],
-            jira_timeline=row['jira_timeline'] if isinstance(row['jira_timeline'], str) else None)
+            jira_timeline=(
+                row['jira_timeline'] if isinstance(row['jira_timeline'], str) else None
+            ))
         db.session.add(report)
     db.session.commit()
