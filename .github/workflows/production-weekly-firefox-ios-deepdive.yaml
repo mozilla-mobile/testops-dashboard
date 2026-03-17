@@ -95,11 +95,11 @@ jobs:
         uses: slackapi/slack-github-action@v3.0.1
         with:
           method: chat.postMessage
-          token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
+          token: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           payload-file-path: "./sentry-slack-firefox-ios-thread.json"
       - name: "Post to Slack: New Github Issues"
         uses: slackapi/slack-github-action@v3.0.1
         with:
           method: chat.postMessage
-          token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
+          token: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           payload-file-path: "./github-new-issues-slack-thread.json"
