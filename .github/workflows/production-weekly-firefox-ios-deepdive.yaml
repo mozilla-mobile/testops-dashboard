@@ -84,11 +84,11 @@ jobs:
       - name: Create Slack payloads
         run: |
           jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV }}" \
-             --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
+             --arg thread_ts "${{ fromJSON(steps.slack-health.outputs.response).ts }}" \
              '. + {channel: $channel, thread_ts: $thread_ts}' \
              sentry-slack-firefox-ios.json > sentry-slack-firefox-ios-thread.json
           jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV }}" \
-             --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
+             --arg thread_ts "${{ fromJSON(steps.slack-health.outputs.response).ts }}" \
              '. + {channel: $channel, thread_ts: $thread_ts}' \
              github-new-issues-slack.json > github-new-issues-slack-thread.json          
       - name: "Post to Slack: Crash Free Rates"
