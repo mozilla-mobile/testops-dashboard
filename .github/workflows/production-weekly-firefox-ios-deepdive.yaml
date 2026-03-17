@@ -62,7 +62,7 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios --shortform
       - name: Get new Github issues report
         run: |
-          python __main__.py --report-type github-issues --project firefox-ios --num-days 8
+          python __main__.py --report-type github-issues --project firefox-ios --num-days 7
           python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json
       - name: Set report date
         id: date
@@ -99,7 +99,7 @@ jobs:
           payload: |
             channel: "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}"
             thread_ts: "${{ steps.slack-health.outputs.ts }}"
-            text: "<https://mozilla.cloud.looker.com/dashboards/operational_monitoring::firefox_ios_health?Date=&Percentile=50|Looker Dashboard>"
+            text: ":looker: <https://mozilla.cloud.looker.com/dashboards/operational_monitoring::firefox_ios_health?Date=&Percentile=50|Looker Dashboard>"
       - name: "Post to Slack: Crash Free Rates"
         uses: slackapi/slack-github-action@v3.0.1
         with:
