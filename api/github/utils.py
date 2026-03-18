@@ -72,7 +72,7 @@ def create_slack_json_message(issues: list) -> dict:
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": ":github: <{0}|GitHub>".format(GITHUB_URL)
+                "text": ":github: <{0}|GitHub Issues>".format(GITHUB_URL)
             }
         }
     ]
