@@ -119,7 +119,7 @@ jobs:
 
       - name: Send health notification to Slack (Android)
         id: slack-sentry-fenix
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v3.0.1
         with:
           payload-file-path: "./sentry-slack-fenix.json"
           payload-templated: true 
@@ -136,7 +136,7 @@ jobs:
           ls sentry-slack-fenix-beta.json
       - name: Send health notification to Slack (Android Beta)
         id: slack-sentry-fenix-beta
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v3.0.1
         with:
           payload-file-path: "./sentry-slack-fenix-beta.json"
           payload-templated: true
@@ -144,7 +144,7 @@ jobs:
           webhook-type: incoming-webhook
       - name: Notify Slack on any type of failure
         if: failure()
-        uses: slackapi/slack-github-action@v2.1.0
+        uses: slackapi/slack-github-action@v3.0.1
         with:
           payload: |
             {
