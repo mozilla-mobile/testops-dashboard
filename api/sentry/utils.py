@@ -3,6 +3,7 @@ import csv
 import argparse
 import tomllib
 from pathlib import Path
+from urllib.parse import urlencode
 import requests
 import yaml
 
@@ -11,6 +12,12 @@ from utils.datetime_utils import DatetimeUtils
 
 with open('config/sentry/projects.toml', 'rb') as f:
     project_config = tomllib.load(f)
+
+
+def build_url(base_url: str, params: dict | None = None) -> str:
+    if not params:
+        return base_url
+    return f"{base_url}?{urlencode(params)}"
 
 
 def get_all_future_versions():
@@ -30,10 +37,12 @@ def insert_rates(json_data, csv_file, project, shortform=False):
         low_crash_free_rate_threshold = rules.get(project).get(
             'LOW_CRASH_FREE_RATE_THRESHOLD', 99.5)
     flag_low_crash_free_rate_detected = False
-    looker_dashboard_url = project_config.get(project).get(
-        'looker_dashboard_url', None)
-    confluence_report_url = project_config.get(project).get(
-        'confluence_report_url', None)
+    looker_config = project_config.get(project, {}).get('looker', {})
+    looker_dashboard_url = build_url(
+        looker_config['base_url'], looker_config.get('params')
+    ) if looker_config else None
+    confluence_report_url = project_config.get(project, {}).get(
+        'confluence', {}).get('url', None)
     is_low_adoption = False
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
@@ -235,7 +244,10 @@ def insert_json_footer(json_data):
 
 def init_json(project, shortform=False):
     if shortform:
-        sentry_url = project_config.get(project).get('sentry_url')
+        sentry_config = project_config.get(project, {}).get('sentry', {})
+        sentry_url = build_url(
+            sentry_config['base_url'], sentry_config.get('params')
+        )
         json_data = {
             "blocks": [
                 {

@@ -1,20 +1,68 @@
 [firefox-ios]
 icon = ":testops-apple:"
 product = "Firefox iOS"
-looker_dashboard_url = "https://mozilla.cloud.looker.com/dashboards/2667?Sentry+Project+ID=6176941&Created+Month=30+days"
-confluence_report_url = "https://mozilla-hub.atlassian.net/wiki/spaces/MTE/pages/1631911951/iO+Health+Monitor+Report"
-sentry_url = "https://mozilla.sentry.io/explore/releases/?environment=Production&project=6176941&query=release.package%3Aorg.mozilla.ios.Firefox&statsPeriod=14d"
+
+[firefox-ios.looker]
+base_url = "https://mozilla.cloud.looker.com/dashboards/2667"
+
+[firefox-ios.looker.params]
+"Sentry Project ID" = "6176941"
+"Created Month" = "30 days"
+
+[firefox-ios.confluence]
+url = "https://mozilla-hub.atlassian.net/wiki/spaces/MTE/pages/1631911951/iO+Health+Monitor+Report"
+
+[firefox-ios.sentry]
+base_url = "https://mozilla.sentry.io/explore/releases/"
+
+[firefox-ios.sentry.params]
+environment = "Production"
+project = "6176941"
+query = "release.package:org.mozilla.ios.Firefox"
+statsPeriod = "14d"
+
 
 [fenix]
 icon = ":testops-android:"
 product = "Firefox Android"
-looker_dashboard_url = "https://mozilla.cloud.looker.com/dashboards/2667?Sentry+Project+ID=6375561&Created+Month=30+days"
-confluence_report_url = "https://mozilla-hub.atlassian.net/wiki/spaces/MTE/pages/1695154291/Android+Health+Monitor+Report"
-sentry_url = "https://mozilla.sentry.io/explore/releases/?project=6375561&query=release.package%3Aorg.mozilla.firefox&statsPeriod=14d"
+
+[fenix.looker]
+base_url = "https://mozilla.cloud.looker.com/dashboards/2667"
+
+[fenix.looker.params]
+"Sentry Project ID" = "6375561"
+"Created Month" = "30 days"
+
+[fenix.confluence]
+url = "https://mozilla-hub.atlassian.net/wiki/spaces/MTE/pages/1695154291/Android+Health+Monitor+Report"
+
+[fenix.sentry]
+base_url = "https://mozilla.sentry.io/explore/releases/"
+
+[fenix.sentry.params]
+project = "6375561"
+query = "release.package:org.mozilla.firefox"
+statsPeriod = "14d"
+
 
 [fenix-beta]
 icon = ":testops-android:"
 product = "Firefox Android (Beta)"
-looker_dashboard_url = "https://mozilla.cloud.looker.com/dashboards/2667?Sentry+Project+ID=6295551&Created+Month=30+days"
-confluence_report_url = "https://mozilla-hub.atlassian.net/wiki/spaces/MTE/pages/1695154291/Android+Health+Monitor+Report"
-sentry_url = "https://mozilla.sentry.io/explore/releases/?project=6295551&query=release.package%3Aorg.mozilla.firefox_beta&statsPeriod=14d"
+
+[fenix-beta.looker]
+base_url = "https://mozilla.cloud.looker.com/dashboards/2667"
+
+[fenix-beta.looker.params]
+"Sentry Project ID" = "6295551"
+"Created Month" = "30 days"
+
+[fenix-beta.confluence]
+url = "https://mozilla-hub.atlassian.net/wiki/spaces/MTE/pages/1695154291/Android+Health+Monitor+Report"
+
+[fenix-beta.sentry]
+base_url = "https://mozilla.sentry.io/explore/releases/"
+
+[fenix-beta.sentry.params]
+project = "6295551"
+query = "release.package:org.mozilla.firefox_beta"
+statsPeriod = "14d"
