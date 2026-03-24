@@ -74,7 +74,7 @@ jobs:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
           payload: |
-            channel: "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX  }}"
+            channel: "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV  }}"
             text: ":health: Health Monitoring Deep Dive - (${{ steps.date.outputs.value }})"
             blocks:
               - type: section
@@ -83,11 +83,11 @@ jobs:
                   text: ":health: *Health Monitoring Deep Dive (${{ steps.date.outputs.value }})* :thread:"
       - name: Create Slack payloads
         run: |
-          jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX  }}" \
+          jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV  }}" \
              --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
              '. + {channel: $channel, thread_ts: $thread_ts}' \
              sentry-slack-firefox-ios.json > sentry-slack-firefox-ios-thread.json
-          jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX  }}" \
+          jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV  }}" \
              --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
              '. + {channel: $channel, thread_ts: $thread_ts}' \
              github-new-issues-slack.json > github-new-issues-slack-thread.json
@@ -97,7 +97,7 @@ jobs:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
           payload: |
-            channel: "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX }}"
+            channel: "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV }}"
             thread_ts: "${{ steps.slack-health.outputs.ts }}"
             text: ":looker: <https://mozilla.cloud.looker.com/dashboards/operational_monitoring::firefox_ios_health?Date=&Percentile=50|Looker Dashboard>"
       - name: "Post to Slack: Crash Free Rates"
