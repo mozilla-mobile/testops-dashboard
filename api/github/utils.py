@@ -1,6 +1,7 @@
 import csv
 import sys
 import json
+from urllib.parse import urlencode
 
 
 def main():
@@ -49,10 +50,9 @@ def csv_to_slack_message(csv_filename):
 
 
 def create_slack_json_message(issues: list) -> dict:
-    GITHUB_URL = (
-        "https://github.com/mozilla-mobile/firefox-ios/issues?"
-        "q=is%3Aopen%20is%3Aissue%20no%3Aassignee%20-author%3Adata-sync-user"
-    )
+    GITHUB_REPO = "mozilla-mobile/firefox-ios"
+    query_params = {"q": "is:open is:issue no:assignee -author:data-sync-user"}
+    GITHUB_URL = f"https://github.com/{GITHUB_REPO}/issues?{urlencode(query_params)}"
     if not issues:
         return {
             "blocks": [
