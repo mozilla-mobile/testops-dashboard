@@ -156,9 +156,9 @@ class SentryClient(Sentry):
         release_versions = self._report_version_strings(
             releases, get_train_release)
         if not release_versions:
-            raise ValueError(
-                "No releases reported for project '{0}'.".format(
-                    self.sentry_project))
+            print("Warning: No releases found for '{0}', skipping.".format(
+                self.sentry_project))
+            return []
         print(release_versions)
         return release_versions
 
@@ -169,6 +169,9 @@ class SentryClient(Sentry):
             release_versions = self.sentry_releases()
         else:
             release_versions = [release]
+
+        if not release_versions:
+            return
 
         df_issues = pd.DataFrame()
         for release_version in release_versions:
