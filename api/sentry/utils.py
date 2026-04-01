@@ -1,67 +1,30 @@
 import json
 import csv
 import argparse
+import tomllib
 from pathlib import Path
+from urllib.parse import urlencode
 import requests
 import yaml
 
 from utils.datetime_utils import DatetimeUtils
 
 
-project_config = {
-    "firefox-ios": {
-        "icon": ":testops-apple:",
-        "product": "Firefox iOS",
-        "looker_dashboard_url": (
-            "https://mozilla.cloud.looker.com/dashboards/"
-            "2667?Sentry+Project+ID=6176941&Created+Month=30+days"
-        ),
-        "confluence_report_url": (
-            "https://mozilla-hub.atlassian.net/wiki/spaces/"
-            "MTE/pages/1631911951/iO+Health+Monitor+Report"
-        ),
-        "sentry_url": (
-            "https://mozilla.sentry.io/explore/releases/?"
-            "environment=Production&project=6176941&"
-            "query=release.package%3Aorg.mozilla.ios.Firefox&"
-            "statsPeriod=14d"
-        )
-    },
-    "fenix": {
-        "icon": ":testops-android:",
-        "product": "Firefox Android",
-        "looker_dashboard_url": (
-            "https://mozilla.cloud.looker.com/dashboards/"
-            "2667?Sentry+Project+ID=6375561&Created+Month=30+days"
-        ),
-        "confluence_report_url": (
-            "https://mozilla-hub.atlassian.net/wiki/spaces/"
-            "MTE/pages/1695154291/Android+Health+Monitor+Report"
-        ),
-        "sentry_url": (
-            "https://mozilla.sentry.io/explore/releases/?"
-            "project=6375561&query=release.package%3Aorg.mozilla.firefox"
-            "&statsPeriod=14d"
-        )
-    },
-    "fenix-beta": {
-        "icon": ":testops-android:",
-        "product": "Firefox Android (Beta)",
-        "looker_dashboard_url": (
-            "https://mozilla.cloud.looker.com/dashboards/"
-            "2667?Sentry+Project+ID=6295551&Created+Month=30+days"
-        ),
-        "confluence_report_url": (
-            "https://mozilla-hub.atlassian.net/wiki/spaces/"
-            "MTE/pages/1695154291/Android+Health+Monitor+Report"
-        ),
-        "sentry_url": (
-            "https://mozilla.sentry.io/explore/releases/?"
-            "project=6295551&query=release.package%3Aorg.mozilla.firefox_beta"
-            "&statsPeriod=14d"
-        )
-    }
-}
+try:
+    with open('config/sentry/projects.toml', 'rb') as f:
+        project_config = tomllib.load(f)
+except FileNotFoundError:
+    raise FileNotFoundError("config/sentry/projects.toml not found")
+except PermissionError:
+    raise PermissionError("Permission denied reading config/sentry/projects.toml")
+except tomllib.TOMLDecodeError:
+    raise
+
+
+def build_url(base_url: str, params: dict | None = None) -> str:
+    if not params:
+        return base_url
+    return f"{base_url}?{urlencode(params)}"
 
 
 def get_all_future_versions():
@@ -81,10 +44,12 @@ def insert_rates(json_data, csv_file, project, shortform=False):
         low_crash_free_rate_threshold = rules.get(project).get(
             'LOW_CRASH_FREE_RATE_THRESHOLD', 99.5)
     flag_low_crash_free_rate_detected = False
-    looker_dashboard_url = project_config.get(project).get(
-        'looker_dashboard_url', None)
-    confluence_report_url = project_config.get(project).get(
-        'confluence_report_url', None)
+    looker_config = project_config.get(project, {}).get('looker', {})
+    looker_dashboard_url = build_url(
+        looker_config['base_url'], looker_config.get('params')
+    ) if looker_config else None
+    confluence_report_url = project_config.get(project, {}).get(
+        'confluence', {}).get('url', None)
     is_low_adoption = False
     with open(csv_file, 'r') as file:
         rows = csv.DictReader(file)
@@ -286,7 +251,10 @@ def insert_json_footer(json_data):
 
 def init_json(project, shortform=False):
     if shortform:
-        sentry_url = project_config.get(project).get('sentry_url')
+        sentry_config = project_config.get(project, {}).get('sentry', {})
+        sentry_url = build_url(
+            sentry_config['base_url'], sentry_config.get('params')
+        )
         json_data = {
             "blocks": [
                 {
