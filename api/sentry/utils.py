@@ -10,8 +10,15 @@ import yaml
 from utils.datetime_utils import DatetimeUtils
 
 
-with open('config/sentry/projects.toml', 'rb') as f:
-    project_config = tomllib.load(f)
+try:
+    with open('config/sentry/projects.toml', 'rb') as f:
+        project_config = tomllib.load(f)
+except FileNotFoundError:
+    raise FileNotFoundError("config/sentry/projects.toml not found")
+except PermissionError:
+    raise PermissionError("Permission denied reading config/sentry/projects.toml")
+except tomllib.TOMLDecodeError:
+    raise
 
 
 def build_url(base_url: str, params: dict | None = None) -> str:
