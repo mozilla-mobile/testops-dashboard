@@ -1,0 +1,125 @@
+wiki_page:
+  page_id: "1823473665"
+  page_title: "Resource Data Insights - Summary"
+  sections:
+    - name: "Mobile Feature Request Workload"
+      reports:
+        - report-title: "Workload per Platform 2025"
+          report-description: "Number of Feature Requests per platform in 2025"
+          attachment-filename: "workload-per-platform-2025.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2707"
+
+        - report-title: "Workload per Platform 2024"
+          report-description: "Number of Feature Requests per platform in 2024"
+          attachment-filename: "workload-per-platform-2024.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2710"
+
+        - report-title: "YoY Feature Requests"
+          report-description: "Number of Feature Requests YoY per Platform"
+          attachment-filename: "yoy-feature-requests.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2711"
+          
+        - report-title: "Feature Requests per half year cycle"
+          report-description: "Number of Feature Requests each half of the year and per Platform"
+          attachment-filename: "feature-requests-half-year.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2799"
+          
+        - report-title: "Feature Requests per Release Train"
+          report-description: "Number of Feature Requests for each release train"
+          attachment-filename: "feature-requests-release-train.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2798"
+          
+    - name: "Sofvision Workload"
+      reports:
+        - report-title: "Android Workload per Release Cycle"
+          report-description: "Workload per Release Cycle.\n\n Tasks for each requests are sized with Story Points \n\n Team is at capacity when they reach 22 SP (margin 5)"
+          attachment-filename: "android-workload-per-release-cycle.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2712"
+          
+        - report-title: "iOS Workload per Release Cycle"
+          report-description: "Workload per Release Cycle.\n\n Tasks for each requests are sized with Story Points \n\n Team is at capacity when they reach 22 SP (margin 5)"
+          attachment-filename: "ios-workload-per-release-cycle.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2735"
+          
+        - report-title: "Android Workload per Release Cycle per Person"
+          report-description: "TBD"
+          attachment-filename: "android-workload-per-person-per-release-cycle.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2736"
+  
+        - report-title: "iOS Workload per Release Cycle per Person"
+          report-description: "TBD"
+          attachment-filename: "ios-workload-per-person-per-release-cycle.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2737"
+
+        - report-title: "Fenix Releases Tested"
+          report-description: "TBD"
+          attachment-filename: "fenix-verified-builds-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2718"
+          
+        - report-title: "Firefox-iOS Releases Tested"
+          report-description: "TBD"
+          attachment-filename: "firefox-ios-verified-builds-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2719"
+
+        - report-title: "Focus-android Releases Tested"
+          report-description: "TBD"
+          attachment-filename: "focus-android-verified-builds-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2731"
+
+        - report-title: "Focus-iOS Releases Tested"
+          report-description: "TBD"
+          attachment-filename: "focus-ios-verified-builds-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2734"
+
+
+    - name: "Mobile Test Automation Coverage"
+      reports:
+        - report-title: "Firefox-iOS"
+          report-description: "Test Automation Coverage for Firefox-iOS Full Functional"
+          attachment-filename: "test-automation-coverage-full-functional-pie-chart-firefox-ios.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2713"
+        
+        - report-title: "Firefox-iOS"
+          report-description: "Test Automation Coverage for Firefox-iOS Smoke"
+          attachment-filename: "test-automation-coverage-smoke-pie-chart-firefox-ios.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2714"
+
+        - report-title: "Fenix"
+          report-description: "Test Automation Coverage for Fenix Full Functional"
+          attachment-filename: "fenix-test-automation-coverage-full-functional-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/embed/looks/2738"
+
+        - report-title: "Fenix"
+          report-description: "Test Automation Coverage for Fenix Smoke"
+          attachment-filename: "fenix-test-automation-coverage-smoke-pie-chart.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dembed/looks/2740"
+
+    - name: "Mobile Feature Requests Dashboards"
+      reports:
+        - report-title: "Mobile Feature Requests"
+          report-description: "All graphs in Dashboard"
+          attachment-filename: "dashboard-mobile-feature-testing-requests.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1854"
+          
+        - report-title: "iOS Feature Requests"
+          report-description: "TBD"
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1846"
+          
+        - report-title: "Android Feature Requests"
+          report-description: "TBD"
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/1864"
+
+    - name: "Test Automation Coverage Dashboards"
+      reports:
+        - report-title: "Fenix Test Automation Coverage"
+          report-description: "All graphs in Dashboard"
+          attachment-filename: "dashboard-test-automation-coverage-fenix.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/562"
+          
+        - report-title: "iOS Test Automation Coverage"
+          report-description: "TBD"
+          attachment-filename: "404.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/dashboards/601"
+
