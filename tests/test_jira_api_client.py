@@ -4,6 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import os
 import unittest
 import requests
 
@@ -264,3 +265,120 @@ class TestsJiraAPIClient(unittest.TestCase):
         self.assertTrue(client_with_slash._JiraAPIClient__url.endswith('/'))
         # Should not have double slash
         self.assertFalse(client_with_slash._JiraAPIClient__url.endswith('//'))
+
+
+class TestJiraCredentialsIntegration(unittest.TestCase):
+    """
+    Integration test — hits the real Jira API using JIRA_USER and JIRA_PASSWORD
+    env vars. Fails if credentials are missing, expired, or revoked.
+    """
+    def setUp(self):
+        self.user = os.environ["JIRA_USER"]
+        self.password = os.environ["JIRA_PASSWORD"]
+        self.base_url = f"https://{HOST_JIRA}/rest/api/3/"
+
+    def test_credentials_are_valid(self):
+        r = requests.get(
+            self.base_url + "myself",
+            headers={"Accept": "application/json"},
+            auth=(self.user, self.password),
+            timeout=60,
+        )
+        self.assertEqual(
+            r.status_code, 200,
+            f"Auth failed for {self.user} — {r.status_code}: {r.text}"
+        )
+
+
+class TestJiraWorklogs(unittest.TestCase):
+
+    @patch("api.jira.report_worklogs._jira")
+    def test_raises_if_no_issues_returned(self, mock_jira):
+        """If the board returns 0 issues, raise ValueError and do not touch the DB."""
+        from api.jira.report_worklogs import jira_worklogs
+
+        mock_jira.return_value.filter_sv_parent_in_board.return_value = []
+
+        with self.assertRaises(ValueError) as ctx:
+            jira_worklogs()
+
+        self.assertIn("No issues returned", str(ctx.exception))
+
+    @patch("api.jira.report_worklogs.jira_delete")
+    @patch("api.jira.report_worklogs._jira")
+    def test_db_not_cleared_when_no_issues(self, mock_jira, mock_delete):
+        """jira_delete must not be called if 0 issues are returned."""
+        from api.jira.report_worklogs import jira_worklogs
+
+        mock_jira.return_value.filter_sv_parent_in_board.return_value = []
+
+        try:
+            jira_worklogs()
+        except ValueError:
+            pass
+
+        mock_delete.assert_not_called()
+
+    @patch("api.jira.report_worklogs.jira_delete")
+    @patch("api.jira.report_worklogs._jira")
+    def test_db_not_cleared_when_no_worklogs(self, mock_jira, mock_delete):
+        """jira_delete must not be called if issues exist but all have 0 worklogs."""
+        from api.jira.report_worklogs import jira_worklogs
+
+        mock_client = mock_jira.return_value
+        mock_client.filter_sv_parent_in_board.return_value = [
+            {"key": "QATT-1", "fields": {"summary": "Test issue", "parent": None}}
+        ]
+        mock_client.filter_child_issues.return_value = []
+        mock_client.filter_worklogs.return_value = []
+
+        with self.assertRaises(ValueError) as ctx:
+            jira_worklogs()
+
+        self.assertIn("no worklog data found", str(ctx.exception))
+        mock_delete.assert_not_called()
+
+
+class TestJiraQARequestsEmptyPayload(unittest.TestCase):
+
+    @patch("api.jira.report_qa_requests.jira_delete")
+    @patch("api.jira.report_qa_requests._jira")
+    def test_qa_requests_raises_on_empty_payload(self, mock_jira, mock_delete):
+        """jira_delete must not be called if filters() returns no issues."""
+        from api.jira.report_qa_requests import jira_qa_requests
+
+        mock_jira.return_value.filters.return_value = []
+
+        with self.assertRaises(ValueError) as ctx:
+            jira_qa_requests()
+
+        self.assertIn("empty payload", str(ctx.exception))
+        mock_delete.assert_not_called()
+
+    @patch("api.jira.report_qa_requests.jira_delete")
+    @patch("api.jira.report_qa_requests._jira")
+    def test_qa_requests_workload_raises_on_empty_payload(self, mock_jira, mock_delete):
+        """jira_delete must not be called if filters_new_issue_type() returns no issues."""
+        from api.jira.report_qa_requests import jira_qa_requests_workload
+
+        mock_jira.return_value.filters_new_issue_type.return_value = []
+
+        with self.assertRaises(ValueError) as ctx:
+            jira_qa_requests_workload()
+
+        self.assertIn("empty payload", str(ctx.exception))
+        mock_delete.assert_not_called()
+
+    @patch("api.jira.report_qa_requests_desktop.jira_delete")
+    @patch("api.jira.report_qa_requests_desktop._jira")
+    def test_qa_requests_desktop_raises_on_empty_payload(self, mock_jira, mock_delete):
+        """jira_delete must not be called if filters() returns no issues."""
+        from api.jira.report_qa_requests_desktop import jira_qa_requests_desktop
+
+        mock_jira.return_value.filters.return_value = []
+
+        with self.assertRaises(ValueError) as ctx:
+            jira_qa_requests_desktop()
+
+        self.assertIn("empty payload", str(ctx.exception))
+        mock_delete.assert_not_called()

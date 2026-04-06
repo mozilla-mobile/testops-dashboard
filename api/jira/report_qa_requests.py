@@ -55,8 +55,10 @@ def jira_qa_requests():
     df = prepare_jira_df(payload)
 
     if df.empty:
-        logger.warning("Jira filtersreturned empty payload; no DB delete/insert.")
-        return
+        raise ValueError(
+            "jira_qa_requests returned empty payload — "
+            "check Jira credentials or filter. Database was not modified."
+        )
 
     jira_delete(ReportJiraQARequests)
 
@@ -92,8 +94,10 @@ def jira_qa_requests_workload():
     df = prepare_jira_df(payload)
 
     if df.empty:
-        logger.warning("Empty payload; skipping DB delete/insert.")
-        return
+        raise ValueError(
+            "jira_qa_requests_workload returned empty payload — "
+            "check Jira credentials or filter. Database was not modified."
+        )
 
     jira_delete(ReportJIraQARequestsNewIssueType)
 
