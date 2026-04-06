@@ -47,7 +47,7 @@ def jira_qa_needed():
     df['fields_labels'] = df['fields_labels'].apply(
         lambda x: ','.join(x) if isinstance(x, list)
         else (x if pd.notnull(x) else '')
-    )
+    ).astype(str)
 
     # Calculate Nightly Verified label
     verified_nightly_count = df['fields_labels'].str.contains(
