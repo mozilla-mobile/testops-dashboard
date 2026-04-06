@@ -358,7 +358,7 @@ class TestJiraQARequestsEmptyPayload(unittest.TestCase):
     @patch("api.jira.report_qa_requests.jira_delete")
     @patch("api.jira.report_qa_requests._jira")
     def test_qa_requests_workload_raises_on_empty_payload(self, mock_jira, mock_delete):
-        """jira_delete must not be called if filters_new_issue_type() returns no issues."""
+        """jira_delete must not be called if filters_new_issue_type() returns empty."""
         from api.jira.report_qa_requests import jira_qa_requests_workload
 
         mock_jira.return_value.filters_new_issue_type.return_value = []
