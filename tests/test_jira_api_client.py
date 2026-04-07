@@ -11,7 +11,6 @@ import requests
 
 from unittest.mock import MagicMock, patch
 from lib.jira_conn import JiraAPIClient
-from constants import HOST_JIRA
 
 # Prevent database.py from connecting to MySQL at import time during unit tests.
 # database.py runs autoload_with=pool at module level (to reflect table schemas),
@@ -19,12 +18,12 @@ from constants import HOST_JIRA
 if 'database' not in sys.modules:
     sys.modules['database'] = MagicMock()
 
-JIRA_HOST = f"https://{HOST_JIRA}/rest/api/3/"
+ATLASSIAN_BASE_URL = f"https://{os.environ['ATLASSIAN_HOST']}/rest/api/3/"
 
 
 class TestsJiraAPIClient(unittest.TestCase):
     def setUp(self):
-        self.client = JiraAPIClient(JIRA_HOST)
+        self.client = JiraAPIClient(ATLASSIAN_BASE_URL)
         self.client.user = ""
         self.client.password = ""
 
@@ -49,7 +48,7 @@ class TestsJiraAPIClient(unittest.TestCase):
 
         # Verify the full URL passed to requests.get
         called_url = mock_get.call_args.args[0]
-        expected_url = f"{JIRA_HOST}search/jql?jql=project=MTE"
+        expected_url = f"{ATLASSIAN_BASE_URL}search/jql?jql=project=MTE"
         self.assertEqual(called_url, expected_url)
 
     @patch("lib.jira_conn.requests.get")
@@ -128,7 +127,7 @@ class TestsJiraAPIClient(unittest.TestCase):
 
         # Verify the full URL passed to requests.get
         called_url = mock_get.call_args.args[0]
-        expected_url = f"{JIRA_HOST}issue/MTE-123/worklog"
+        expected_url = f"{ATLASSIAN_BASE_URL}issue/MTE-123/worklog"
         self.assertEqual(called_url, expected_url)
 
     @patch("lib.jira_conn.requests.get")
@@ -202,7 +201,7 @@ class TestsJiraAPIClient(unittest.TestCase):
 
         # Verify the full URL passed to requests.get
         called_url = mock_get.call_args.args[0]
-        expected_url = f"{JIRA_HOST}project"
+        expected_url = f"{ATLASSIAN_BASE_URL}project"
         self.assertEqual(called_url, expected_url)
 
     @patch("lib.jira_conn.requests.get")
@@ -283,7 +282,7 @@ class TestJiraCredentialsIntegration(unittest.TestCase):
     def setUp(self):
         self.user = os.environ["ATLASSIAN_USERNAME"]
         self.password = os.environ["ATLASSIAN_API_TOKEN"]
-        self.base_url = f"https://{HOST_JIRA}/rest/api/3/"
+        self.base_url = ATLASSIAN_BASE_URL
 
     def test_credentials_are_valid(self):
         r = requests.get(

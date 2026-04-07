@@ -18,7 +18,6 @@ from constants import (
     FILTER_ID_ALL_REQUEST_ISSUE_TYPE,
     FILTER_ID_QA_NEEDED_iOS,
     FIREFOX_RELEASE_TRAIN,
-    HOST_JIRA,
     MAX_RESULT,
     QATT_BOARD,
     QATT_PARENT_TICKETS_IN_BOARD,
@@ -33,7 +32,7 @@ class Jira:
 
     def __init__(self):
         try:
-            _url_host = f"https://{HOST_JIRA}/rest/api/3"
+            _url_host = f"https://{os.environ['ATLASSIAN_HOST']}/rest/api/3"
             self.client = JiraAPIClient(_url_host)
             self.client.user = os.environ['ATLASSIAN_USERNAME']
             self.client.password = os.environ['ATLASSIAN_API_TOKEN']
