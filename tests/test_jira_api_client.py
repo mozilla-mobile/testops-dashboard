@@ -5,12 +5,19 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
+import sys
 import unittest
 import requests
 
 from unittest.mock import MagicMock, patch
 from lib.jira_conn import JiraAPIClient
 from constants import HOST_JIRA
+
+# Prevent database.py from connecting to MySQL at import time during unit tests.
+# database.py runs autoload_with=pool at module level (to reflect table schemas),
+# which requires a live DB connection. Unit tests don't have one.
+if 'database' not in sys.modules:
+    sys.modules['database'] = MagicMock()
 
 JIRA_HOST = f"https://{HOST_JIRA}/rest/api/3/"
 
