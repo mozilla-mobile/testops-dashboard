@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  JIRA_USER: ${{ secrets.JIRA_USER }}
-  JIRA_PASSWORD: ${{ secrets.JIRA_PASSWORD }}
+  ATLASSIAN_USERNAME: ${{ secrets.ATLASSIAN_USERNAME }}
+  ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
 
 jobs:
   unit-tests:

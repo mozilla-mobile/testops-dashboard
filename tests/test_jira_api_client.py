@@ -276,12 +276,13 @@ class TestsJiraAPIClient(unittest.TestCase):
 
 class TestJiraCredentialsIntegration(unittest.TestCase):
     """
-    Integration test — hits the real Jira API using JIRA_USER and JIRA_PASSWORD
-    env vars. Fails if credentials are missing, expired, or revoked.
+    Integration test — hits the real Jira API using ATLASSIAN_USERNAME and
+    ATLASSIAN_API_TOKEN env vars. Fails if credentials are missing, expired,
+    or revoked.
     """
     def setUp(self):
-        self.user = os.environ["JIRA_USER"]
-        self.password = os.environ["JIRA_PASSWORD"]
+        self.user = os.environ["ATLASSIAN_USERNAME"]
+        self.password = os.environ["ATLASSIAN_API_TOKEN"]
         self.base_url = f"https://{HOST_JIRA}/rest/api/3/"
 
     def test_credentials_are_valid(self):

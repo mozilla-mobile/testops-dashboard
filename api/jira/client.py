@@ -33,11 +33,10 @@ class Jira:
 
     def __init__(self):
         try:
-            # _url_host = os.environ['JIRA_HOST']
             _url_host = f"https://{HOST_JIRA}/rest/api/3"
             self.client = JiraAPIClient(_url_host)
-            self.client.user = os.environ['JIRA_USER']
-            self.client.password = os.environ['JIRA_PASSWORD']
+            self.client.user = os.environ['ATLASSIAN_USERNAME']
+            self.client.password = os.environ['ATLASSIAN_API_TOKEN']
         except KeyError:
             print("ERROR: Missing jira env var")
             sys.exit(1)
