@@ -33,14 +33,13 @@ db_config = {
 Base = declarative_base()
 
 pool = create_engine(
-    engine.url.URL(
+    engine.url.URL.create(
         drivername="mysql+pymysql",
         username=db_username,
         password=db_password,
         host=db_host,
         port=db_port,
         database=db_name,
-        query={}
     ),
     **db_config
 )
