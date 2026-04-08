@@ -79,8 +79,10 @@ def jira_qa_requests_desktop():
     df = prepare_jira_df(payload)
 
     if df.empty:
-        logger.warning("Jira filtersreturned empty payload; no DB delete/insert.")
-        return
+        raise ValueError(
+            "jira_qa_requests_desktop returned empty payload — "
+            "check Jira credentials or filter. Database was not modified."
+        )
 
     jira_delete(ReportJiraQARequestsDesktop)
 

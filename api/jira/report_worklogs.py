@@ -42,6 +42,12 @@ def jira_worklogs():
     worklog_data = []
     issues = jira.filter_sv_parent_in_board()
 
+    if not issues:
+        raise ValueError(
+            "No issues returned from QATT board — "
+            "check Jira credentials or filter. Database was not modified."
+        )
+
     for issue in issues:
         parent_key = (issue.get("fields", {}).get("parent") or {}).get("key", issue.get("key"))  # noqa
         parent_name = issue.get("fields", {}).get("summary", "Unknown")
@@ -138,6 +144,12 @@ def jira_worklogs():
 
     # FIX: Replace NaN values with None for MySQL compatibility
     df = df.astype(object).where(df.notna(), None)
+
+    if df.empty:
+        raise ValueError(
+            "Issues were fetched but no worklog data found — "
+            "Database was not modified."
+        )
 
     jira_delete(ReportJiraSoftvisionWorklogs)
     report_jira_worklogs_insert(df)

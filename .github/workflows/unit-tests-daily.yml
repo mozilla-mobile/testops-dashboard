@@ -1,0 +1,47 @@
+name: Unit Tests - Daily
+
+# Daily @9am UTC + manual trigger
+on:
+  schedule:
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+env:
+  ATLASSIAN_USERNAME: ${{ secrets.ATLASSIAN_USERNAME }}
+  ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python environment
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Set job log URL
+        if: always()
+        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Send workflow status to Slack
+        if: always()
+        uses: slackapi/slack-github-action@v3.0.1
+        env:
+          WORKFLOW_NAME: ${{ github.workflow }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          JOB_STATUS: ${{ job.status == 'success' && ':white_check_mark:' || ':x:' }}
+          JOB_STATUS_COLOR: ${{ job.status == 'success' && '#36a64f' || '#FF0000' }}
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          webhook-type: webhook-trigger
+          payload-templated: true
+          payload-file-path: "./config/payload-slack-content.json"
