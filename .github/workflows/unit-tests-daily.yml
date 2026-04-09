@@ -9,6 +9,7 @@ on:
 env:
   ATLASSIAN_USERNAME: ${{ secrets.ATLASSIAN_USERNAME }}
   ATLASSIAN_API_TOKEN: ${{ secrets.ATLASSIAN_API_TOKEN }}
+  ATLASSIAN_HOST: ${{ secrets.ATLASSIAN_HOST }}
 
 jobs:
   unit-tests:
