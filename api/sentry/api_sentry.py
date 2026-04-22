@@ -226,9 +226,14 @@ class SentryClient(Sentry):
                 )
 
         if df_rates.empty:
-            raise ValueError(
-                "No rates retrieved for project '{0}'.".format(
-                    self.sentry_project))
+            print("Warning: No rates retrieved for project '{0}', generating empty CSV.".format(
+                self.sentry_project))
+            pd.DataFrame(columns=[
+                "crash_free_rate_user", "crash_free_rate_session",
+                "adoption_rate_user", "release_version",
+                "created_at", "sentry_project_id"
+            ]).to_csv("sentry_rates.csv", index=False)
+            return
 
         # Output for Slack message
         df_rates.to_csv(
@@ -251,6 +256,7 @@ class SentryClient(Sentry):
             major_version = int(version['major'])
             build_code = version['buildCode']
             if self.sentry_project == 'fenix-beta':
+                print("%s %s %s" % (major_version, latest_major_version, int(build_code)))
                 if major_version >= latest_major_version and int(build_code) % 2 == 1:
                     payload.append(raw_version)
             else:

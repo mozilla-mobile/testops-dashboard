@@ -100,16 +100,19 @@ jobs:
         continue-on-error: true
 
       - name: Construct JSON for Slack (iOS)
+        id: construct-json-firefox-ios
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
+          echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
         continue-on-error: true
 
       - name: Send health notification to Slack (iOS)
         id: slack-sentry-ios
+        if: steps.construct-json-firefox-ios.outputs.has_data == 'true'
         uses: slackapi/slack-github-action@v3.0.1
         with:
           payload-file-path: "./sentry-slack-firefox-ios.json"
-          payload-templated: true 
+          payload-templated: true
           webhook:  ${{ secrets.SLACK_WEBHOOK_FIREFOX_IOS_DEV }}
           webhook-type: incoming-webhook
         continue-on-error: true
