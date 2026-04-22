@@ -82,13 +82,15 @@ class Sentry:
     # &query=release.package:{{package}}&status=open&summaryStatsPeriod=24h
     # &sort=adoption&adoptionStages=adopted
     def releases(self):
+        env_param = f'&environment={self.environment}' if self.environment else ''
         return self.client.http_get(
             (
                 '/organizations/mozilla/releases/'
-                '?adoptionStages=1&project={1}&environment={0}'
-                '&query=release.package:{2}&status=open&summaryStatsPeriod=7d'
+                f'?adoptionStages=1&project={self.sentry_project_id}{env_param}'
+                f'&query=release.package:{self.package}'
+                '&status=open&summaryStatsPeriod=7d'
                 '&adoptionStages=1&sort=adoption'
-            ).format(self.environment, self.sentry_project_id, self.package)
+            )
         )
 
     # Workaround: Get the largest/latest version through whattrainisitnow
