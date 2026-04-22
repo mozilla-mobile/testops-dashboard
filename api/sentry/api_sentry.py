@@ -260,9 +260,6 @@ class SentryClient(Sentry):
             major_version = int(version['major'])
             build_code = version['buildCode']
             if self.sentry_project == 'fenix-beta':
-                print(
-                    "%s %s %s" % (major_version, latest_major_version, int(build_code))
-                )
                 if major_version >= latest_major_version and int(build_code) % 2 == 1:
                     payload.append(raw_version)
             else:
