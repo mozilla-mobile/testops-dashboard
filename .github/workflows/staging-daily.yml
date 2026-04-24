@@ -109,22 +109,18 @@ jobs:
           python __main__.py --report-type sentry-issues --project fenix
           python __main__.py --report-type sentry-rates --project fenix
       - name: Construct JSON for Slack (Android)
-        id: construct-json-fenix
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
           ls sentry-slack-fenix.json
-          echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
       - name: Sentry query (Android Beta)
         run: |
           python __main__.py --report-type sentry-issues --project fenix-beta
           python __main__.py --report-type sentry-rates --project fenix-beta
       - name: Construct JSON for Slack (Android Beta)
-        id: construct-json-fenix-beta
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
           ls sentry-slack-fenix-beta.json
-          echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
       - name: Notify Slack on any type of failure
         if: failure()
