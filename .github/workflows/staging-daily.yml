@@ -104,6 +104,11 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
           ls sentry-slack-firefox-ios.json
 
+      - name: Upload iOS Sentry data to GCS
+        run: |
+          gcloud stroage cp ./sentry-slack-firefox-ios.json \ 
+            gs://testops-llm-artifacts/sentry/firefox-ios/latest.json
+
       - name: Sentry query (Android)
         run: |
           python __main__.py --report-type sentry-issues --project fenix
@@ -115,6 +120,11 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
           ls sentry-slack-fenix.json
           echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+      - name: Upload Android Sentry data to GCS
+        run: | 
+          gcloud storage cp ./sentry-slack-fenix.json \
+            gs://testops-llm-artifacts/sentry/fenix/latest.json
 
       - name: Send health notification to Slack (Android)
         id: slack-sentry-fenix
@@ -136,6 +146,12 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
           ls sentry-slack-fenix-beta.json
           echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+      - name: Upload Android Beta Sentry data to GCS
+        run: | 
+          gcloud storage cp ./sentry-slack-fenix-beta.json \ 
+            gs://testops-llm-artifacts/sentry/fenix-beta/latest.json
+          
       - name: Send health notification to Slack (Android Beta)
         id: slack-sentry-fenix-beta
         if: steps.construct-json-fenix-beta.outputs.has_data == 'true'
