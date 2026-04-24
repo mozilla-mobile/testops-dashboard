@@ -106,7 +106,7 @@ jobs:
 
       - name: Upload iOS Sentry data to GCS
         run: |
-          gcloud stroage cp ./sentry-slack-firefox-ios.json \ 
+          gcloud storage cp ./sentry-slack-firefox-ios.json \ 
             gs://testops-llm-artifacts/sentry/firefox-ios/latest.json
 
       - name: Sentry query (Android)
