@@ -108,43 +108,20 @@ jobs:
         run: |
           python __main__.py --report-type sentry-issues --project fenix
           python __main__.py --report-type sentry-rates --project fenix
-
       - name: Construct JSON for Slack (Android)
-        id: construct-json-fenix
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
           ls sentry-slack-fenix.json
-          echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
-
-      - name: Send health notification to Slack (Android)
-        id: slack-sentry-fenix
-        if: steps.construct-json-fenix.outputs.has_data == 'true'
-        uses: slackapi/slack-github-action@v3.0.1
-        with:
-          payload-file-path: "./sentry-slack-fenix.json"
-          payload-templated: true
-          webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
-          webhook-type: incoming-webhook
 
       - name: Sentry query (Android Beta)
         run: |
           python __main__.py --report-type sentry-issues --project fenix-beta
           python __main__.py --report-type sentry-rates --project fenix-beta
       - name: Construct JSON for Slack (Android Beta)
-        id: construct-json-fenix-beta
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
           ls sentry-slack-fenix-beta.json
-          echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
-      - name: Send health notification to Slack (Android Beta)
-        id: slack-sentry-fenix-beta
-        if: steps.construct-json-fenix-beta.outputs.has_data == 'true'
-        uses: slackapi/slack-github-action@v3.0.1
-        with:
-          payload-file-path: "./sentry-slack-fenix-beta.json"
-          payload-templated: true
-          webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
-          webhook-type: incoming-webhook
+
       - name: Notify Slack on any type of failure
         if: failure()
         uses: slackapi/slack-github-action@v3.0.1
