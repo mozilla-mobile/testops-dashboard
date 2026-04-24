@@ -93,6 +93,11 @@ jobs:
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
           proxy_version: "1.37.11"
       - run: pip install -r requirements.txt
+
+      - name: Authenticate to Google Cloud (GCS uploads)
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GCLOUD_AUTH }}
       
       - name: Sentry query (iOS)
         run: |
