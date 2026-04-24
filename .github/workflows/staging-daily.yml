@@ -104,10 +104,11 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
           ls sentry-slack-firefox-ios.json
 
-      - name: Upload iOS Sentry data to GCS
-        run: |
-          gcloud storage cp "./sentry-slack-firefox-ios.json" \ 
-            "gs://testops-llm-artifacts/sentry/firefox-ios/latest.json"
+      - name: Upload Firefox (iOS) Sentry data to GCS
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+          path: ./sentry-slack-firefox-ios.json
+          destination: testops-llm-artifacts/sentry/firefox-ios
 
       - name: Sentry query (Android)
         run: |
@@ -121,10 +122,11 @@ jobs:
           ls sentry-slack-fenix.json
           echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
-      - name: Upload Android Sentry data to GCS
-        run: | 
-          gcloud storage cp "./sentry-slack-fenix.json" \
-            "gs://testops-llm-artifacts/sentry/fenix/latest.json"
+      - name: Upload Firefox (Android) Sentry data to GCS
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+          path: ./sentry-slack-fenix.json
+          destination: testops-llm-artifacts/sentry/fenix
 
       - name: Send health notification to Slack (Android)
         id: slack-sentry-fenix
@@ -140,6 +142,7 @@ jobs:
         run: |
           python __main__.py --report-type sentry-issues --project fenix-beta
           python __main__.py --report-type sentry-rates --project fenix-beta
+
       - name: Construct JSON for Slack (Android Beta)
         id: construct-json-fenix-beta
         run: |
@@ -147,10 +150,11 @@ jobs:
           ls sentry-slack-fenix-beta.json
           echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
-      - name: Upload Android Beta Sentry data to GCS
-        run: | 
-          gcloud storage cp "./sentry-slack-fenix-beta.json" \ 
-            "gs://testops-llm-artifacts/sentry/fenix-beta/latest.json"
+      - name: Upload Firefox Beta (Android) Sentry data to GCS
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+          path: ./sentry-slack-fenix-beta.json
+          destination: testops-llm-artifacts/sentry/fenix-beta
           
       - name: Send health notification to Slack (Android Beta)
         id: slack-sentry-fenix-beta
