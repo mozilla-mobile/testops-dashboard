@@ -38,7 +38,6 @@ env:
 jobs:
   fetch-github-issues:
     name: New Github issues
-    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
