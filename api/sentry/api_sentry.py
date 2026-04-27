@@ -8,6 +8,7 @@ import os
 import sys
 import requests
 import pandas as pd
+from urllib.parse import quote
 
 from packaging.version import Version
 from lib.sentry_conn import APIClient
@@ -102,18 +103,24 @@ class Sentry:
         return list(response.json().keys())
 
     # API: Top unhandled issues sorted by frequency over the past 7 days
-    def unhandled_issues(self, limit=5):
+    def unhandled_issues(self, limit=5, release_version=None):
+        query = (
+            'error.unhandled%3Atrue+is%3Aunresolved'
+        )
+        if release_version:
+            query += '+release.version%3A' + quote(release_version, safe='')
         return self.client.http_get(
             (
                 'organizations/{0}/issues/'
                 '?project={1}'
-                '&query=error.unhandled%3Atrue+is%3Aunresolved+is%3Anew'
+                '&query={4}'
                 '&sort=freq&statsPeriod=7d'
                 '&environment={2}&limit={3}'
             ).format(
                 self.organization_slug, self.sentry_project_id,
-                self.environment, limit
-            )
+                self.environment, limit, query
+            ),
+            paginate=False
         )
 
     # API: Session (crash free rate (session) and crash free rate (user))
@@ -209,7 +216,16 @@ class SentryClient(Sentry):
 
     def sentry_unhandled_issues(self, limit=5):
         print("SentryClient.sentry_unhandled_issues()")
-        issues = (self.unhandled_issues(limit=limit) or [])[:limit]
+        if self.sentry_project == 'fenix-beta':
+            latest_version = self.get_future_train_release()[0]
+        else:
+            latest_version = self.get_latest_train_release()[-1]
+        release_version = f'{self.package}@{latest_version}'
+        print(f"Filtering by release: {release_version}")
+        issues = (
+            self.unhandled_issues(limit=limit, release_version=release_version)
+            or []
+        )[:limit]
         MAX_STRING_LEN = 250
         payload = []
         for issue in issues:
@@ -220,11 +236,12 @@ class SentryClient(Sentry):
                 issue.get('count', 0),
                 issue.get('userCount', 0),
                 issue.get('permalink', ''),
+                release_version,
             ])
         df = pd.DataFrame(
             data=payload,
             columns=['sentry_id', 'title', 'culprit', 'count',
-                     'user_count', 'permalink']
+                     'user_count', 'permalink', 'release_version']
         )
         csv_path = f'sentry_unhandled_issues_{self.sentry_project}.csv'
         df.to_csv(csv_path, index=False)

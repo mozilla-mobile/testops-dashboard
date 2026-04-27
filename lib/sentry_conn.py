@@ -18,7 +18,7 @@ class APIClient:
                 '{0}api/0/'
             ).format(base_url)
 
-    def http_get(self, uri):
+    def http_get(self, uri, paginate=True):
         headers = {
             'Authorization': f'Bearer {self.api_token}',
             'Content-Type': 'application/json'
@@ -41,6 +41,9 @@ class APIClient:
                 print(f"Received {len(all_results)} items")
             else:
                 return data  # For non-list endpoints
+
+            if not paginate:
+                break
 
             link_header = response.headers.get("Link", "")
             links = requests.utils.parse_header_links(

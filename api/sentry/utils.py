@@ -288,10 +288,7 @@ def init_json(project, shortform=False):
     return json_data
 
 
-def insert_unhandled_issues(json_data, csv_file):
-    with open(csv_file, 'r') as file:
-        rows = list(csv.DictReader(file))
-
+def insert_unhandled_issues(json_data, rows):
     if not rows:
         json_data["blocks"].append({
             "type": "section",
@@ -306,13 +303,16 @@ def insert_unhandled_issues(json_data, csv_file):
         return json_data
 
     lines = []
-    for i, row in enumerate(rows, 1):
-        title = row['title']
+    for row in rows:
+        title = (row['title']
+                 .replace('&', '&amp;')
+                 .replace('<', '&lt;')
+                 .replace('>', '&gt;'))
         count = row['count']
         user_count = row['user_count']
         permalink = row['permalink']
         lines.append(
-            f"{i}. <{permalink}|{title}> — "
+            f"• <{permalink}|{title}> — "
             f"{count} events, {user_count} users affected"
         )
 
@@ -330,6 +330,14 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
     icon = project_config.get(project).get('icon')
     product = project_config.get(project).get('product')
     now = DatetimeUtils.start_date('0')
+
+    version_label = ''
+    with open(csv_file, 'r') as f:
+        rows = list(csv.DictReader(f))
+    if rows and rows[0].get('release_version'):
+        version = rows[0]['release_version'].split('@')[-1]
+        version_label = f' v{version}'
+
     json_data = {
         "blocks": [
             {
@@ -337,14 +345,14 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        f"*:bug: {icon} {product} "
-                        f"New Unhandled Issues (Last 7 days): {now}*"
+                        f"*:sentry: {icon} {product}{version_label} "
+                        f"Top Sentry Issues ({now})*"
                     )
                 }
             }
         ]
     }
-    insert_unhandled_issues(json_data, csv_file)
+    insert_unhandled_issues(json_data, rows)
     insert_json_footer(json_data)
 
     output_path = Path(f'sentry-slack-unhandled-{project}.json')
