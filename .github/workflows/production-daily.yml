@@ -92,7 +92,12 @@ jobs:
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
           proxy_version: "1.37.11"
       - run: pip install -r requirements.txt
-      
+
+      - name: Authenticate to Google Cloud (GCS uploads)
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GCLOUD_AUTH }}
+
       - name: Sentry query (iOS)
         run: |
           python __main__.py --report-type sentry-issues --project firefox-ios
@@ -105,6 +110,12 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
           echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
         continue-on-error: true
+
+      - name: Upload Firefox (iOS) Sentry data to GCS
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+          path: ./sentry-slack-firefox-ios.json
+          destination: testops-llm-artifacts/sentry/firefox-ios
 
       - name: Send health notification to Slack (iOS)
         id: slack-sentry-ios
@@ -127,6 +138,13 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
           ls sentry-slack-fenix.json
           echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+      - name: Upload Firefox (Android) Sentry data to GCS
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+          path: ./sentry-slack-fenix.json
+          destination: testops-llm-artifacts/sentry/fenix
+
       - name: Send health notification to Slack (Android)
         id: slack-sentry-fenix
         if: steps.construct-json-fenix.outputs.has_data == 'true'
@@ -147,6 +165,13 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
           ls sentry-slack-fenix-beta.json
           echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+      - name: Upload Firefox Beta (Android) Sentry data to GCS
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+          path: ./sentry-slack-fenix-beta.json
+          destination: testops-llm-artifacts/sentry/fenix-beta
+
       - name: Send health notification to Slack (Android Beta)
         id: slack-sentry-fenix-beta
         if: steps.construct-json-fenix-beta.outputs.has_data == 'true'
