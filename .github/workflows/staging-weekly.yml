@@ -60,7 +60,7 @@ jobs:
         run: |
           python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json
       - name: Send notification to Slack
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.2
         with:
           payload-file-path: "./github-new-issues-slack.json"
           payload-templated: true
