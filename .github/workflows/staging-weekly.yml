@@ -66,3 +66,78 @@ jobs:
           payload-templated: true
           webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
+
+  sentry-unhandled-issues:
+    name: Sentry unhandled issues notifications
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - run: pip install -r requirements.txt
+
+      - name: Sentry unhandled issues query (iOS)
+        run: python __main__.py --report-type sentry-unhandled-issues --project firefox-ios
+        continue-on-error: true
+
+      - name: Construct JSON for Slack - unhandled issues (iOS)
+        run: |
+          python -m api.sentry.utils \
+            --file ./sentry_unhandled_issues_firefox-ios.csv \
+            --project firefox-ios \
+            --mode unhandled-issues
+        continue-on-error: true
+
+      - name: Send unhandled issues notification to Slack (iOS)
+        uses: slackapi/slack-github-action@v3.0.1
+        with:
+          payload-file-path: "./sentry-slack-unhandled-firefox-ios.json"
+          payload-templated: true
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        continue-on-error: true
+
+      - name: Sentry unhandled issues query (Android)
+        run: python __main__.py --report-type sentry-unhandled-issues --project fenix
+        continue-on-error: true
+
+      - name: Construct JSON for Slack - unhandled issues (Android)
+        run: |
+          python -m api.sentry.utils \
+            --file ./sentry_unhandled_issues_fenix.csv \
+            --project fenix \
+            --mode unhandled-issues
+        continue-on-error: true
+
+      - name: Send unhandled issues notification to Slack (Android)
+        uses: slackapi/slack-github-action@v3.0.1
+        with:
+          payload-file-path: "./sentry-slack-unhandled-fenix.json"
+          payload-templated: true
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        continue-on-error: true
+
+      - name: Sentry unhandled issues query (Android Beta)
+        run: python __main__.py --report-type sentry-unhandled-issues --project fenix-beta
+        continue-on-error: true
+
+      - name: Construct JSON for Slack - unhandled issues (Android Beta)
+        run: |
+          python -m api.sentry.utils \
+            --file ./sentry_unhandled_issues_fenix-beta.csv \
+            --project fenix-beta \
+            --mode unhandled-issues
+        continue-on-error: true
+
+      - name: Send unhandled issues notification to Slack (Android Beta)
+        uses: slackapi/slack-github-action@v3.0.1
+        with:
+          payload-file-path: "./sentry-slack-unhandled-fenix-beta.json"
+          payload-templated: true
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        continue-on-error: true

@@ -50,6 +50,7 @@ from handlers.jira import (
 from handlers.sentry import (
     handle_sentry_issues,
     handle_sentry_rates,
+    handle_sentry_unhandled_issues,
 )
 
 from handlers.testrail import (
@@ -120,7 +121,7 @@ def validate_project(platform, project, report_type):
         if not platform:
             print("--platform is required for the report selected")
 
-    if (report_type in ('sentry-issues', 'sentry-rates')
+    if (report_type in ('sentry-issues', 'sentry-rates', 'sentry-unhandled-issues')
             and project not in PROJECTS_SENTRY):
         print(
             f"Error: Invalid project '{project}' for Sentry reports. "
@@ -198,6 +199,7 @@ COMMAND_MAP = {
     'jira-softvision-worklogs': handle_jira_softvision_worklogs,
     'sentry-issues': handle_sentry_issues,
     'sentry-rates': handle_sentry_rates,
+    'sentry-unhandled-issues': handle_sentry_unhandled_issues,
     'testrail-milestones': handle_testrail_milestones,
     'testrail-users': handle_testrail_users,
     'testrail-test-health': handle_testrail_test_health,

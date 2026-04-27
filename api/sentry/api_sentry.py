@@ -101,6 +101,21 @@ class Sentry:
             'https://whattrainisitnow.com/api/firefox/releases/esr/future/')
         return list(response.json().keys())
 
+    # API: Top unhandled issues sorted by frequency over the past 7 days
+    def unhandled_issues(self, limit=5):
+        return self.client.http_get(
+            (
+                'organizations/{0}/issues/'
+                '?project={1}'
+                '&query=error.unhandled%3Atrue+is%3Aunresolved+is%3Anew'
+                '&sort=freq&statsPeriod=7d'
+                '&environment={2}&limit={3}'
+            ).format(
+                self.organization_slug, self.sentry_project_id,
+                self.environment, limit
+            )
+        )
+
     # API: Session (crash free rate (session) and crash free rate (user))
     # The crash free rate for the past 24 hours
     def sentry_sessions_crash_free_rate(self, crash_free_rate_type, release):
@@ -191,6 +206,30 @@ class SentryClient(Sentry):
 
         # Insert into database
         self.db.issue_insert(df_issues)
+
+    def sentry_unhandled_issues(self, limit=5):
+        print("SentryClient.sentry_unhandled_issues()")
+        issues = (self.unhandled_issues(limit=limit) or [])[:limit]
+        MAX_STRING_LEN = 250
+        payload = []
+        for issue in issues:
+            payload.append([
+                issue['id'],
+                issue['title'][:MAX_STRING_LEN],
+                issue.get('culprit', ''),
+                issue.get('count', 0),
+                issue.get('userCount', 0),
+                issue.get('permalink', ''),
+            ])
+        df = pd.DataFrame(
+            data=payload,
+            columns=['sentry_id', 'title', 'culprit', 'count',
+                     'user_count', 'permalink']
+        )
+        csv_path = f'sentry_unhandled_issues_{self.sentry_project}.csv'
+        df.to_csv(csv_path, index=False)
+        print(f"Unhandled issues written to {csv_path}")
+        return df
 
     def sentry_rates(self, releases=[]):
         print("SentryClient.sentry_rates()")
