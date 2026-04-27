@@ -109,7 +109,7 @@ jobs:
       - name: Send health notification to Slack (iOS)
         id: slack-sentry-ios
         if: steps.construct-json-firefox-ios.outputs.has_data == 'true'
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.2
         with:
           payload-file-path: "./sentry-slack-firefox-ios.json"
           payload-templated: true
@@ -130,7 +130,7 @@ jobs:
       - name: Send health notification to Slack (Android)
         id: slack-sentry-fenix
         if: steps.construct-json-fenix.outputs.has_data == 'true'
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.2
         with:
           payload-file-path: "./sentry-slack-fenix.json"
           payload-templated: true
@@ -150,7 +150,7 @@ jobs:
       - name: Send health notification to Slack (Android Beta)
         id: slack-sentry-fenix-beta
         if: steps.construct-json-fenix-beta.outputs.has_data == 'true'
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.2
         with:
           payload-file-path: "./sentry-slack-fenix-beta.json"
           payload-templated: true
@@ -158,7 +158,7 @@ jobs:
           webhook-type: incoming-webhook
       - name: Notify Slack on any type of failure
         if: failure()
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.2
         with:
           payload: |
             {
@@ -199,7 +199,7 @@ jobs:
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
       
       - name: Send workflow status to Slack
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.2
         env:
           WORKFLOW_NAME: ${{ github.workflow }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
