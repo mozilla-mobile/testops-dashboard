@@ -288,6 +288,78 @@ def init_json(project, shortform=False):
     return json_data
 
 
+def insert_unhandled_issues(json_data, rows):
+    if not rows:
+        json_data["blocks"].append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": (
+                        ":white_check_mark: No new unhandled issues "
+                        "found in the last 7 days."
+                    )
+            }
+        })
+        return json_data
+
+    lines = []
+    for row in rows:
+        title = (row['title']
+                 .replace('&', '&amp;')
+                 .replace('<', '&lt;')
+                 .replace('>', '&gt;'))
+        count = row['count']
+        user_count = row['user_count']
+        permalink = row['permalink']
+        lines.append(
+            f"• <{permalink}|{title}> — "
+            f"{count} events, {user_count} users affected"
+        )
+
+    json_data["blocks"].append({
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": "\n".join(lines)
+        }
+    })
+    return json_data
+
+
+def main_unhandled_issues(csv_file: str, project: str) -> None:
+    icon = project_config.get(project).get('icon')
+    product = project_config.get(project).get('product')
+    now = DatetimeUtils.start_date('0')
+
+    version_label = ''
+    with open(csv_file, 'r') as f:
+        rows = list(csv.DictReader(f))
+    if rows and rows[0].get('release_version'):
+        version = rows[0]['release_version'].split('@')[-1]
+        version_label = f' v{version}'
+
+    json_data = {
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        f"*:sentry: {icon} {product}{version_label} "
+                        f"Top Sentry Issues ({now})*"
+                    )
+                }
+            }
+        ]
+    }
+    insert_unhandled_issues(json_data, rows)
+    insert_json_footer(json_data)
+
+    output_path = Path(f'sentry-slack-unhandled-{project}.json')
+    output_path.write_text(json.dumps(json_data, indent=4))
+    print(f"Slack message written to {output_path.resolve()}")
+
+
 def main(file_csv: str, project: str, shortform: bool = False) -> None:
     json_data = init_json(project, shortform)
     insert_rates(json_data, file_csv, project, shortform)
@@ -306,6 +378,12 @@ if __name__ == '__main__':
                         help='Sentry project name (firefox-ios or fenix)')
     parser.add_argument('--shortform', action='store_true', default=False,
                         help='Generate a shorter version of the report')
+    parser.add_argument('--mode', default='rates',
+                        choices=['rates', 'unhandled-issues'],
+                        help='Report mode')
 
     args = parser.parse_args()
-    main(args.file, args.project, args.shortform)
+    if args.mode == 'unhandled-issues':
+        main_unhandled_issues(args.file, args.project)
+    else:
+        main(args.file, args.project, args.shortform)

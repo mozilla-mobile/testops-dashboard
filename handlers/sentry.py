@@ -9,3 +9,8 @@ def handle_sentry_issues(args):
 def handle_sentry_rates(args):
     client = SentryClient(project=args.project)
     client.sentry_rates()
+
+
+def handle_sentry_unhandled_issues(args):
+    client = SentryClient(project=args.project)
+    client.sentry_unhandled_issues()

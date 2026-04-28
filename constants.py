@@ -63,6 +63,7 @@ REPORT_TYPES = [
     "testrail-test-results",
     "sentry-issues",
     "sentry-rates",
+    "sentry-unhandled-issues",
 ]
 
 # JQL query options
