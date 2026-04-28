@@ -1,6 +1,7 @@
 [firefox-ios]
 icon = ":testops-apple:"
 product = "Firefox iOS"
+excluded_issue_titles = ["WatchdogTermination"]
 
 [firefox-ios.looker]
 base_url = "https://mozilla.cloud.looker.com/dashboards/2667"

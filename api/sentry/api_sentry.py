@@ -6,6 +6,7 @@
 
 import os
 import sys
+import tomllib
 import requests
 import pandas as pd
 from urllib.parse import quote
@@ -62,6 +63,16 @@ class Sentry:
             missing = e.args[0]
             print(f"ERROR: Missing environment variable {missing}")
             sys.exit(1)
+
+        try:
+            with open('config/sentry/projects.toml', 'rb') as f:
+                _projects_config = tomllib.load(f)
+            self.excluded_issue_titles = (
+                _projects_config.get(project, {})
+                .get('excluded_issue_titles', [])
+            )
+        except (FileNotFoundError, tomllib.TOMLDecodeError):
+            self.excluded_issue_titles = []
 
     # API: Issues
     # Only the unassigned issues past day sorted by frequency:
@@ -214,7 +225,7 @@ class SentryClient(Sentry):
         # Insert into database
         self.db.issue_insert(df_issues)
 
-    def sentry_unhandled_issues(self, limit=5):
+    def sentry_unhandled_issues(self, limit=3):
         print("SentryClient.sentry_unhandled_issues()")
         if self.sentry_project == 'fenix-beta':
             latest_version = self.get_future_train_release()[0]
@@ -222,10 +233,18 @@ class SentryClient(Sentry):
             latest_version = self.get_latest_train_release()[-1]
         release_version = f'{self.package}@{latest_version}'
         print(f"Filtering by release: {release_version}")
-        issues = (
-            self.unhandled_issues(limit=limit, release_version=release_version)
+        fetch_limit = limit + len(self.excluded_issue_titles) + 5
+        raw_issues = (
+            self.unhandled_issues(limit=fetch_limit, release_version=release_version)
             or []
-        )[:limit]
+        )
+        issues = [
+            issue for issue in raw_issues
+            if not any(
+                excl.lower() in issue['title'].lower()
+                for excl in self.excluded_issue_titles
+            )
+        ][:limit]
         MAX_STRING_LEN = 250
         payload = []
         for issue in issues:
