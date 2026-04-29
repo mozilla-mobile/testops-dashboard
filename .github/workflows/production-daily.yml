@@ -114,7 +114,7 @@ jobs:
       - name: Upload Firefox (iOS) Sentry data to GCS
         uses: google-github-actions/upload-cloud-storage@v3
         with:
-          path: ./sentry-slack-firefox-ios.json
+          path: ./sentry_rates.csv
           destination: testops-llm-artifacts/sentry/firefox-ios
 
       - name: Send health notification to Slack (iOS)
@@ -142,7 +142,7 @@ jobs:
       - name: Upload Firefox (Android) Sentry data to GCS
         uses: google-github-actions/upload-cloud-storage@v3
         with:
-          path: ./sentry-slack-fenix.json
+          path: ./sentry_rates.csv
           destination: testops-llm-artifacts/sentry/fenix
 
       - name: Send health notification to Slack (Android)
@@ -169,7 +169,7 @@ jobs:
       - name: Upload Firefox Beta (Android) Sentry data to GCS
         uses: google-github-actions/upload-cloud-storage@v3
         with:
-          path: ./sentry-slack-fenix-beta.json
+          path: ./sentry_rates.csv
           destination: testops-llm-artifacts/sentry/fenix-beta
 
       - name: Send health notification to Slack (Android Beta)
