@@ -321,10 +321,14 @@ def insert_unhandled_issues(json_data, rows):
         _create_table_header_cell("Events"),
         _create_table_header_cell("Users Affected"),
     ]
+    MAX_TITLE_DISPLAY_LEN = 60
     table_rows = []
     for row in rows:
+        title = row['title']
+        if len(title) > MAX_TITLE_DISPLAY_LEN:
+            title = title[:MAX_TITLE_DISPLAY_LEN] + '…'
         table_rows.append([
-            _create_table_link_cell(row['title'], row['permalink']),
+            _create_table_link_cell(title, row['permalink']),
             {"type": "raw_text", "text": str(row['count'])},
             {"type": "raw_text", "text": str(row['user_count'])},
         ])
