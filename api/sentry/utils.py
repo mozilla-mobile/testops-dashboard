@@ -321,7 +321,7 @@ def insert_unhandled_issues(json_data, rows):
         _create_table_header_cell("Events"),
         _create_table_header_cell("Users Affected"),
     ]
-    MAX_TITLE_DISPLAY_LEN = 60
+    MAX_TITLE_DISPLAY_LEN = 50
     table_rows = []
     for row in rows:
         title = row['title']
