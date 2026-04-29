@@ -288,6 +288,20 @@ def init_json(project, shortform=False):
     return json_data
 
 
+def _create_table_link_cell(text, url):
+    return {
+        "type": "rich_text",
+        "elements": [
+            {
+                "type": "rich_text_section",
+                "elements": [
+                    {"type": "link", "url": url, "text": text}
+                ]
+            }
+        ]
+    }
+
+
 def insert_unhandled_issues(json_data, rows):
     if not rows:
         json_data["blocks"].append({
@@ -295,33 +309,29 @@ def insert_unhandled_issues(json_data, rows):
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                        ":white_check_mark: No new unhandled issues "
-                        "found in the last 7 days."
-                    )
+                    ":white_check_mark: No new unhandled issues "
+                    "found in the last 7 days."
+                )
             }
         })
         return json_data
 
-    lines = []
+    header_row = [
+        _create_table_header_cell("Issue"),
+        _create_table_header_cell("Events"),
+        _create_table_header_cell("Users Affected"),
+    ]
+    table_rows = []
     for row in rows:
-        title = (row['title']
-                 .replace('&', '&amp;')
-                 .replace('<', '&lt;')
-                 .replace('>', '&gt;'))
-        count = row['count']
-        user_count = row['user_count']
-        permalink = row['permalink']
-        lines.append(
-            f"• <{permalink}|{title}> — "
-            f"{count} events, {user_count} users affected"
-        )
+        table_rows.append([
+            _create_table_link_cell(row['title'], row['permalink']),
+            {"type": "raw_text", "text": str(row['count'])},
+            {"type": "raw_text", "text": str(row['user_count'])},
+        ])
 
     json_data["blocks"].append({
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": "\n".join(lines)
-        }
+        "type": "table",
+        "rows": [header_row] + table_rows
     })
     return json_data
 
@@ -348,7 +358,7 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
     sentry_issues_url = (
         f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
         f"&query=error.unhandled%3Atrue%20is%3Aunresolved{release_filter}"
-        f"&environment={environment}&referrer=issue-list&sort=freq&statsPeriod=7d"
+        f"&environment={environment}&sort=freq&statsPeriod=7d"
     )
     json_data = {
         "blocks": [
