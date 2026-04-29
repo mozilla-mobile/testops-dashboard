@@ -103,15 +103,15 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
 
-      # - name: Sentry unhandled issues query (Android)
-      #   run: python __main__.py --report-type sentry-unhandled-issues --project fenix
+      - name: Sentry unhandled issues query (Android)
+        run: python __main__.py --report-type sentry-unhandled-issues --project fenix
 
-      # - name: Construct JSON for Slack - unhandled issues (Android)
-      #   run: |
-      #     python -m api.sentry.utils \
-      #       --file ./sentry_unhandled_issues_fenix.csv \
-      #       --project fenix \
-      #       --mode unhandled-issues
+      - name: Construct JSON for Slack - unhandled issues (Android)
+        run: |
+          python -m api.sentry.utils \
+            --file ./sentry_unhandled_issues_fenix.csv \
+            --project fenix \
+            --mode unhandled-issues
 
       # - name: Send unhandled issues notification to Slack (Android)
       #   uses: slackapi/slack-github-action@v3.0.1
