@@ -38,6 +38,7 @@ env:
 jobs:
   fetch-github-issues:
     name: New Github issues
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -113,13 +114,13 @@ jobs:
             --project fenix \
             --mode unhandled-issues
 
-      # - name: Send unhandled issues notification to Slack (Android)
-      #   uses: slackapi/slack-github-action@v3.0.1
-      #   with:
-      #     payload-file-path: "./sentry-slack-unhandled-fenix.json"
-      #     payload-templated: true
-      #     webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
-      #     webhook-type: incoming-webhook
+      - name: Send unhandled issues notification to Slack (Android)
+        uses: slackapi/slack-github-action@v3.0.1
+        with:
+          payload-file-path: "./sentry-slack-unhandled-fenix.json"
+          payload-templated: true
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
 
       # - name: Sentry unhandled issues query (Android Beta)
       #   run: python __main__.py --report-type sentry-unhandled-issues --project fenix-beta
