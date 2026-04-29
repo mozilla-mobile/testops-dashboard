@@ -309,8 +309,7 @@ def insert_unhandled_issues(json_data, rows):
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                    ":white_check_mark: No new unhandled issues "
-                    "found in the last 7 days."
+                    ":white_check_mark: No significant issue to report."
                 )
             }
         })
@@ -330,7 +329,7 @@ def insert_unhandled_issues(json_data, rows):
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": ":white_check_mark: No issues exceeding 1000 events or users."
+                "text": ":white_check_mark: No significant issue to report."
             }
         })
         return json_data
