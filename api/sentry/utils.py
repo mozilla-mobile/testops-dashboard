@@ -321,6 +321,20 @@ def insert_unhandled_issues(json_data, rows):
         _create_table_header_cell("Events"),
         _create_table_header_cell("Users Affected"),
     ]
+    rows = [
+        row for row in rows
+        if int(row['user_count']) > 1000 or int(row['count']) > 1000
+    ]
+    if not rows:
+        json_data["blocks"].append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":white_check_mark: No issues exceeding 1000 events or users."
+            }
+        })
+        return json_data
+
     MAX_TITLE_DISPLAY_LEN = 50
     table_rows = []
     for row in rows:
