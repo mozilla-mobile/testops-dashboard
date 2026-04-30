@@ -288,6 +288,20 @@ def init_json(project, shortform=False):
     return json_data
 
 
+def _create_table_link_cell(text, url):
+    return {
+        "type": "rich_text",
+        "elements": [
+            {
+                "type": "rich_text_section",
+                "elements": [
+                    {"type": "link", "url": url, "text": text}
+                ]
+            }
+        ]
+    }
+
+
 def insert_unhandled_issues(json_data, rows):
     if not rows:
         json_data["blocks"].append({
@@ -295,33 +309,46 @@ def insert_unhandled_issues(json_data, rows):
             "text": {
                 "type": "mrkdwn",
                 "text": (
-                        ":white_check_mark: No new unhandled issues "
-                        "found in the last 7 days."
-                    )
+                    ":white_check_mark: No significant issue to report."
+                )
             }
         })
         return json_data
 
-    lines = []
+    header_row = [
+        _create_table_header_cell("Issue"),
+        _create_table_header_cell("Events"),
+        _create_table_header_cell("Users Affected"),
+    ]
+    rows = [
+        row for row in rows
+        if int(row['user_count']) > 1000 or int(row['count']) > 1000
+    ]
+    if not rows:
+        json_data["blocks"].append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": ":white_check_mark: No significant issue to report."
+            }
+        })
+        return json_data
+
+    MAX_TITLE_DISPLAY_LEN = 50
+    table_rows = []
     for row in rows:
-        title = (row['title']
-                 .replace('&', '&amp;')
-                 .replace('<', '&lt;')
-                 .replace('>', '&gt;'))
-        count = row['count']
-        user_count = row['user_count']
-        permalink = row['permalink']
-        lines.append(
-            f"• <{permalink}|{title}> — "
-            f"{count} events, {user_count} users affected"
-        )
+        title = row['title']
+        if len(title) > MAX_TITLE_DISPLAY_LEN:
+            title = title[:MAX_TITLE_DISPLAY_LEN] + '…'
+        table_rows.append([
+            _create_table_link_cell(title, row['permalink']),
+            {"type": "raw_text", "text": str(row['count'])},
+            {"type": "raw_text", "text": str(row['user_count'])},
+        ])
 
     json_data["blocks"].append({
-        "type": "section",
-        "text": {
-            "type": "mrkdwn",
-            "text": "\n".join(lines)
-        }
+        "type": "table",
+        "rows": [header_row] + table_rows
     })
     return json_data
 
@@ -332,12 +359,24 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
     now = DatetimeUtils.start_date('0')
 
     version_label = ''
+    version = ''
     with open(csv_file, 'r') as f:
         rows = list(csv.DictReader(f))
     if rows and rows[0].get('release_version'):
         version = rows[0]['release_version'].split('@')[-1]
         version_label = f' v{version}'
 
+    sentry_params = project_config.get(project, {}).get('sentry', {}).get('params', {})
+    project_id = sentry_params.get('project', '')
+    environment = sentry_params.get('environment', '')
+    release_filter = (
+        f"%20release.version%3A{version}" if version else ""
+    )
+    sentry_issues_url = (
+        f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
+        f"&query=error.unhandled%3Atrue%20is%3Aunresolved{release_filter}"
+        f"&environment={environment}&sort=freq&statsPeriod=7d"
+    )
     json_data = {
         "blocks": [
             {
@@ -346,7 +385,7 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
                     "type": "mrkdwn",
                     "text": (
                         f"*:sentry: {icon} {product}{version_label} "
-                        f"Top Sentry Issues ({now})*"
+                        f"<{sentry_issues_url}|Top Sentry Issues> ({now})*"
                     )
                 }
             }
