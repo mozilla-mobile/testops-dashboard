@@ -116,10 +116,10 @@ class Sentry:
     # API: Top unhandled issues sorted by frequency over the past 7 days
     def unhandled_issues(self, limit=5, release_version=None):
         query = (
-            'error.unhandled%3Atrue+is%3Aunresolved'
+            'error.unhandled%3Atrue%20is%3Aunresolved'
         )
         if release_version:
-            query += '+release.version%3A' + quote(release_version, safe='')
+            query += '%20release.version%3A' + quote(release_version, safe='')
         return self.client.http_get(
             (
                 'organizations/{0}/issues/'
