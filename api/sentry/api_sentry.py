@@ -239,10 +239,10 @@ class SentryClient(Sentry):
                 return
             latest_release = release_versions[0]
             latest_version = latest_release.split('@')[-1]
-        print(f"Filtering by release: {latest_release}")
+        print(f"Latest release (for reference): {latest_release}")
         fetch_limit = limit + len(self.excluded_issue_titles) + 5
         raw_issues = (
-            self.unhandled_issues(limit=fetch_limit, release_version=latest_version)
+            self.unhandled_issues(limit=fetch_limit)
             or []
         )
         issues = [
