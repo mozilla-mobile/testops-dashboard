@@ -66,7 +66,7 @@ jobs:
         run: echo "value=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Create Slack thread
         id: slack-health
-        uses: slackapi/slack-github-action@v3.0.2
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
@@ -89,7 +89,7 @@ jobs:
              '. + {channel: $channel, thread_ts: $thread_ts}' \
              github-new-issues-slack.json > github-new-issues-slack-thread.json
       - name: "Post to Slack: Looker Dashboard"
-        uses: slackapi/slack-github-action@v3.0.2
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
@@ -98,13 +98,13 @@ jobs:
             thread_ts: "${{ steps.slack-health.outputs.ts }}"
             text: ":looker: <https://mozilla.cloud.looker.com/dashboards/operational_monitoring::firefox_ios_health?Date=&Percentile=50|Looker Dashboard>"
       - name: "Post to Slack: Crash Free Rates"
-        uses: slackapi/slack-github-action@v3.0.2
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
           payload-file-path: "./sentry-slack-firefox-ios-thread.json"
       - name: "Post to Slack: New Github Issues"
-        uses: slackapi/slack-github-action@v3.0.2
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}

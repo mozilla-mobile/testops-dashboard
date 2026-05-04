@@ -60,7 +60,7 @@ jobs:
         run: |
           python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json
       - name: Send notification to Slack
-        uses: slackapi/slack-github-action@v3.0.2
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           payload-file-path: "./github-new-issues-slack.json"
           payload-templated: true
@@ -96,7 +96,7 @@ jobs:
             --mode unhandled-issues
 
       - name: Send unhandled issues notification to Slack (iOS)
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           payload-file-path: "./sentry-slack-unhandled-firefox-ios.json"
           payload-templated: true
@@ -114,7 +114,7 @@ jobs:
       #       --mode unhandled-issues
 
       # - name: Send unhandled issues notification to Slack (Android)
-      #   uses: slackapi/slack-github-action@v3.0.1
+      #   uses: slackapi/slack-github-action@v3.0.3
       #   with:
       #     payload-file-path: "./sentry-slack-unhandled-fenix.json"
       #     payload-templated: true
@@ -132,7 +132,7 @@ jobs:
       #       --mode unhandled-issues
 
       # - name: Send unhandled issues notification to Slack (Android Beta)
-      #   uses: slackapi/slack-github-action@v3.0.1
+      #   uses: slackapi/slack-github-action@v3.0.3
       #   with:
       #     payload-file-path: "./sentry-slack-unhandled-fenix-beta.json"
       #     payload-templated: true

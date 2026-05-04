@@ -78,7 +78,7 @@ jobs:
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
       - name: Send workflow status to Slack
-        uses: slackapi/slack-github-action@v3.0.2
+        uses: slackapi/slack-github-action@v3.0.3
         env:
           WORKFLOW_NAME: ${{ github.workflow }}
           BRANCH: ${{ github.head_ref || github.ref_name }}
