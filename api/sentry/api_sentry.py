@@ -227,19 +227,6 @@ class SentryClient(Sentry):
 
     def sentry_unhandled_issues(self, limit=3):
         print("SentryClient.sentry_unhandled_issues()")
-        if self.sentry_project == 'fenix-beta':
-            latest_version = self.get_future_train_release()[0]
-            latest_release = f'{self.package}@{latest_version}'
-        else:
-            release_versions = self.sentry_releases()
-            if not release_versions:
-                print(
-                    f"Warning: No releases found for '{self.sentry_project}', skipping."
-                )
-                return
-            latest_release = release_versions[0]
-            latest_version = latest_release.split('@')[-1]
-        print(f"Latest release (for reference): {latest_release}")
         fetch_limit = limit + len(self.excluded_issue_titles) + 5
         raw_issues = (
             self.unhandled_issues(limit=fetch_limit)
@@ -262,12 +249,11 @@ class SentryClient(Sentry):
                 issue.get('count', 0),
                 issue.get('userCount', 0),
                 issue.get('permalink', ''),
-                latest_release,
             ])
         df = pd.DataFrame(
             data=payload,
             columns=['sentry_id', 'title', 'culprit', 'count',
-                     'user_count', 'permalink', 'release_version']
+                     'user_count', 'permalink']
         )
         csv_path = f'sentry_unhandled_issues_{self.sentry_project}.csv'
         df.to_csv(csv_path, index=False)
