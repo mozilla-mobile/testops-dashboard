@@ -9,7 +9,6 @@ import sys
 import tomllib
 import requests
 import pandas as pd
-from urllib.parse import quote
 
 from packaging.version import Version
 from lib.sentry_conn import APIClient
@@ -114,12 +113,10 @@ class Sentry:
         return list(response.json().keys())
 
     # API: Top unhandled issues sorted by frequency over the past 7 days
-    def unhandled_issues(self, limit=5, release_version=None):
+    def unhandled_issues(self, limit=5):
         query = (
             'error.unhandled%3Atrue%20is%3Aunresolved'
         )
-        if release_version:
-            query += '%20release.version%3A' + quote(release_version, safe='')
         return self.client.http_get(
             (
                 'organizations/{0}/issues/'
