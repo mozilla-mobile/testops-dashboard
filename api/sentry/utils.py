@@ -358,23 +358,15 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
     product = project_config.get(project).get('product')
     now = DatetimeUtils.start_date('0')
 
-    version_label = ''
-    version = ''
     with open(csv_file, 'r') as f:
         rows = list(csv.DictReader(f))
-    if rows and rows[0].get('release_version'):
-        version = rows[0]['release_version'].split('@')[-1]
-        version_label = f' v{version}'
 
     sentry_params = project_config.get(project, {}).get('sentry', {}).get('params', {})
     project_id = sentry_params.get('project', '')
     environment = sentry_params.get('environment', '')
-    release_filter = (
-        f"%20release.version%3A{version}" if version else ""
-    )
     sentry_issues_url = (
         f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
-        f"&query=error.unhandled%3Atrue%20is%3Aunresolved{release_filter}"
+        f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
         f"&environment={environment}&sort=freq&statsPeriod=7d"
     )
     json_data = {
@@ -384,7 +376,7 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        f"*:sentry: {icon} {product}{version_label} "
+                        f"*:sentry: {icon} {product} "
                         f"<{sentry_issues_url}|Top Sentry Issues> ({now})*"
                     )
                 }

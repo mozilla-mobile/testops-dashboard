@@ -9,7 +9,6 @@ import sys
 import tomllib
 import requests
 import pandas as pd
-from urllib.parse import quote
 
 from packaging.version import Version
 from lib.sentry_conn import APIClient
@@ -114,12 +113,10 @@ class Sentry:
         return list(response.json().keys())
 
     # API: Top unhandled issues sorted by frequency over the past 7 days
-    def unhandled_issues(self, limit=5, release_version=None):
+    def unhandled_issues(self, limit=5):
         query = (
-            'error.unhandled%3Atrue+is%3Aunresolved'
+            'error.unhandled%3Atrue%20is%3Aunresolved'
         )
-        if release_version:
-            query += '+release.version%3A' + quote(release_version, safe='')
         return self.client.http_get(
             (
                 'organizations/{0}/issues/'
@@ -227,22 +224,9 @@ class SentryClient(Sentry):
 
     def sentry_unhandled_issues(self, limit=3):
         print("SentryClient.sentry_unhandled_issues()")
-        if self.sentry_project == 'fenix-beta':
-            latest_version = self.get_future_train_release()[0]
-            latest_release = f'{self.package}@{latest_version}'
-        else:
-            release_versions = self.sentry_releases()
-            if not release_versions:
-                print(
-                    f"Warning: No releases found for '{self.sentry_project}', skipping."
-                )
-                return
-            latest_release = release_versions[0]
-            latest_version = latest_release.split('@')[-1]
-        print(f"Filtering by release: {latest_release}")
         fetch_limit = limit + len(self.excluded_issue_titles) + 5
         raw_issues = (
-            self.unhandled_issues(limit=fetch_limit, release_version=latest_version)
+            self.unhandled_issues(limit=fetch_limit)
             or []
         )
         issues = [
@@ -262,12 +246,11 @@ class SentryClient(Sentry):
                 issue.get('count', 0),
                 issue.get('userCount', 0),
                 issue.get('permalink', ''),
-                latest_release,
             ])
         df = pd.DataFrame(
             data=payload,
             columns=['sentry_id', 'title', 'culprit', 'count',
-                     'user_count', 'permalink', 'release_version']
+                     'user_count', 'permalink']
         )
         csv_path = f'sentry_unhandled_issues_{self.sentry_project}.csv'
         df.to_csv(csv_path, index=False)
