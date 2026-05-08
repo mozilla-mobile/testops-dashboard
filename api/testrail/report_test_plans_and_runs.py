@@ -41,7 +41,7 @@ def _tr() -> TestRail():
 # ORCHESTRATOR (BATCH)
 # ===================================================================
 
-def testrail_plans_and_runs(project, num_days):
+def testrail_plans_and_runs(project, start_date=None, num_days=None, end_date=None):
     """
     Given a testrail project, update the test_plans and test_runs tables
     with the latest entries up until the specified number of days.
@@ -63,7 +63,11 @@ def testrail_plans_and_runs(project, num_days):
     db = _db()
     tr = _tr()
 
-    start_date = dt.start_date(num_days)
+    start_date_value, end_date_value = dt.resolve_date_range(
+        start_date=start_date,
+        end_date=end_date,
+        num_days=num_days
+    )
 
     # Get reference IDs from DB
     project_ids_list = testrail_project_ids(project)  # noqa
@@ -76,7 +80,10 @@ def testrail_plans_and_runs(project, num_days):
 
         testrail_project_id = project_ids[1]
         # get the test plans from the start_date for the test rails project
-        result = tr.get_test_plans(testrail_project_id, start_date)  # noqa
+        result = tr.get_test_plans(
+            testrail_project_id,
+            start_date_value
+        )
 
         # filter out the Automated testing Plans.
         full_plans = {
@@ -96,14 +103,19 @@ def testrail_plans_and_runs(project, num_days):
         report_test_plans_insert(projects_id, full_plans)
 
         # add the test runs for the queried test plans
-        testrail_runs_update(num_days, full_plans)
+        testrail_runs_update(
+            full_plans,
+            start_date=start_date,
+            end_date=end_date,
+            num_days=num_days
+        )
 
 
 # ===================================================================
 # ORCHESTRATOR (BATCH)
 # ===================================================================
 
-def testrail_runs_update(num_days, project_plans):
+def testrail_runs_update(project_plans, start_date=None, end_date=None, num_days=None):
     """
         Update the test_runs table with the latest entries up until
         the specified number of days.
@@ -121,11 +133,18 @@ def testrail_runs_update(num_days, project_plans):
 
     tr = _tr()
 
-    start_date = dt.start_date(num_days)
+    start_date_value, end_date_value = dt.resolve_date_range(
+        start_date=start_date,
+        end_date=end_date,
+        num_days=num_days
+    )
 
     # querying each test plan individually returns the associated runs
     for plan in project_plans.values():
-        plan_info = tr.get_test_plan(plan['plan_id'], start_date)
+        plan_info = tr.get_test_plan(
+            plan['plan_id'],
+            start_date_value
+        )
         for entry in plan_info['entries']:
             report_test_runs_insert(
                 plan['id'], entry['suite_id'], entry['runs'])
