@@ -75,6 +75,11 @@ def testrail_plans_and_runs(project, start_date=None, num_days=None, end_date=No
     print("DIAGNOSTIC: project_ids:")
     print(project_ids_list)
 
+    # delete test plans and runs
+    print("DIAGNOSTIC: cleaning tables....")
+    db.clean_table(ReportTestRailTestRuns)
+    db.clean_table(ReportTestRailTestPlans)
+
     for project_ids in project_ids_list:
         projects_id = project_ids[0]
 
@@ -91,11 +96,6 @@ def testrail_plans_and_runs(project, start_date=None, num_days=None, end_date=No
             for plan in result['plans']
             if "Automated testing" in plan['name']
         }
-
-        # delete test plans and runs
-        print("DIAGNOSTIC: cleaning tables....")
-        db.clean_table(ReportTestRailTestRuns)
-        db.clean_table(ReportTestRailTestPlans)
 
         # Insert data in the formated plan info array into DB
         # get table ids for the plans

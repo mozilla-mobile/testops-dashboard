@@ -76,7 +76,7 @@ jobs:
           - name: Desktop Test Case Coverage
             args: --report-type testrail-test-case-coverage --platform desktop --project ALL
           - name: Desktop Test Plans and Runs
-            args: --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
+            args: --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs
           - name: Testrail Users
             args: --report-type testrail-users
           - name: Mobile Testrail Milestones
