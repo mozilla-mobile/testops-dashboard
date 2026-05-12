@@ -22,7 +22,7 @@ jobs:
       matrix:
         include:
           - name: Query Test Plans and Runs
-            args: --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
+            args: --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs
           - name: Update DB - test coverage
             args: --report-type testrail-test-case-coverage --platform desktop --project ALL
           - name: Query Bugzilla Softvision Bugs

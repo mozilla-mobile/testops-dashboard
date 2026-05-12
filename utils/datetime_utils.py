@@ -58,3 +58,45 @@ class DatetimeUtils:
 
     def create_date(year, month, day):
         return datetime(year, month, day)
+
+    def parse_date(date_str: str):
+        return datetime.strptime(date_str, "%Y-%m-%d").date()
+
+    def resolve_date_range(start_date=None, end_date=None, num_days=None):
+        """
+        Resolve effective start/end dates using precedence:
+
+        1. explicit start_date/end_date
+        2. num_days rolling window
+        3. default = Jan 1 current year -> today
+        """
+
+        today = datetime.now().date()
+
+        # explicit range
+        if start_date:
+            if not end_date:
+                end_date = today
+
+            return (
+                start_date.strftime("%Y-%m-%d"),
+                end_date.strftime("%Y-%m-%d")
+            )
+
+        # rolling window
+        if num_days:
+            end = today
+            start = end - timedelta(days=int(num_days))
+
+            return (
+                start.strftime("%Y-%m-%d"),
+                end.strftime("%Y-%m-%d")
+            )
+
+        # default: year-to-date
+        start = datetime(today.year, 1, 1).date()
+
+        return (
+            start.strftime("%Y-%m-%d"),
+            today.strftime("%Y-%m-%d")
+        )

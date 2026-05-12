@@ -6,7 +6,7 @@
 
 import argparse
 import sys
-
+from datetime import datetime
 
 from constants import (
     PROJECTS_MOBILE,
@@ -106,6 +106,20 @@ def parse_args(cmdln_args):
         help="Indicate Bugzilla keyword for bugzilla-query-by-keyword",
         required=False,
         type=str,
+    )
+
+    parser.add_argument(
+        "--start-date",
+        help="Start date (YYYY-MM-DD)",
+        required=False,
+        type=lambda s: datetime.strptime(s, "%Y-%m-%d").date(),
+    )
+
+    parser.add_argument(
+        "--end-date",
+        help="End date (YYYY-MM-DD). Defaults to today.",
+        required=False,
+        type=lambda s: datetime.strptime(s, "%Y-%m-%d").date(),
     )
 
     return parser.parse_args(args=cmdln_args)

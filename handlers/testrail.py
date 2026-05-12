@@ -9,7 +9,11 @@ import api.testrail.report_test_health as test_health
 
 def handle_testrail_test_plans_and_runs(args):
     test_plans_and_runs.testrail_plans_and_runs(
-        args.arg_list, args.num_days or "30")
+        args.arg_list,
+        start_date=args.start_date,
+        end_date=args.end_date,
+        num_days=args.num_days
+    )
 
 
 def handle_testrail_test_results(args):
