@@ -38,6 +38,30 @@ def _tr() -> TestRail():
 
 
 # ===================================================================
+# DB CLEANUP
+# ===================================================================
+
+def clean_test_plans(plan_ids):
+    db = _db()
+
+    db.session.query(ReportTestRailTestPlans).filter(
+        ReportTestRailTestPlans.testrail_plan_id.in_(plan_ids)
+    ).delete(synchronize_session=False)
+
+    db.session.commit()
+
+
+def clean_test_runs(plan_ids):
+    db = _db()
+
+    db.session.query(ReportTestRailTestRuns).filter(
+        ReportTestRailTestRuns.plan_id.in_(plan_ids)
+    ).delete(synchronize_session=False)
+
+    db.session.commit()
+
+
+# ===================================================================
 # ORCHESTRATOR (BATCH)
 # ===================================================================
 
@@ -60,7 +84,6 @@ def testrail_plans_and_runs(project, start_date=None, num_days=None, end_date=No
     print(f"project = {project}")
     print(f"num_days: {num_days}")
 
-    db = _db()
     tr = _tr()
 
     start_date_value, end_date_value = dt.resolve_date_range(
@@ -75,34 +98,39 @@ def testrail_plans_and_runs(project, start_date=None, num_days=None, end_date=No
     print("DIAGNOSTIC: project_ids:")
     print(project_ids_list)
 
-    # delete test plans and runs
-    print("DIAGNOSTIC: cleaning tables....")
-    db.clean_table(ReportTestRailTestRuns)
-    db.clean_table(ReportTestRailTestPlans)
-
     for project_ids in project_ids_list:
         projects_id = project_ids[0]
-
         testrail_project_id = project_ids[1]
-        # get the test plans from the start_date for the test rails project
+
+        # 1. FETCH from TestRail
         result = tr.get_test_plans(
             testrail_project_id,
-            start_date_value
+            start_date_value,
+            end_date_value
         )
 
-        # filter out the Automated testing Plans.
+        # 2. FILTER plans
         full_plans = {
             plan['name']: pl.extract_plan_info(plan)
             for plan in result['plans']
             if "Automated testing" in plan['name']
         }
 
-        # Insert data in the formated plan info array into DB
-        # get table ids for the plans
+        # 3. BUILD plan_ids (IMPORTANT STEP BEFORE CLEANUP)
+        plan_ids = [
+            plan["plan_id"]
+            for plan in full_plans.values()
+        ]
 
+        # 4. CLEAN OLD DATA (PUT IT HERE)
+        print("DIAGNOSTIC: cleaning tables....")
+        clean_test_runs(plan_ids)
+        clean_test_plans(plan_ids)
+
+        # 5. INSERT PLANS
         report_test_plans_insert(projects_id, full_plans)
 
-        # add the test runs for the queried test plans
+        # 6. INSERT RUNS
         testrail_runs_update(
             full_plans,
             start_date=start_date,
@@ -143,7 +171,8 @@ def testrail_runs_update(project_plans, start_date=None, end_date=None, num_days
     for plan in project_plans.values():
         plan_info = tr.get_test_plan(
             plan['plan_id'],
-            start_date_value
+            start_date_value,
+            end_date_value
         )
         for entry in plan_info['entries']:
             report_test_runs_insert(
@@ -182,11 +211,14 @@ def report_test_plans_insert(project_id, payload):
             test_case_blocked_count=total['blocked_count'],
             test_case_total_count=total['total_count'],
             testrail_created_on=created_on,
-            testrail_completed_on=completed_on)
+            testrail_completed_on=completed_on
+        )
 
         db.session.add(report)
-        db.session.commit()
-        total['id'] = report.id
+
+    # commit ONCE after loop
+    db.session.commit()
+
     return payload
 
 
@@ -198,12 +230,13 @@ def report_test_runs_insert(db_plan_id, suite_id, runs):
         completed_on = (
             dt.convert_epoch_to_datetime(run['completed_on'])
             if run['completed_on'] else None
-            )
+        )
+
         total_count = (
-            run['passed_count']
-            + run['retest_count']
-            + run['failed_count']
-            + run['blocked_count']
+                run['passed_count']
+                + run['retest_count']
+                + run['failed_count']
+                + run['blocked_count']
         )
 
         report_run = ReportTestRailTestRuns(
@@ -213,10 +246,14 @@ def report_test_runs_insert(db_plan_id, suite_id, runs):
             name=run['name'],
             config=run['config'],
             test_case_passed_count=run['passed_count'],
-            test_case_retest_count=run['retest_count'], # noqa               test_case_failed_count=run['failed_count'],
+            test_case_retest_count=run['retest_count'],
+            test_case_failed_count=run['failed_count'],
             test_case_blocked_count=run['blocked_count'],
             test_case_total_count=total_count,
             testrail_created_on=created_on,
-            testrail_completed_on=completed_on)
+            testrail_completed_on=completed_on
+        )
+
         db.session.add(report_run)
-        db.session.commit()
+
+    db.session.commit()
