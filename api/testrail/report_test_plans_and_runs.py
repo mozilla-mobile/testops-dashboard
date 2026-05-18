@@ -194,6 +194,8 @@ def report_test_plans_insert(project_id, payload):
 
     db = _db()
 
+    reports = []
+
     for total in payload.values():
         created_on = dt.convert_epoch_to_datetime(total['created_on'])
         completed_on = (
@@ -216,8 +218,14 @@ def report_test_plans_insert(project_id, payload):
 
         db.session.add(report)
 
+        reports.append((total, report))
+
     # commit ONCE after loop
     db.session.commit()
+
+    # DB ids now exist
+    for total, report in reports:
+        total['id'] = report.id
 
     return payload
 
