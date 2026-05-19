@@ -21,6 +21,19 @@ from database import (
 from api.testrail.client import TestRail
 from api.testrail.helpers import testrail_project_ids
 
+# TestRail status_id mapping for pass rate calculation
+# 1=pass -> 1, 4=retest -> 0, 5=fail -> 0
+# 2=blocked, 3=untested, 6=N/A, 7=N/Avail -> skip (None)
+STATUS_SCORE = {
+    1: 1,     # pass
+    2: None,  # blocked - skip
+    3: None,  # untested - skip
+    4: 0,     # retest (expected failure)
+    5: 0,     # fail
+    6: None,  # not applicable - skip
+    7: None,  # not available - skip
+}
+
 _DB = None
 _TR = None
 
@@ -112,13 +125,19 @@ def update_testrail_test_health_row(payload, update_list):
                 )
             ).one()
         starting_count = row.num_executions
-        new_row["num_executions"] = starting_count + 1
-        new_row["avg_runtime"] = increment_average(
-            starting_count, row.avg_runtime, payload.get("elapsed")
-        )
-        new_row["pass_rate"] = increment_average(
-            starting_count, row.pass_rate, payload.get("status")
-        )
+        score = STATUS_SCORE.get(payload.get("status"))
+        if score is not None:
+            new_row["num_executions"] = starting_count + 1
+            new_row["avg_runtime"] = increment_average(
+                starting_count, row.avg_runtime, payload.get("elapsed")
+            )
+            new_row["pass_rate"] = increment_average(
+                starting_count, row.pass_rate, score
+            )
+        else:
+            new_row["num_executions"] = starting_count
+            new_row["avg_runtime"] = row.avg_runtime
+            new_row["pass_rate"] = row.pass_rate
         new_row["status_history_4"] = row.status_history_3
         new_row["status_history_3"] = row.status_history_2
         new_row["status_history_2"] = row.status_history_1
@@ -134,9 +153,15 @@ def update_testrail_test_health_row(payload, update_list):
             new_row["most_recent_status"] = row.most_recent_status
     except NoResultFound:
         # new test
-        new_row["num_executions"] = 1
-        new_row["avg_runtime"] = payload.get("elapsed")
-        new_row["pass_rate"] = float(payload.get("status"))
+        score = STATUS_SCORE.get(payload.get("status"))
+        if score is not None:
+            new_row["num_executions"] = 1
+            new_row["avg_runtime"] = payload.get("elapsed")
+            new_row["pass_rate"] = float(score)
+        else:
+            new_row["num_executions"] = 0
+            new_row["avg_runtime"] = None
+            new_row["pass_rate"] = None
         new_row["most_recent_timestamp"] = payload.get("created_on")
         new_row["most_recent_runtime"] = payload.get("elapsed")
         new_row["most_recent_status"] = payload.get("status")
