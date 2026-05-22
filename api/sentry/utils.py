@@ -318,6 +318,10 @@ def insert_unhandled_issues(json_data, rows, version=None):
         row for row in rows
         if int(row['user_count']) > 1000 or int(row['count']) > 1000
     ]
+    significant.sort(
+        key=lambda r: (int(r['count']), int(r['user_count'])),
+        reverse=True,
+    )
     if not significant:
         json_data["blocks"].append({
             "type": "section",
