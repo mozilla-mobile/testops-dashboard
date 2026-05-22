@@ -304,13 +304,16 @@ def _create_table_link_cell(text, url):
     }
 
 
-def insert_unhandled_issues(json_data, rows, version=None):
+def insert_unhandled_issues(json_data, rows, version=None, version_url=None):
     if version is not None:
+        header_text = (
+            f"*<{version_url}|v{version}>*" if version_url else f"*v{version}*"
+        )
         json_data["blocks"].append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*v{version}*"
+                "text": header_text
             }
         })
 
@@ -397,8 +400,17 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
     else:
         versions = sorted(rows_by_version.keys(), key=Version, reverse=True)
         for version in versions:
+            version_url = (
+                f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
+                f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
+                f"%20release.version%3A{version}"
+                f"&environment={environment}&sort=freq&statsPeriod=7d"
+            )
             insert_unhandled_issues(
-                json_data, rows_by_version[version], version=version
+                json_data,
+                rows_by_version[version],
+                version=version,
+                version_url=version_url,
             )
 
     insert_json_footer(json_data)
