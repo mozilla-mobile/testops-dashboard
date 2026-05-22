@@ -7,6 +7,8 @@ from urllib.parse import urlencode
 import requests
 import yaml
 
+from packaging.version import Version
+
 from utils.datetime_utils import DatetimeUtils
 
 
@@ -302,29 +304,21 @@ def _create_table_link_cell(text, url):
     }
 
 
-def insert_unhandled_issues(json_data, rows):
-    if not rows:
+def insert_unhandled_issues(json_data, rows, version=None):
+    if version is not None:
         json_data["blocks"].append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": (
-                    ":white_check_mark: No significant issue to report."
-                )
+                "text": f"*v{version}*"
             }
         })
-        return json_data
 
-    header_row = [
-        _create_table_header_cell("Issue"),
-        _create_table_header_cell("Events"),
-        _create_table_header_cell("Users Affected"),
-    ]
-    rows = [
+    significant = [
         row for row in rows
         if int(row['user_count']) > 1000 or int(row['count']) > 1000
     ]
-    if not rows:
+    if not significant:
         json_data["blocks"].append({
             "type": "section",
             "text": {
@@ -334,9 +328,14 @@ def insert_unhandled_issues(json_data, rows):
         })
         return json_data
 
+    header_row = [
+        _create_table_header_cell("Issue"),
+        _create_table_header_cell("Events"),
+        _create_table_header_cell("Users Affected"),
+    ]
     MAX_TITLE_DISPLAY_LEN = 50
     table_rows = []
-    for row in rows:
+    for row in significant:
         title = row['title']
         if len(title) > MAX_TITLE_DISPLAY_LEN:
             title = title[:MAX_TITLE_DISPLAY_LEN] + '…'
@@ -383,7 +382,21 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
             }
         ]
     }
-    insert_unhandled_issues(json_data, rows)
+
+    rows_by_version = {}
+    for row in rows:
+        version = row.get('release_version', '')
+        rows_by_version.setdefault(version, []).append(row)
+
+    if not rows_by_version:
+        insert_unhandled_issues(json_data, [])
+    else:
+        versions = sorted(rows_by_version.keys(), key=Version, reverse=True)
+        for version in versions:
+            insert_unhandled_issues(
+                json_data, rows_by_version[version], version=version
+            )
+
     insert_json_footer(json_data)
 
     output_path = Path(f'sentry-slack-unhandled-{project}.json')
