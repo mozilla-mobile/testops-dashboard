@@ -304,7 +304,9 @@ def _create_table_link_cell(text, url):
     }
 
 
-def insert_unhandled_issues(json_data, rows, version=None, version_url=None):
+def insert_unhandled_issues(
+    json_data, rows, version=None, version_url=None, limit=None
+):
     if version is not None:
         header_text = (
             f"*<{version_url}|v{version}>*" if version_url else f"*v{version}*"
@@ -325,6 +327,8 @@ def insert_unhandled_issues(json_data, rows, version=None, version_url=None):
         key=lambda r: (int(r['count']), int(r['user_count'])),
         reverse=True,
     )
+    if limit is not None:
+        significant = significant[:limit]
     if not significant:
         json_data["blocks"].append({
             "type": "section",
@@ -336,6 +340,7 @@ def insert_unhandled_issues(json_data, rows, version=None, version_url=None):
         return json_data
 
     header_row = [
+        _create_table_header_cell("Issue ID"),
         _create_table_header_cell("Issue"),
         _create_table_header_cell("Events"),
         _create_table_header_cell("Users Affected"),
@@ -347,7 +352,10 @@ def insert_unhandled_issues(json_data, rows, version=None, version_url=None):
         if len(title) > MAX_TITLE_DISPLAY_LEN:
             title = title[:MAX_TITLE_DISPLAY_LEN] + '…'
         table_rows.append([
-            _create_table_link_cell(title, row['permalink']),
+            _create_table_link_cell(
+                row.get('short_id', ''), row['permalink']
+            ),
+            {"type": "raw_text", "text": title},
             {"type": "raw_text", "text": str(row['count'])},
             {"type": "raw_text", "text": str(row['user_count'])},
         ])
@@ -390,27 +398,32 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
         ]
     }
 
-    rows_by_version = {}
+    rows_by_major = {}
     for row in rows:
         version = row.get('release_version', '')
-        rows_by_version.setdefault(version, []).append(row)
+        try:
+            major = Version(version).major
+        except Exception:
+            continue
+        rows_by_major.setdefault(major, []).append(row)
 
-    if not rows_by_version:
+    if not rows_by_major:
         insert_unhandled_issues(json_data, [])
     else:
-        versions = sorted(rows_by_version.keys(), key=Version, reverse=True)
-        for version in versions:
+        majors = sorted(rows_by_major.keys(), reverse=True)[:2]
+        for major in majors:
             version_url = (
                 f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
                 f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
-                f"%20release.version%3A{version}"
+                f"%20release.version%3A{major}.*"
                 f"&environment={environment}&sort=freq&statsPeriod=7d"
             )
             insert_unhandled_issues(
                 json_data,
-                rows_by_version[version],
-                version=version,
+                rows_by_major[major],
+                version=str(major),
                 version_url=version_url,
+                limit=1,
             )
 
     insert_json_footer(json_data)

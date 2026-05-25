@@ -260,6 +260,7 @@ class SentryClient(Sentry):
             for issue in issues:
                 payload.append([
                     issue['id'],
+                    issue.get('shortId', ''),
                     issue['title'][:MAX_STRING_LEN],
                     issue.get('culprit', ''),
                     issue.get('count', 0),
@@ -269,7 +270,7 @@ class SentryClient(Sentry):
                 ])
         df = pd.DataFrame(
             data=payload,
-            columns=['sentry_id', 'title', 'culprit', 'count',
+            columns=['sentry_id', 'short_id', 'title', 'culprit', 'count',
                      'user_count', 'permalink', 'release_version']
         )
         csv_path = f'sentry_unhandled_issues_{self.sentry_project}.csv'
