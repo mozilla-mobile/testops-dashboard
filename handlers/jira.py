@@ -1,3 +1,4 @@
+import api.jira.report_sv_qa_issues as sv_qa_issues
 import api.jira.report_qa_needed as qa_needed
 import api.jira.report_qa_requests as requests
 import api.jira.report_qa_requests_desktop as requests_desktop
@@ -19,3 +20,7 @@ def handle_jira_softvision_worklogs(args):
 
 def handle_jira_qa_requests_desktop(args):
     requests_desktop.jira_qa_requests_desktop()
+
+
+def handle_jira_sv_qa_issues(args):
+    sv_qa_issues.jira_sv_qa_issues()

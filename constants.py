@@ -49,6 +49,7 @@ REPORT_TYPES = [
     "confluence-build-validation",
     "github-issue-regression",
     "github-issues",
+    "jira-sv-qa-issues",
     "jira-qa-needed",
     "jira-qa-requests",
     "jira-qa-requests-new-issue-types",
@@ -88,6 +89,9 @@ QATT_FIELDS = "key,summary"
 QATT_BOARD = "15948"
 QATT_PARENT_TICKETS_IN_BOARD = f"filter={QATT_BOARD}&jql=parent="
 WORKLOG_URL_TEMPLATE = "issue/{issue_key}/worklog"
+
+# JQL Ecosystem and Service QA Issues
+FILTER_ID_SV_QA_ISSUES = "35754"
 
 # JQL Extra fields needed
 JQL_QUERY = "jql=filter="
