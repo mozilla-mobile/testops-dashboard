@@ -237,16 +237,25 @@ class SentryClient(Sentry):
                 )
                 return
 
+        # Query Sentry once per major version with a wildcard so the result
+        # matches the Sentry UI for release.version:<major>.* — otherwise an
+        # issue whose events are spread across multiple sub-versions ranks
+        # low in every per-sub-version query and is missed.
+        majors = sorted({
+            int(rv.split('+')[0].split('.')[0])
+            for rv in release_versions
+        }, reverse=True)
+
         fetch_limit = limit + len(self.excluded_issue_titles) + 5
         MAX_STRING_LEN = 250
         payload = []
-        for release_version in release_versions:
-            short_release_version = release_version.split('+')[0]
-            print(f"Filtering by release: {short_release_version}")
+        for major in majors:
+            major_query = f"{major}.*"
+            print(f"Filtering by release: {major_query}")
             raw_issues = (
                 self.unhandled_issues(
                     limit=fetch_limit,
-                    release_version=short_release_version,
+                    release_version=major_query,
                 )
                 or []
             )
@@ -266,7 +275,7 @@ class SentryClient(Sentry):
                     issue.get('count', 0),
                     issue.get('userCount', 0),
                     issue.get('permalink', ''),
-                    short_release_version,
+                    str(major),
                 ])
         df = pd.DataFrame(
             data=payload,

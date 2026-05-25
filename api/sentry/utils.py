@@ -319,14 +319,13 @@ def insert_unhandled_issues(
             }
         })
 
+    # Preserve the order Sentry returned (sort=freq over statsPeriod=7d).
+    # Don't re-sort by count/user_count — those are lifetime totals, so
+    # re-sorting would surface old high-volume issues over recent ones.
     significant = [
         row for row in rows
         if int(row['user_count']) > 1000 or int(row['count']) > 1000
     ]
-    significant.sort(
-        key=lambda r: (int(r['count']), int(r['user_count'])),
-        reverse=True,
-    )
     if limit is not None:
         significant = significant[:limit]
     if not significant:
