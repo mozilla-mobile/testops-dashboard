@@ -11,12 +11,12 @@ import pandas as pd
 
 from database import (
     Database,
-    ReportJiraSVQAIssues,
+    ReportJiraSoftvisionIssuesQATeams,
 )
 
 from api.jira.client import Jira
 from constants import (
-    FILTER_ID_SV_QA_ISSUES,
+    FILTER_ID_SOFTVISION_ISSUES_QA_TEAMS,
 )
 from api.jira.helpers import (
     prepare_jira_df,
@@ -75,11 +75,11 @@ def _to_naive_utc(value):
 # ===================================================================
 
 
-def jira_sv_qa_issues():
+def jira_softvision_issues_qa_teams():
     jira = _jira()
     try:
         payload = jira.filters(
-            filter_id=FILTER_ID_SV_QA_ISSUES,
+            filter_id=FILTER_ID_SOFTVISION_ISSUES_QA_TEAMS,
             extra_fields=[
                 "project",
                 "reporter",
@@ -96,7 +96,7 @@ def jira_sv_qa_issues():
 
     if df.empty:
         raise ValueError(
-            "jira_sv_qa_issues returned empty payload — "
+            "jira_softvision_issues_qa_teams returned empty payload — "
             "check Jira credentials or filter. Database was not modified."
         )
 
@@ -131,13 +131,13 @@ def jira_sv_qa_issues():
     )
 
     # DIAGNOSTIC: dump raw df columns and transformed payload to CSV
-    df.to_csv("sv_qa_issues_raw_df.csv", index=False)
-    payload.to_csv("sv_qa_issues_payload.csv", index=False)
+    df.to_csv("softvision_issues_qa_teams_raw_df.csv", index=False)
+    payload.to_csv("softvision_issues_qa_teams_payload.csv", index=False)
     print("DIAGNOSTIC - raw df columns:", list(df.columns))
-    print(f"DIAGNOSTIC - wrote {len(df)} rows to sv_qa_issues_raw_df.csv "
-          f"and {len(payload)} rows to sv_qa_issues_payload.csv")
+    print(f"DIAGNOSTIC - wrote {len(df)} rows to softvision_issues_qa_teams_raw_df.csv "
+          f"and {len(payload)} rows to softvision_issues_qa_teams_payload.csv")
 
-    report_jira_sv_qa_issues_insert(payload)
+    report_jira_softvision_issues_qa_teams_insert(payload)
 
 
 # ===================================================================
@@ -145,10 +145,10 @@ def jira_sv_qa_issues():
 # ===================================================================
 
 
-def report_jira_sv_qa_issues_insert(payload):
+def report_jira_softvision_issues_qa_teams_insert(payload):
     # DIAGNOSTIC
     print("--------------------------------------")
-    print("Running: report_jira_sv_qa_issues")
+    print("Running: report_jira_softvision_issues_qa_teams")
     print(inspect.currentframe().f_code.co_name)
     print("--------------------------------------")
 
@@ -161,7 +161,7 @@ def report_jira_sv_qa_issues_insert(payload):
         try:
             jira_key = row['jira_key']
 
-            existing = db.session.query(ReportJiraSVQAIssues).filter_by(
+            existing = db.session.query(ReportJiraSoftvisionIssuesQATeams).filter_by(
                 jira_key=jira_key
             ).one_or_none()
 
@@ -200,7 +200,7 @@ def report_jira_sv_qa_issues_insert(payload):
                     skipped += 1
             else:
                 print(f"Inserting new issue {jira_key}")
-                new_issue = ReportJiraSVQAIssues(
+                new_issue = ReportJiraSoftvisionIssuesQATeams(
                     jira_key=jira_key,
                     jira_summary=row['jira_summary'],
                     jira_project_key=row['jira_project_key'],

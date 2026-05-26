@@ -69,8 +69,8 @@ class ReportJiraQANeeded(Base):
     __table__ = Table('report_jira_qa_needed', Base.metadata, autoload_with=pool)  # noqa
 
 
-class ReportJiraSVQAIssues(Base):
-    __table__ = Table('report_jira_softvision_qa_issues', Base.metadata, autoload_with=pool)  # noqa
+class ReportJiraSoftvisionIssuesQATeams(Base):
+    __table__ = Table('report_jira_softvision_issues_qa_teams', Base.metadata, autoload_with=pool)  # noqa
 
 
 class ReportBugzillaQENeeded(Base):
