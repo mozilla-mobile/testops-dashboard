@@ -87,6 +87,8 @@ jobs:
             args: --report-type jira-qa-requests
           - name: Jira Softvision Worklogs
             args: --report-type jira-softvision-worklogs
+          - name: Jira Softvision Issues from QA Teams
+            args: --report-type jira-softvision-issues-qa-teams
           - name: Bugzilla qe-verify
             args: --report-type bugzilla-qe-verify
           - name: Bugzilla Metabug Android Memory Leaks
