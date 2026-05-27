@@ -366,7 +366,9 @@ def insert_unhandled_issues(
     return json_data
 
 
-def main_unhandled_issues(csv_file: str, project: str) -> None:
+def main_unhandled_issues(
+    csv_file: str, project: str, longform: bool = False
+) -> None:
     icon = project_config.get(project).get('icon')
     product = project_config.get(project).get('product')
     now = DatetimeUtils.start_date('0')
@@ -382,6 +384,7 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
         f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
         f"&environment={environment}&sort=freq&statsPeriod=7d"
     )
+    title_suffix = " (Detailed)" if longform else ""
     json_data = {
         "blocks": [
             {
@@ -390,44 +393,72 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
                     "type": "mrkdwn",
                     "text": (
                         f"*:sentry: {icon} {product} "
-                        f"<{sentry_issues_url}|Top Sentry Issues> ({now})*"
+                        f"<{sentry_issues_url}|Top Sentry Issues>"
+                        f"{title_suffix} ({now})*"
                     )
                 }
             }
         ]
     }
 
-    rows_by_major = {}
-    for row in rows:
-        version = row.get('release_version', '')
-        try:
-            major = Version(version).major
-        except Exception:
-            continue
-        rows_by_major.setdefault(major, []).append(row)
+    if longform:
+        rows_by_version = {}
+        for row in rows:
+            version = row.get('release_version', '')
+            rows_by_version.setdefault(version, []).append(row)
 
-    if not rows_by_major:
-        insert_unhandled_issues(json_data, [])
+        if not rows_by_version:
+            insert_unhandled_issues(json_data, [])
+        else:
+            versions = sorted(rows_by_version.keys(), key=Version, reverse=True)
+            for version in versions:
+                version_url = (
+                    f"https://mozilla.sentry.io/issues/?limit=5"
+                    f"&project={project_id}"
+                    f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
+                    f"%20release.version%3A{version}"
+                    f"&environment={environment}&sort=freq&statsPeriod=7d"
+                )
+                insert_unhandled_issues(
+                    json_data,
+                    rows_by_version[version],
+                    version=version,
+                    version_url=version_url,
+                )
     else:
-        majors = sorted(rows_by_major.keys(), reverse=True)[:2]
-        for major in majors:
-            version_url = (
-                f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
-                f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
-                f"%20release.version%3A{major}.*"
-                f"&environment={environment}&sort=freq&statsPeriod=7d"
-            )
-            insert_unhandled_issues(
-                json_data,
-                rows_by_major[major],
-                version=str(major),
-                version_url=version_url,
-                limit=1,
-            )
+        rows_by_major = {}
+        for row in rows:
+            version = row.get('release_version', '')
+            try:
+                major = Version(version).major
+            except Exception:
+                continue
+            rows_by_major.setdefault(major, []).append(row)
+
+        if not rows_by_major:
+            insert_unhandled_issues(json_data, [])
+        else:
+            majors = sorted(rows_by_major.keys(), reverse=True)[:2]
+            for major in majors:
+                version_url = (
+                    f"https://mozilla.sentry.io/issues/?limit=5"
+                    f"&project={project_id}"
+                    f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
+                    f"%20release.version%3A{major}.*"
+                    f"&environment={environment}&sort=freq&statsPeriod=7d"
+                )
+                insert_unhandled_issues(
+                    json_data,
+                    rows_by_major[major],
+                    version=str(major),
+                    version_url=version_url,
+                    limit=1,
+                )
 
     insert_json_footer(json_data)
 
-    output_path = Path(f'sentry-slack-unhandled-{project}.json')
+    suffix = '-long' if longform else ''
+    output_path = Path(f'sentry-slack-unhandled{suffix}-{project}.json')
     output_path.write_text(json.dumps(json_data, indent=4))
     print(f"Slack message written to {output_path.resolve()}")
 
@@ -450,12 +481,15 @@ if __name__ == '__main__':
                         help='Sentry project name (firefox-ios or fenix)')
     parser.add_argument('--shortform', action='store_true', default=False,
                         help='Generate a shorter version of the report')
+    parser.add_argument('--longform', action='store_true', default=False,
+                        help='Generate the long-form unhandled-issues report '
+                             '(top issues per sub-version)')
     parser.add_argument('--mode', default='rates',
                         choices=['rates', 'unhandled-issues'],
                         help='Report mode')
 
     args = parser.parse_args()
     if args.mode == 'unhandled-issues':
-        main_unhandled_issues(args.file, args.project)
+        main_unhandled_issues(args.file, args.project, args.longform)
     else:
         main(args.file, args.project, args.shortform)

@@ -95,12 +95,31 @@ jobs:
             --project firefox-ios \
             --mode unhandled-issues
 
-      - name: Send unhandled issues notification to Slack (iOS)
+      - name: Sentry unhandled issues query - short form (iOS)
         uses: slackapi/slack-github-action@v3.0.3
         with:
           payload-file-path: "./sentry-slack-unhandled-firefox-ios.json"
           payload-templated: true
           webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+
+      - name: Sentry unhandled issues query - long form (iOS)
+        run: python __main__.py --report-type sentry-unhandled-issues --project firefox-ios --longform
+
+      - name: Construct JSON for Slack - unhandled issues long form (iOS)
+        run: |
+          python -m api.sentry.utils \
+            --file ./sentry_unhandled_issues_long_firefox-ios.csv \
+            --project firefox-ios \
+            --mode unhandled-issues \
+            --longform
+
+      - name: Send unhandled issues long-form notification to Slack (iOS)
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          payload-file-path: "./sentry-slack-unhandled-long-firefox-ios.json"
+          payload-templated: true
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_SANDBOX_SENTRY }}
           webhook-type: incoming-webhook
 
       # - name: Sentry unhandled issues query (Android)
