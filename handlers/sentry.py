@@ -13,4 +13,4 @@ def handle_sentry_rates(args):
 
 def handle_sentry_unhandled_issues(args):
     client = SentryClient(project=args.project)
-    client.sentry_unhandled_issues()
+    client.sentry_unhandled_issues(longform=getattr(args, 'longform', False))

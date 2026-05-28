@@ -108,6 +108,15 @@ def parse_args(cmdln_args):
         type=str,
     )
 
+    parser.add_argument(
+        "--longform",
+        help="Generate the long-form sentry-unhandled-issues report "
+             "(top issues per sub-version) instead of the default short form",
+        required=False,
+        action="store_true",
+        default=False,
+    )
+
     return parser.parse_args(args=cmdln_args)
 
 

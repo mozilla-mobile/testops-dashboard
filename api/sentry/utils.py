@@ -7,6 +7,8 @@ from urllib.parse import urlencode
 import requests
 import yaml
 
+from packaging.version import Version
+
 from utils.datetime_utils import DatetimeUtils
 
 
@@ -302,29 +304,31 @@ def _create_table_link_cell(text, url):
     }
 
 
-def insert_unhandled_issues(json_data, rows):
-    if not rows:
+def insert_unhandled_issues(
+    json_data, rows, version=None, version_url=None, limit=None
+):
+    if version is not None:
+        header_text = (
+            f"*<{version_url}|v{version}>*" if version_url else f"*v{version}*"
+        )
         json_data["blocks"].append({
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": (
-                    ":white_check_mark: No significant issue to report."
-                )
+                "text": header_text
             }
         })
-        return json_data
 
-    header_row = [
-        _create_table_header_cell("Issue"),
-        _create_table_header_cell("Events"),
-        _create_table_header_cell("Users Affected"),
-    ]
-    rows = [
+    # Preserve the order Sentry returned (sort=freq over statsPeriod=7d).
+    # Don't re-sort by count/user_count — those are lifetime totals, so
+    # re-sorting would surface old high-volume issues over recent ones.
+    significant = [
         row for row in rows
         if int(row['user_count']) > 1000 or int(row['count']) > 1000
     ]
-    if not rows:
+    if limit is not None:
+        significant = significant[:limit]
+    if not significant:
         json_data["blocks"].append({
             "type": "section",
             "text": {
@@ -334,14 +338,23 @@ def insert_unhandled_issues(json_data, rows):
         })
         return json_data
 
+    header_row = [
+        _create_table_header_cell("Issue ID"),
+        _create_table_header_cell("Issue"),
+        _create_table_header_cell("Events"),
+        _create_table_header_cell("Users Affected"),
+    ]
     MAX_TITLE_DISPLAY_LEN = 50
     table_rows = []
-    for row in rows:
+    for row in significant:
         title = row['title']
         if len(title) > MAX_TITLE_DISPLAY_LEN:
             title = title[:MAX_TITLE_DISPLAY_LEN] + '…'
         table_rows.append([
-            _create_table_link_cell(title, row['permalink']),
+            _create_table_link_cell(
+                row.get('short_id', ''), row['permalink']
+            ),
+            {"type": "raw_text", "text": title},
             {"type": "raw_text", "text": str(row['count'])},
             {"type": "raw_text", "text": str(row['user_count'])},
         ])
@@ -353,7 +366,9 @@ def insert_unhandled_issues(json_data, rows):
     return json_data
 
 
-def main_unhandled_issues(csv_file: str, project: str) -> None:
+def main_unhandled_issues(
+    csv_file: str, project: str, longform: bool = False
+) -> None:
     icon = project_config.get(project).get('icon')
     product = project_config.get(project).get('product')
     now = DatetimeUtils.start_date('0')
@@ -369,6 +384,14 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
         f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
         f"&environment={environment}&sort=freq&statsPeriod=7d"
     )
+
+    if longform:
+        _write_longform_threaded(
+            rows, project, icon, product, now,
+            sentry_issues_url, project_id, environment,
+        )
+        return
+
     json_data = {
         "blocks": [
             {
@@ -383,12 +406,112 @@ def main_unhandled_issues(csv_file: str, project: str) -> None:
             }
         ]
     }
-    insert_unhandled_issues(json_data, rows)
+
+    rows_by_major = {}
+    for row in rows:
+        version = row.get('release_version', '')
+        try:
+            major = Version(version).major
+        except Exception:
+            continue
+        rows_by_major.setdefault(major, []).append(row)
+
+    if not rows_by_major:
+        insert_unhandled_issues(json_data, [])
+    else:
+        majors = sorted(rows_by_major.keys(), reverse=True)[:2]
+        for major in majors:
+            version_url = (
+                f"https://mozilla.sentry.io/issues/?limit=5"
+                f"&project={project_id}"
+                f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
+                f"%20release.version%3A{major}.*"
+                f"&environment={environment}&sort=freq&statsPeriod=7d"
+            )
+            insert_unhandled_issues(
+                json_data,
+                rows_by_major[major],
+                version=str(major),
+                version_url=version_url,
+                limit=1,
+            )
+
     insert_json_footer(json_data)
 
     output_path = Path(f'sentry-slack-unhandled-{project}.json')
     output_path.write_text(json.dumps(json_data, indent=4))
     print(f"Slack message written to {output_path.resolve()}")
+
+
+def _write_longform_threaded(
+    rows, project, icon, product, now,
+    sentry_issues_url, project_id, environment,
+):
+    """Long-form report posted as a Slack thread.
+
+    Writes a header payload plus one reply payload per dot version. The
+    workflow posts the header with chat.postMessage, captures its `ts`, and
+    posts each reply with `thread_ts` set to that value.
+    """
+    header_text = (
+        f":sentry: {icon} {product} Top Sentry Issues "
+        f"(Detailed) ({now})"
+    )
+    header_block_text = (
+        f"*:sentry: {icon} {product} "
+        f"<{sentry_issues_url}|Top Sentry Issues> (Detailed) ({now})* "
+        f":thread:"
+    )
+    header_data = {
+        "text": header_text,
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": header_block_text,
+                },
+            }
+        ],
+    }
+    header_path = Path(
+        f'sentry-slack-unhandled-long-{project}-header.json'
+    )
+    header_path.write_text(json.dumps(header_data, indent=4))
+    print(f"Slack header written to {header_path.resolve()}")
+
+    rows_by_version = {}
+    for row in rows:
+        version = row.get('release_version', '')
+        rows_by_version.setdefault(version, []).append(row)
+
+    if not rows_by_version:
+        return
+
+    versions = sorted(rows_by_version.keys(), key=Version, reverse=True)
+    for i, version in enumerate(versions, start=1):
+        version_url = (
+            f"https://mozilla.sentry.io/issues/?limit=5"
+            f"&project={project_id}"
+            f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
+            f"%20release.version%3A{version}"
+            f"&environment={environment}&sort=freq&statsPeriod=7d"
+        )
+        reply_data = {
+            "text": f"v{version}",
+            "blocks": [],
+        }
+        insert_unhandled_issues(
+            reply_data,
+            rows_by_version[version],
+            version=version,
+            version_url=version_url,
+        )
+        reply_path = Path(
+            f'sentry-slack-unhandled-long-{project}-reply-{i:02d}.json'
+        )
+        reply_path.write_text(json.dumps(reply_data, indent=4))
+        print(f"Slack reply written to {reply_path.resolve()}")
 
 
 def main(file_csv: str, project: str, shortform: bool = False) -> None:
@@ -409,12 +532,15 @@ if __name__ == '__main__':
                         help='Sentry project name (firefox-ios or fenix)')
     parser.add_argument('--shortform', action='store_true', default=False,
                         help='Generate a shorter version of the report')
+    parser.add_argument('--longform', action='store_true', default=False,
+                        help='Generate the long-form unhandled-issues report '
+                             '(top issues per sub-version)')
     parser.add_argument('--mode', default='rates',
                         choices=['rates', 'unhandled-issues'],
                         help='Report mode')
 
     args = parser.parse_args()
     if args.mode == 'unhandled-issues':
-        main_unhandled_issues(args.file, args.project)
+        main_unhandled_issues(args.file, args.project, args.longform)
     else:
         main(args.file, args.project, args.shortform)
