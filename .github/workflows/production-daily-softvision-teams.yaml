@@ -1,0 +1,87 @@
+name: Softvision Teams Testops Report DAILY - Production Metrics
+
+# Daily @5am UTC (07:00 CEST / 06:00 CET)
+on:
+  schedule:
+    - cron:  "0 5 * * *"
+  workflow_dispatch:
+    inputs:
+      branchName:
+        description: 'Default branch'
+        required: true
+        default: 'master'
+
+jobs:
+  reports:
+    name: Softvision Teams DAILY TestOps Report (${{ matrix.name }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include:
+          - name: Query Jira Softvision Issues from QA Teams
+            args: --report-type jira-softvision-issues-qa-teams
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v6
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+
+      - name: Establish Cloud SQL Proxy
+        uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GCLOUD_AUTH }}
+          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          proxy_version: "1.37.11"
+
+      - name: Install requirements
+        run: pip install -r requirements.txt
+
+      - name: Set env vars
+        run: |
+            echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=production" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
+            echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
+            echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
+            echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
+            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+            echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+            echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
+            echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
+            echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV
+      - run: python ./__main__.py ${{ matrix.args }}
+
+
+  notify:
+    name: Send workflow status notification
+    runs-on: ubuntu-latest
+    needs: [ reports ]
+    if: always()
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set job log URL
+        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Send workflow status to Slack
+        uses: slackapi/slack-github-action@v3.0.3
+        env:
+          WORKFLOW_NAME: ${{ github.workflow }}
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+          JOB_STATUS: ${{ needs.reports.result == 'success' && ':white_check_mark:' || needs.reports.result == 'failure' && ':x:' || ':warning:' }}
+          JOB_STATUS_COLOR: ${{ needs.reports.result == 'success' && '#36a64f' || needs.reports.result == 'failure' && '#FF0000' || '#FFA500' }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          webhook-type: webhook-trigger
+          payload-templated: true
+          payload-file-path: "./config/payload-slack-content.json"
