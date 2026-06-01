@@ -130,10 +130,6 @@ def jira_softvision_issues_qa_teams():
         lambda v: dt.convert_to_utc(v) if isinstance(v, str) else v
     )
 
-    # DIAGNOSTIC: dump raw df columns and transformed payload to CSV
-    df.to_csv("softvision_issues_qa_teams_raw_df.csv", index=False)
-    payload.to_csv("softvision_issues_qa_teams_payload.csv", index=False)
-    print("DIAGNOSTIC - raw df columns:", list(df.columns))
     print(f"DIAGNOSTIC - wrote {len(df)} rows to softvision_issues_qa_teams_raw_df.csv "
           f"and {len(payload)} rows to softvision_issues_qa_teams_payload.csv")
 
@@ -157,68 +153,81 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
     updated = 0
     skipped = 0
 
-    for index, row in payload.iterrows():
-        try:
-            jira_key = row['jira_key']
+    try:
+        for index, row in payload.iterrows():
+            try:
+                jira_key = row['jira_key']
 
-            existing = db.session.query(ReportJiraSoftvisionIssuesQATeams).filter_by(
-                jira_key=jira_key
-            ).one_or_none()
-
-            status_changed_remote = _to_naive_utc(row['jira_status_changed_at'])
-
-            linked = (
-                row['jira_linked_issues']
-                if isinstance(row['jira_linked_issues'], str) else None
-            )
-
-            if existing:
-                status_changed_existing = _to_naive_utc(
-                    existing.jira_status_changed_at
+                existing = (
+                    db.session.query(ReportJiraSoftvisionIssuesQATeams)
+                    .filter_by(jira_key=jira_key)
+                    .one_or_none()
                 )
-                if (
-                    status_changed_remote is not None
-                    and (
-                        status_changed_existing is None
-                        or status_changed_remote > status_changed_existing
+
+                status_changed_remote = _to_naive_utc(row['jira_status_changed_at'])
+
+                linked = (
+                    row['jira_linked_issues']
+                    if isinstance(row['jira_linked_issues'], str) else None
+                )
+
+                if existing:
+                    status_changed_existing = _to_naive_utc(
+                        existing.jira_status_changed_at
                     )
-                ):
-                    print(f"Updating issue {jira_key}")
-                    existing.jira_summary = row['jira_summary']
-                    existing.jira_project_key = row['jira_project_key']
-                    existing.jira_project_name = row['jira_project_name']
-                    existing.jira_reporter_name = row['jira_reporter_name']
-                    existing.jira_reporter_username = row['jira_reporter_username']
-                    existing.jira_status = row['jira_status']
-                    existing.jira_priority = row['jira_priority']
-                    existing.jira_labels = row['jira_labels']
-                    existing.jira_linked_issues = linked
-                    existing.jira_created_at = row['jira_created_at']
-                    existing.jira_status_changed_at = row['jira_status_changed_at']
-                    updated += 1
+                    if (
+                        status_changed_remote is not None
+                        and (
+                            status_changed_existing is None
+                            or status_changed_remote > status_changed_existing
+                        )
+                    ):
+                        print(f"Updating issue {jira_key}")
+                        existing.jira_summary = row['jira_summary']
+                        existing.jira_project_key = row['jira_project_key']
+                        existing.jira_project_name = row['jira_project_name']
+                        existing.jira_reporter_name = row['jira_reporter_name']
+                        existing.jira_reporter_username = row['jira_reporter_username']
+                        existing.jira_status = row['jira_status']
+                        existing.jira_priority = row['jira_priority']
+                        existing.jira_labels = row['jira_labels']
+                        existing.jira_linked_issues = linked
+                        existing.jira_created_at = row['jira_created_at']
+                        existing.jira_status_changed_at = row['jira_status_changed_at']
+                        updated += 1
+                    else:
+                        skipped += 1
                 else:
-                    skipped += 1
-            else:
-                print(f"Inserting new issue {jira_key}")
-                new_issue = ReportJiraSoftvisionIssuesQATeams(
-                    jira_key=jira_key,
-                    jira_summary=row['jira_summary'],
-                    jira_project_key=row['jira_project_key'],
-                    jira_project_name=row['jira_project_name'],
-                    jira_reporter_name=row['jira_reporter_name'],
-                    jira_reporter_username=row['jira_reporter_username'],
-                    jira_status=row['jira_status'],
-                    jira_priority=row['jira_priority'],
-                    jira_labels=row['jira_labels'],
-                    jira_linked_issues=linked,
-                    jira_created_at=row['jira_created_at'],
-                    jira_status_changed_at=row['jira_status_changed_at'],
-                )
-                db.session.add(new_issue)
-                inserted += 1
+                    print(f"Inserting new issue {jira_key}")
+                    new_issue = ReportJiraSoftvisionIssuesQATeams(
+                        jira_key=jira_key,
+                        jira_summary=row['jira_summary'],
+                        jira_project_key=row['jira_project_key'],
+                        jira_project_name=row['jira_project_name'],
+                        jira_reporter_name=row['jira_reporter_name'],
+                        jira_reporter_username=row['jira_reporter_username'],
+                        jira_status=row['jira_status'],
+                        jira_priority=row['jira_priority'],
+                        jira_labels=row['jira_labels'],
+                        jira_linked_issues=linked,
+                        jira_created_at=row['jira_created_at'],
+                        jira_status_changed_at=row['jira_status_changed_at'],
+                    )
+                    db.session.add(new_issue)
+                    inserted += 1
 
-        except KeyError as e:
-            print(f"Missing key: {e} in row {index}")
+            except KeyError as e:
+                print(f"Missing key: {e} in row {index}")
 
-    db.session.commit()
-    print(f"Summary, inserted: {inserted}, updated: {updated}, skipped: {skipped}")
+        db.session.commit()
+        print(f"Summary, inserted: {inserted}, updated: {updated}, skipped: {skipped}")
+    except Exception:
+        # Roll back so a mid-loop failure doesn't leave pending writes
+        # in the session for a later commit to flush.
+        db.session.rollback()
+        logger.exception(
+            "Upsert failed for report_jira_softvision_issues_qa_teams; "
+            "rolled back. inserted=%d updated=%d skipped=%d",
+            inserted, updated, skipped,
+        )
+        raise
