@@ -113,10 +113,12 @@ class Sentry:
         return list(response.json().keys())
 
     # API: Top unhandled issues sorted by frequency over the past 7 days
-    def unhandled_issues(self, limit=5):
+    def unhandled_issues(self, limit=5, release_version=None):
         query = (
             'error.unhandled%3Atrue%20is%3Aunresolved'
         )
+        if release_version:
+            query += '%20release.version%3A' + release_version
         return self.client.http_get(
             (
                 'organizations/{0}/issues/'
@@ -222,37 +224,76 @@ class SentryClient(Sentry):
         # Insert into database
         self.db.issue_insert(df_issues)
 
-    def sentry_unhandled_issues(self, limit=3):
-        print("SentryClient.sentry_unhandled_issues()")
+    def sentry_unhandled_issues(self, limit=3, longform=False):
+        print(f"SentryClient.sentry_unhandled_issues(longform={longform})")
+        if self.sentry_project == 'fenix-beta':
+            release_versions = [self.get_future_train_release()[0]]
+        else:
+            release_versions = self.sentry_releases()
+            if not release_versions:
+                print(
+                    f"Warning: No releases found for '{self.sentry_project}', "
+                    "skipping."
+                )
+                return
+
         fetch_limit = limit + len(self.excluded_issue_titles) + 5
-        raw_issues = (
-            self.unhandled_issues(limit=fetch_limit)
-            or []
-        )
-        issues = [
-            issue for issue in raw_issues
-            if not any(
-                excl.lower() in issue['title'].lower()
-                for excl in self.excluded_issue_titles
-            )
-        ][:limit]
         MAX_STRING_LEN = 250
         payload = []
-        for issue in issues:
-            payload.append([
-                issue['id'],
-                issue['title'][:MAX_STRING_LEN],
-                issue.get('culprit', ''),
-                issue.get('count', 0),
-                issue.get('userCount', 0),
-                issue.get('permalink', ''),
-            ])
+
+        if longform:
+            # Top N issues per exact sub-version (e.g. 151.0, 151.0.1).
+            queries = [
+                (rv.split('+')[0], rv.split('+')[0])
+                for rv in release_versions
+            ]
+        else:
+            # Top issue per major version using a wildcard query so the
+            # result matches Sentry's UI for release.version:<major>.* —
+            # otherwise an issue whose events are spread across multiple
+            # sub-versions ranks low in every per-sub-version query.
+            majors = sorted({
+                int(rv.split('+')[0].split('.')[0])
+                for rv in release_versions
+            }, reverse=True)
+            queries = [(f"{m}.*", str(m)) for m in majors]
+
+        for query_version, stored_version in queries:
+            print(f"Filtering by release: {query_version}")
+            raw_issues = (
+                self.unhandled_issues(
+                    limit=fetch_limit,
+                    release_version=query_version,
+                )
+                or []
+            )
+            issues = [
+                issue for issue in raw_issues
+                if not any(
+                    excl.lower() in issue['title'].lower()
+                    for excl in self.excluded_issue_titles
+                )
+            ][:limit]
+            for issue in issues:
+                payload.append([
+                    issue['id'],
+                    issue.get('shortId', ''),
+                    issue['title'][:MAX_STRING_LEN],
+                    issue.get('culprit', ''),
+                    issue.get('count', 0),
+                    issue.get('userCount', 0),
+                    issue.get('permalink', ''),
+                    stored_version,
+                ])
         df = pd.DataFrame(
             data=payload,
-            columns=['sentry_id', 'title', 'culprit', 'count',
-                     'user_count', 'permalink']
+            columns=['sentry_id', 'short_id', 'title', 'culprit', 'count',
+                     'user_count', 'permalink', 'release_version']
         )
-        csv_path = f'sentry_unhandled_issues_{self.sentry_project}.csv'
+        suffix = '_long' if longform else ''
+        csv_path = (
+            f'sentry_unhandled_issues{suffix}_{self.sentry_project}.csv'
+        )
         df.to_csv(csv_path, index=False)
         print(f"Unhandled issues written to {csv_path}")
 

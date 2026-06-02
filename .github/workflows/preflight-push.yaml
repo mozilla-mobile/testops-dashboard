@@ -87,6 +87,8 @@ jobs:
             args: --report-type jira-qa-requests
           - name: Jira Softvision Worklogs
             args: --report-type jira-softvision-worklogs
+          - name: Jira Softvision Issues from QA Teams
+            args: --report-type jira-softvision-issues-qa-teams
           - name: Bugzilla qe-verify
             args: --report-type bugzilla-qe-verify
           - name: Bugzilla Metabug Android Memory Leaks
@@ -219,7 +221,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
-      - uses: slackapi/slack-github-action@v3.0.2
+      - uses: slackapi/slack-github-action@v3.0.3
         env:
           WORKFLOW_NAME: ${{ github.workflow }}
           BRANCH: ${{ github.head_ref || github.ref_name }}

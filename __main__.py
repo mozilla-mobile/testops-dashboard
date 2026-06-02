@@ -45,6 +45,7 @@ from handlers.jira import (
     handle_jira_qa_needed,
     handle_jira_softvision_worklogs,
     handle_jira_qa_requests_desktop,
+    handle_jira_softvision_issues_qa_teams,
 )
 
 from handlers.sentry import (
@@ -106,6 +107,15 @@ def parse_args(cmdln_args):
         help="Indicate Bugzilla keyword for bugzilla-query-by-keyword",
         required=False,
         type=str,
+    )
+
+    parser.add_argument(
+        "--longform",
+        help="Generate the long-form sentry-unhandled-issues report "
+             "(top issues per sub-version) instead of the default short form",
+        required=False,
+        action="store_true",
+        default=False,
     )
 
     parser.add_argument(
@@ -207,6 +217,7 @@ COMMAND_MAP = {
     'confluence-build-validation': handle_confluence_build_validation,
     'github-issue-regression': handle_github_issue_regression,
     'github-issues': handle_github_issues,
+    'jira-softvision-issues-qa-teams': handle_jira_softvision_issues_qa_teams,
     'jira-qa-needed': handle_jira_qa_needed,
     'jira-qa-requests': handle_jira_qa_requests,
     'jira-qa-requests-desktop': handle_jira_qa_requests_desktop,

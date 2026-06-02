@@ -309,6 +309,32 @@ CREATE TABLE `report_jira_qa_requests_new_issue_types` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `report_jira_softvision_issues_qa_teams`
+--
+
+DROP TABLE IF EXISTS `report_jira_softvision_issues_qa_teams`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_jira_softvision_issues_qa_teams` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `jira_key` varchar(25) NOT NULL,
+  `jira_summary` varchar(500) DEFAULT NULL,
+  `jira_project_key` varchar(50) DEFAULT NULL,
+  `jira_project_name` varchar(255) DEFAULT NULL,
+  `jira_reporter_name` varchar(255) DEFAULT NULL,
+  `jira_reporter_username` varchar(255) DEFAULT NULL,
+  `jira_status` varchar(100) DEFAULT NULL,
+  `jira_priority` varchar(50) DEFAULT NULL,
+  `jira_labels` varchar(500) DEFAULT NULL,
+  `jira_linked_issues` varchar(2000) DEFAULT NULL,
+  `jira_created_at` timestamp NULL DEFAULT NULL,
+  `jira_status_changed_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `jira_key` (`jira_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `report_jira_softvision_worklogs`
 --
 
