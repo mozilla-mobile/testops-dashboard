@@ -305,7 +305,8 @@ def _create_table_link_cell(text, url):
 
 
 def insert_unhandled_issues(
-    json_data, rows, version=None, version_url=None, limit=None
+    json_data, rows, version=None, version_url=None, limit=None,
+    sort_by_volume=False,
 ):
     if version is not None:
         header_text = (
@@ -326,6 +327,13 @@ def insert_unhandled_issues(
         row for row in rows
         if int(row['user_count']) > 1000 or int(row['count']) > 1000
     ]
+    # The detailed report orders each version's issues by events, then
+    # users affected (both descending), rather than Sentry's 7d freq order.
+    if sort_by_volume:
+        significant.sort(
+            key=lambda row: (int(row['count']), int(row['user_count'])),
+            reverse=True,
+        )
     if limit is not None:
         significant = significant[:limit]
     if not significant:
@@ -506,6 +514,7 @@ def _write_longform_threaded(
             rows_by_version[version],
             version=version,
             version_url=version_url,
+            sort_by_volume=True,
         )
         reply_path = Path(
             f'sentry-slack-unhandled-long-{project}-reply-{i:02d}.json'
