@@ -251,7 +251,7 @@ def report_test_runs_insert(self, db_plan_id, suite_id, runs):
             plan_id=db_plan_id,
             suite_id=suite_id,
             name=run['name'],
-            config=run['config'],
+            config=run.get('config') or '',
             test_case_passed_count=run['passed_count'],
             test_case_retest_count=run['retest_count'],
             test_case_failed_count=run['failed_count'],
