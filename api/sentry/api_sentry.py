@@ -23,11 +23,11 @@ from database import (
 # The 2 major versions are beta and release.
 NUM_MAJOR_VERSIONS = 2
 
-# Short-form notifications only report issues first seen within this window.
-# Sentry date-field syntax: "-7d" means "within the last 7 days".
-NEW_ISSUE_WINDOW = '-7d'
+# Notifications report issues in these unresolved substatuses, matching the
+# "New" and "Escalating" badges in Sentry's release issue list.
+NEW_ISSUE_SUBSTATUSES = ('new', 'escalating')
 
-# Short-form notifications query this many of the most recent dot releases.
+# Notifications query this many of the most recent dot releases.
 NUM_DOT_RELEASES = 2
 
 
@@ -119,15 +119,14 @@ class Sentry:
             'https://whattrainisitnow.com/api/firefox/releases/esr/future/')
         return list(response.json().keys())
 
-    # API: Top unhandled issues sorted by frequency over the past 7 days
-    def unhandled_issues(self, limit=5, release_version=None, new_only=False):
-        query = (
-            'error.unhandled%3Atrue%20is%3Aunresolved'
-        )
+    # API: Top issues for a release sorted by frequency over the past 7 days.
+    # Optionally restrict to an unresolved substatus (e.g. new, escalating).
+    def unhandled_issues(self, limit=5, release_version=None, substatus=None):
+        query = 'is%3Aunresolved'
+        if substatus:
+            query += '%20is%3A' + substatus
         if release_version:
             query += '%20release.version%3A' + release_version
-        if new_only:
-            query += '%20firstSeen%3A' + NEW_ISSUE_WINDOW
         return self.client.http_get(
             (
                 'organizations/{0}/issues/'
@@ -251,9 +250,9 @@ class SentryClient(Sentry):
         payload = []
 
         # Both report forms cover the most recent dot releases (exact
-        # versions, e.g. 151.0.1), restricted to new issues. release_versions
-        # is already sorted newest-first, so take the first NUM_DOT_RELEASES
-        # distinct sub-versions.
+        # versions, e.g. 151.0.1). release_versions is already sorted
+        # newest-first, so take the first NUM_DOT_RELEASES distinct
+        # sub-versions.
         dot_releases = []
         for rv in release_versions:
             version = rv.split('+')[0]
@@ -263,24 +262,35 @@ class SentryClient(Sentry):
 
         for query_version, stored_version in queries:
             print(f"Filtering by release: {query_version}")
-            raw_issues = (
-                self.unhandled_issues(
-                    limit=fetch_limit,
-                    release_version=query_version,
-                    new_only=True,
-                )
-                or []
-            )
-            # Keep all candidates after the exclusion list; the Slack
-            # formatter applies the >500 threshold before selecting the top 3
-            # per dot release.
+            # Union the "new" and "escalating" substatuses for this dot
+            # release, de-duped by issue id (an issue can match only one
+            # substatus, but query separately since Sentry search can't OR
+            # them reliably).
+            by_id = {}
+            for substatus in NEW_ISSUE_SUBSTATUSES:
+                for issue in (
+                    self.unhandled_issues(
+                        limit=fetch_limit,
+                        release_version=query_version,
+                        substatus=substatus,
+                    )
+                    or []
+                ):
+                    by_id.setdefault(issue['id'], issue)
+            # Drop excluded titles, then rank by event volume so the Slack
+            # formatter's >500 threshold + top-3 selection surfaces the
+            # highest-impact issues. (The freq sort from each query no longer
+            # holds once two queries are merged.)
             issues = [
-                issue for issue in raw_issues
+                issue for issue in by_id.values()
                 if not any(
                     excl.lower() in issue['title'].lower()
                     for excl in self.excluded_issue_titles
                 )
             ]
+            issues.sort(
+                key=lambda i: int(i.get('count', 0) or 0), reverse=True
+            )
             for issue in issues:
                 payload.append([
                     issue['id'],

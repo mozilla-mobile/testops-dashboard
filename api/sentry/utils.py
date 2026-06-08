@@ -407,12 +407,11 @@ def main_unhandled_issues(
     sentry_params = project_config.get(project, {}).get('sentry', {}).get('params', {})
     project_id = sentry_params.get('project', '')
     environment = sentry_params.get('environment', '')
-    # Both report forms only surface issues first seen in the last 7 days,
-    # so the header link carries the firstSeen filter inside the query param.
+    # Both report forms surface new/escalating unresolved issues; the header
+    # link lands on the release's unresolved issues (New/Escalating badged).
     sentry_issues_url = (
         f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
-        f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
-        f"%20firstSeen%3A-7d"
+        f"&query=is%3Aunresolved"
         f"&environment={environment}&sort=freq&statsPeriod=7d"
     )
 
@@ -458,8 +457,8 @@ def main_unhandled_issues(
             version_url = (
                 f"https://mozilla.sentry.io/issues/?limit=5"
                 f"&project={project_id}"
-                f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
-                f"%20release.version%3A{version}%20firstSeen%3A-7d"
+                f"&query=is%3Aunresolved"
+                f"%20release.version%3A{version}"
                 f"&environment={environment}&sort=freq&statsPeriod=7d"
             )
             insert_unhandled_issues(
@@ -532,8 +531,8 @@ def _write_longform_threaded(
         version_url = (
             f"https://mozilla.sentry.io/issues/?limit=5"
             f"&project={project_id}"
-            f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
-            f"%20release.version%3A{version}%20firstSeen%3A-7d"
+            f"&query=is%3Aunresolved"
+            f"%20release.version%3A{version}"
             f"&environment={environment}&sort=freq&statsPeriod=7d"
         )
         reply_data = {
