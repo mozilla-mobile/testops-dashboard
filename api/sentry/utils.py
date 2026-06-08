@@ -29,6 +29,18 @@ def build_url(base_url: str, params: dict | None = None) -> str:
     return f"{base_url}?{urlencode(params)}"
 
 
+def format_count(value) -> str:
+    """Render a count compactly in thousands (e.g. 5343 -> "5k").
+
+    Values below 1000 are shown as-is to avoid misleading rounding
+    (e.g. 600 -> "600", not "1k").
+    """
+    n = int(value)
+    if n < 1000:
+        return str(n)
+    return f"{round(n / 1000)}k"
+
+
 def get_all_future_versions():
     response = requests.get('https://whattrainisitnow.com/api/firefox/releases/future/')
     if response.status_code != 200:
@@ -306,7 +318,7 @@ def _create_table_link_cell(text, url):
 
 def insert_unhandled_issues(
     json_data, rows, version=None, version_url=None, limit=None,
-    sort_by_volume=False,
+    sort_by_volume=False, threshold=1000, humanize_counts=False,
 ):
     if version is not None:
         header_text = (
@@ -325,7 +337,7 @@ def insert_unhandled_issues(
     # re-sorting would surface old high-volume issues over recent ones.
     significant = [
         row for row in rows
-        if int(row['user_count']) > 1000 or int(row['count']) > 1000
+        if int(row['user_count']) > threshold or int(row['count']) > threshold
     ]
     # The detailed report orders each version's issues by events, then
     # users affected (both descending), rather than Sentry's 7d freq order.
@@ -358,13 +370,21 @@ def insert_unhandled_issues(
         title = row['title']
         if len(title) > MAX_TITLE_DISPLAY_LEN:
             title = title[:MAX_TITLE_DISPLAY_LEN] + '…'
+        count_text = (
+            format_count(row['count']) if humanize_counts
+            else str(row['count'])
+        )
+        user_count_text = (
+            format_count(row['user_count']) if humanize_counts
+            else str(row['user_count'])
+        )
         table_rows.append([
             _create_table_link_cell(
                 row.get('short_id', ''), row['permalink']
             ),
             {"type": "raw_text", "text": title},
-            {"type": "raw_text", "text": str(row['count'])},
-            {"type": "raw_text", "text": str(row['user_count'])},
+            {"type": "raw_text", "text": count_text},
+            {"type": "raw_text", "text": user_count_text},
         ])
 
     json_data["blocks"].append({
@@ -387,9 +407,12 @@ def main_unhandled_issues(
     sentry_params = project_config.get(project, {}).get('sentry', {}).get('params', {})
     project_id = sentry_params.get('project', '')
     environment = sentry_params.get('environment', '')
+    # Both report forms only surface issues first seen in the last 7 days,
+    # so the header link carries the firstSeen filter inside the query param.
     sentry_issues_url = (
         f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
         f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
+        f"%20firstSeen%3A-7d"
         f"&environment={environment}&sort=freq&statsPeriod=7d"
     )
 
@@ -408,40 +431,45 @@ def main_unhandled_issues(
                     "type": "mrkdwn",
                     "text": (
                         f"*:sentry: {icon} {product} "
-                        f"<{sentry_issues_url}|Top Sentry Issues> ({now})*"
+                        f"<{sentry_issues_url}|Top New Sentry Issues> "
+                        f"({now})*"
                     )
                 }
             }
         ]
     }
 
-    rows_by_major = {}
+    # Group by exact dot release (e.g. 151.0.1) and report the most recent
+    # two, showing up to 3 significant new issues each.
+    rows_by_version = {}
     for row in rows:
         version = row.get('release_version', '')
-        try:
-            major = Version(version).major
-        except Exception:
-            continue
-        rows_by_major.setdefault(major, []).append(row)
+        rows_by_version.setdefault(version, []).append(row)
 
-    if not rows_by_major:
-        insert_unhandled_issues(json_data, [])
+    if not rows_by_version:
+        insert_unhandled_issues(
+            json_data, [], threshold=500, humanize_counts=True
+        )
     else:
-        majors = sorted(rows_by_major.keys(), reverse=True)[:2]
-        for major in majors:
+        versions = sorted(
+            rows_by_version.keys(), key=Version, reverse=True
+        )[:2]
+        for version in versions:
             version_url = (
                 f"https://mozilla.sentry.io/issues/?limit=5"
                 f"&project={project_id}"
                 f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
-                f"%20release.version%3A{major}.*"
+                f"%20release.version%3A{version}%20firstSeen%3A-7d"
                 f"&environment={environment}&sort=freq&statsPeriod=7d"
             )
             insert_unhandled_issues(
                 json_data,
-                rows_by_major[major],
-                version=str(major),
+                rows_by_version[version],
+                version=version,
                 version_url=version_url,
-                limit=1,
+                limit=3,
+                threshold=500,
+                humanize_counts=True,
             )
 
     insert_json_footer(json_data)
@@ -462,12 +490,12 @@ def _write_longform_threaded(
     posts each reply with `thread_ts` set to that value.
     """
     header_text = (
-        f":sentry: {icon} {product} Top Sentry Issues "
+        f":sentry: {icon} {product} Top New Sentry Issues "
         f"(Detailed) ({now})"
     )
     header_block_text = (
         f"*:sentry: {icon} {product} "
-        f"<{sentry_issues_url}|Top Sentry Issues> (Detailed) ({now})* "
+        f"<{sentry_issues_url}|Top New Sentry Issues> (Detailed) ({now})* "
         f":thread:"
     )
     header_data = {
@@ -496,13 +524,16 @@ def _write_longform_threaded(
     if not rows_by_version:
         return
 
-    versions = sorted(rows_by_version.keys(), key=Version, reverse=True)
+    # Report the two most recent dot releases, newest first.
+    versions = sorted(
+        rows_by_version.keys(), key=Version, reverse=True
+    )[:2]
     for i, version in enumerate(versions, start=1):
         version_url = (
             f"https://mozilla.sentry.io/issues/?limit=5"
             f"&project={project_id}"
             f"&query=error.unhandled%3Atrue%20is%3Aunresolved"
-            f"%20release.version%3A{version}"
+            f"%20release.version%3A{version}%20firstSeen%3A-7d"
             f"&environment={environment}&sort=freq&statsPeriod=7d"
         )
         reply_data = {
@@ -514,7 +545,10 @@ def _write_longform_threaded(
             rows_by_version[version],
             version=version,
             version_url=version_url,
+            limit=3,
             sort_by_volume=True,
+            threshold=500,
+            humanize_counts=True,
         )
         reply_path = Path(
             f'sentry-slack-unhandled-long-{project}-reply-{i:02d}.json'

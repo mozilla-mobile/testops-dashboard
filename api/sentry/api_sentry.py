@@ -23,6 +23,13 @@ from database import (
 # The 2 major versions are beta and release.
 NUM_MAJOR_VERSIONS = 2
 
+# Short-form notifications only report issues first seen within this window.
+# Sentry date-field syntax: "-7d" means "within the last 7 days".
+NEW_ISSUE_WINDOW = '-7d'
+
+# Short-form notifications query this many of the most recent dot releases.
+NUM_DOT_RELEASES = 2
+
 
 class Sentry:
 
@@ -113,12 +120,14 @@ class Sentry:
         return list(response.json().keys())
 
     # API: Top unhandled issues sorted by frequency over the past 7 days
-    def unhandled_issues(self, limit=5, release_version=None):
+    def unhandled_issues(self, limit=5, release_version=None, new_only=False):
         query = (
             'error.unhandled%3Atrue%20is%3Aunresolved'
         )
         if release_version:
             query += '%20release.version%3A' + release_version
+        if new_only:
+            query += '%20firstSeen%3A' + NEW_ISSUE_WINDOW
         return self.client.http_get(
             (
                 'organizations/{0}/issues/'
@@ -241,22 +250,16 @@ class SentryClient(Sentry):
         MAX_STRING_LEN = 250
         payload = []
 
-        if longform:
-            # Top N issues per exact sub-version (e.g. 151.0, 151.0.1).
-            queries = [
-                (rv.split('+')[0], rv.split('+')[0])
-                for rv in release_versions
-            ]
-        else:
-            # Top issue per major version using a wildcard query so the
-            # result matches Sentry's UI for release.version:<major>.* —
-            # otherwise an issue whose events are spread across multiple
-            # sub-versions ranks low in every per-sub-version query.
-            majors = sorted({
-                int(rv.split('+')[0].split('.')[0])
-                for rv in release_versions
-            }, reverse=True)
-            queries = [(f"{m}.*", str(m)) for m in majors]
+        # Both report forms cover the most recent dot releases (exact
+        # versions, e.g. 151.0.1), restricted to new issues. release_versions
+        # is already sorted newest-first, so take the first NUM_DOT_RELEASES
+        # distinct sub-versions.
+        dot_releases = []
+        for rv in release_versions:
+            version = rv.split('+')[0]
+            if version not in dot_releases:
+                dot_releases.append(version)
+        queries = [(v, v) for v in dot_releases[:NUM_DOT_RELEASES]]
 
         for query_version, stored_version in queries:
             print(f"Filtering by release: {query_version}")
@@ -264,16 +267,20 @@ class SentryClient(Sentry):
                 self.unhandled_issues(
                     limit=fetch_limit,
                     release_version=query_version,
+                    new_only=True,
                 )
                 or []
             )
+            # Keep all candidates after the exclusion list; the Slack
+            # formatter applies the >500 threshold before selecting the top 3
+            # per dot release.
             issues = [
                 issue for issue in raw_issues
                 if not any(
                     excl.lower() in issue['title'].lower()
                     for excl in self.excluded_issue_titles
                 )
-            ][:limit]
+            ]
             for issue in issues:
                 payload.append([
                     issue['id'],
