@@ -87,9 +87,13 @@ class APIClient:
                 response = requests.get(f"{url}&limit={limit}&offset={offset}", headers=headers)
                 data = response.json()
 
-                # Check if 'cases' or 'milestones' key exists in the response
-                if isinstance(data, dict) and data_type in data:
-                    all_items.extend(data[data_type])  # Append cases or milestones
+                if data_type is None:
+                    # No collection key expected — caller wants the raw
+                    # response (e.g. a single plan/case object).
+                    all_items = data
+                    break
+                elif isinstance(data, dict) and data_type in data:
+                    all_items.extend(data[data_type])  # Append cases/milestones
 
                     if len(data[data_type]) < limit:
                         break

@@ -174,6 +174,9 @@ def testrail_runs_update(project_plans, start_date=None, end_date=None, num_days
             start_date_value,
             end_date_value
         )
+        if not isinstance(plan_info, dict) or 'entries' not in plan_info:
+            print(f"No 'entries' for plan {plan['plan_id']}: {plan_info}")
+            continue
         for entry in plan_info['entries']:
             report_test_runs_insert(
                 plan['id'], entry['suite_id'], entry['runs'])
