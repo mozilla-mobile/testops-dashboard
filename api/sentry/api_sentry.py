@@ -26,6 +26,11 @@ NUM_MAJOR_VERSIONS = 2
 # Notifications query this many of the most recent dot releases.
 NUM_DOT_RELEASES = 2
 
+# Minimum user-adoption percentage for a release to count as "live". Releases
+# registered in Sentry but not yet shipped sit near 0% and are skipped. Matches
+# the crash-free-rate report's threshold in api/sentry/utils.py insert_rates.
+MIN_ADOPTION_RATE = 1
+
 
 class Sentry:
 
@@ -99,7 +104,7 @@ class Sentry:
         return self.client.http_get(
             (
                 '/organizations/mozilla/releases/'
-                '?adoptionStages=1&project={1}&environment={0}'
+                '?adoptionStages=1&project={1}&environment={0}&health=1'
                 '&query=release.package:{2}&status=open&summaryStatsPeriod=7d'
                 '&adoptionStages=1&sort=adoption'
             ).format(self.environment, self.sentry_project_id, self.package)
@@ -228,16 +233,65 @@ class SentryClient(Sentry):
         # Insert into database
         self.db.issue_insert(df_issues)
 
+    def _adopted_dot_releases(self, n):
+        """Return the newest n dot-release versions (e.g. 151.3) whose user
+        adoption exceeds MIN_ADOPTION_RATE percent.
+
+        Releases are registered in Sentry as soon as a build is uploaded, so
+        the highest version number is often a not-yet-shipped build sitting
+        near 0% adoption. Filtering by adoption keeps the actually-live
+        release(s) instead of those future builds.
+        """
+        releases = self.releases()
+        if not releases:
+            return []
+        latest = self.get_latest_train_release()[-1]
+        # Map raw version -> adoption percent from the same (health=1) response.
+        adoption = {}
+        for release in releases:
+            try:
+                raw = release['versionInfo']['version']['raw']
+            except (KeyError, TypeError):
+                continue
+            projects = release.get('projects') or []
+            match = next(
+                (p for p in projects
+                 if str(p.get('id')) == str(self.sentry_project_id)),
+                projects[0] if projects else None,
+            )
+            health = (match or {}).get('healthData') or {}
+            adoption[raw] = float(health.get('adoption', 0) or 0)
+        selected = []
+        seen = set()
+        for raw in self._report_version_strings(releases, latest):
+            dot = raw.split('+')[0]
+            if dot in seen:
+                continue
+            seen.add(dot)
+            rate = adoption.get(raw, 0.0)
+            if rate > MIN_ADOPTION_RATE:
+                print(f"Live release {dot}: adoption {rate}%")
+                selected.append(dot)
+            else:
+                print(f"Skipping low-adoption release {dot}: {rate}%")
+            if len(selected) >= n:
+                break
+        return selected
+
     def sentry_unhandled_issues(self, limit=3, longform=False):
         print(f"SentryClient.sentry_unhandled_issues(longform={longform})")
         if self.sentry_project == 'fenix-beta':
-            release_versions = [self.get_future_train_release()[0]]
+            # Beta is intentionally low-adoption; use the upcoming train
+            # release rather than filtering on adoption.
+            dot_releases = [
+                self.get_future_train_release()[0].split('+')[0]
+            ][:NUM_DOT_RELEASES]
         else:
-            release_versions = self.sentry_releases()
-            if not release_versions:
+            dot_releases = self._adopted_dot_releases(NUM_DOT_RELEASES)
+            if not dot_releases:
                 print(
-                    f"Warning: No releases found for '{self.sentry_project}', "
-                    "skipping."
+                    f"Warning: No live (adopted) releases found for "
+                    f"'{self.sentry_project}', skipping."
                 )
                 return
 
@@ -245,16 +299,7 @@ class SentryClient(Sentry):
         MAX_STRING_LEN = 250
         payload = []
 
-        # Both report forms cover the most recent dot releases (exact
-        # versions, e.g. 151.0.1). release_versions is already sorted
-        # newest-first, so take the first NUM_DOT_RELEASES distinct
-        # sub-versions.
-        dot_releases = []
-        for rv in release_versions:
-            version = rv.split('+')[0]
-            if version not in dot_releases:
-                dot_releases.append(version)
-        queries = [(v, v) for v in dot_releases[:NUM_DOT_RELEASES]]
+        queries = [(v, v) for v in dot_releases]
 
         for query_version, stored_version in queries:
             print(f"Filtering by release: {query_version}")
