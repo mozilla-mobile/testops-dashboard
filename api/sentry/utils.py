@@ -41,6 +41,33 @@ def format_count(value) -> str:
     return f"{round(n / 1000)}k"
 
 
+def package_for(project: str) -> str:
+    """Parse the app package (e.g. org.mozilla.ios.Firefox) from the Sentry
+    config's query string (`release.package:<package>`)."""
+    query = (
+        project_config.get(project, {}).get('sentry', {})
+        .get('params', {}).get('query', '')
+    )
+    marker = 'release.package:'
+    if marker in query:
+        return query.split(marker, 1)[1].strip()
+    return ''
+
+
+def first_release_url(project_id, environment, package, version=None) -> str:
+    """Build a Sentry issue-list URL for new issues, matching the query used
+    to fetch them: unresolved issues first seen in the given release. When a
+    version is provided, scope to `firstRelease:<package>@<version>`."""
+    query = "is%3Aunresolved"
+    if version and package:
+        query += f"%20firstRelease%3A{package}%40{version}"
+    return (
+        f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
+        f"&query={query}"
+        f"&environment={environment}&sort=freq&statsPeriod=7d"
+    )
+
+
 def get_all_future_versions():
     response = requests.get('https://whattrainisitnow.com/api/firefox/releases/future/')
     if response.status_code != 200:
@@ -407,18 +434,27 @@ def main_unhandled_issues(
     sentry_params = project_config.get(project, {}).get('sentry', {}).get('params', {})
     project_id = sentry_params.get('project', '')
     environment = sentry_params.get('environment', '')
-    # Both report forms surface new/escalating unresolved issues; the header
-    # link lands on the release's unresolved issues (New/Escalating badged).
-    sentry_issues_url = (
-        f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
-        f"&query=is%3Aunresolved"
-        f"&environment={environment}&sort=freq&statsPeriod=7d"
+    package = package_for(project)
+
+    # Group by exact dot release (e.g. 151.0.1) and report the most recent
+    # two, showing up to 3 significant new issues each.
+    rows_by_version = {}
+    for row in rows:
+        version = row.get('release_version', '')
+        rows_by_version.setdefault(version, []).append(row)
+    versions = sorted(rows_by_version.keys(), key=Version, reverse=True)[:2]
+
+    # The header link uses the same firstRelease query as the latest
+    # version's link, so both land on the same set of new issues.
+    latest_version = versions[0] if versions else None
+    sentry_issues_url = first_release_url(
+        project_id, environment, package, latest_version
     )
 
     if longform:
         _write_longform_threaded(
             rows, project, icon, product, now,
-            sentry_issues_url, project_id, environment,
+            sentry_issues_url, project_id, environment, package,
         )
         return
 
@@ -438,28 +474,14 @@ def main_unhandled_issues(
         ]
     }
 
-    # Group by exact dot release (e.g. 151.0.1) and report the most recent
-    # two, showing up to 3 significant new issues each.
-    rows_by_version = {}
-    for row in rows:
-        version = row.get('release_version', '')
-        rows_by_version.setdefault(version, []).append(row)
-
-    if not rows_by_version:
+    if not versions:
         insert_unhandled_issues(
             json_data, [], threshold=500, humanize_counts=True
         )
     else:
-        versions = sorted(
-            rows_by_version.keys(), key=Version, reverse=True
-        )[:2]
         for version in versions:
-            version_url = (
-                f"https://mozilla.sentry.io/issues/?limit=5"
-                f"&project={project_id}"
-                f"&query=is%3Aunresolved"
-                f"%20release.version%3A{version}"
-                f"&environment={environment}&sort=freq&statsPeriod=7d"
+            version_url = first_release_url(
+                project_id, environment, package, version
             )
             insert_unhandled_issues(
                 json_data,
@@ -480,7 +502,7 @@ def main_unhandled_issues(
 
 def _write_longform_threaded(
     rows, project, icon, product, now,
-    sentry_issues_url, project_id, environment,
+    sentry_issues_url, project_id, environment, package,
 ):
     """Long-form report posted as a Slack thread.
 
@@ -528,12 +550,8 @@ def _write_longform_threaded(
         rows_by_version.keys(), key=Version, reverse=True
     )[:2]
     for i, version in enumerate(versions, start=1):
-        version_url = (
-            f"https://mozilla.sentry.io/issues/?limit=5"
-            f"&project={project_id}"
-            f"&query=is%3Aunresolved"
-            f"%20release.version%3A{version}"
-            f"&environment={environment}&sort=freq&statsPeriod=7d"
+        version_url = first_release_url(
+            project_id, environment, package, version
         )
         reply_data = {
             "text": f"v{version}",

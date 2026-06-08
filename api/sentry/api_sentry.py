@@ -23,10 +23,6 @@ from database import (
 # The 2 major versions are beta and release.
 NUM_MAJOR_VERSIONS = 2
 
-# Notifications report issues in these unresolved substatuses, matching the
-# "New" and "Escalating" badges in Sentry's release issue list.
-NEW_ISSUE_SUBSTATUSES = ('new', 'escalating')
-
 # Notifications query this many of the most recent dot releases.
 NUM_DOT_RELEASES = 2
 
@@ -119,14 +115,14 @@ class Sentry:
             'https://whattrainisitnow.com/api/firefox/releases/esr/future/')
         return list(response.json().keys())
 
-    # API: Top issues for a release sorted by frequency over the past 7 days.
-    # Optionally restrict to an unresolved substatus (e.g. new, escalating).
-    def unhandled_issues(self, limit=5, release_version=None, substatus=None):
+    # API: Top unresolved issues first seen in a given release, sorted by
+    # frequency over the past 7 days. Matches Sentry's release "New Issues"
+    # tab, which includes both the "new" and "escalating" substatuses.
+    # first_release is the URL-encoded "<package>%40<version>" value.
+    def unhandled_issues(self, limit=5, first_release=None):
         query = 'is%3Aunresolved'
-        if substatus:
-            query += '%20is%3A' + substatus
-        if release_version:
-            query += '%20release.version%3A' + release_version
+        if first_release:
+            query += '%20firstRelease%3A' + first_release
         return self.client.http_get(
             (
                 'organizations/{0}/issues/'
@@ -262,35 +258,24 @@ class SentryClient(Sentry):
 
         for query_version, stored_version in queries:
             print(f"Filtering by release: {query_version}")
-            # Union the "new" and "escalating" substatuses for this dot
-            # release, de-duped by issue id (an issue can match only one
-            # substatus, but query separately since Sentry search can't OR
-            # them reliably).
-            by_id = {}
-            for substatus in NEW_ISSUE_SUBSTATUSES:
-                for issue in (
-                    self.unhandled_issues(
-                        limit=fetch_limit,
-                        release_version=query_version,
-                        substatus=substatus,
-                    )
-                    or []
-                ):
-                    by_id.setdefault(issue['id'], issue)
-            # Drop excluded titles, then rank by event volume so the Slack
-            # formatter's >500 threshold + top-3 selection surfaces the
-            # highest-impact issues. (The freq sort from each query no longer
-            # holds once two queries are merged.)
+            first_release = f"{self.package}%40{query_version}"
+            raw_issues = (
+                self.unhandled_issues(
+                    limit=fetch_limit,
+                    first_release=first_release,
+                )
+                or []
+            )
+            # Keep all candidates (already freq-sorted) after the exclusion
+            # list; the Slack formatter applies the >500 threshold before
+            # selecting the top 3 per dot release.
             issues = [
-                issue for issue in by_id.values()
+                issue for issue in raw_issues
                 if not any(
                     excl.lower() in issue['title'].lower()
                     for excl in self.excluded_issue_titles
                 )
             ]
-            issues.sort(
-                key=lambda i: int(i.get('count', 0) or 0), reverse=True
-            )
             for issue in issues:
                 payload.append([
                     issue['id'],
