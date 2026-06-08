@@ -380,7 +380,7 @@ def insert_unhandled_issues(
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": ":white_check_mark: No significant issue to report."
+                "text": "No significant new issue to report."
             }
         })
         return json_data
@@ -444,17 +444,10 @@ def main_unhandled_issues(
         rows_by_version.setdefault(version, []).append(row)
     versions = sorted(rows_by_version.keys(), key=Version, reverse=True)[:2]
 
-    # The header link uses the same firstRelease query as the latest
-    # version's link, so both land on the same set of new issues.
-    latest_version = versions[0] if versions else None
-    sentry_issues_url = first_release_url(
-        project_id, environment, package, latest_version
-    )
-
     if longform:
         _write_longform_threaded(
             rows, project, icon, product, now,
-            sentry_issues_url, project_id, environment, package,
+            project_id, environment, package,
         )
         return
 
@@ -466,7 +459,7 @@ def main_unhandled_issues(
                     "type": "mrkdwn",
                     "text": (
                         f"*:sentry: {icon} {product} "
-                        f"<{sentry_issues_url}|Top New Sentry Issues> "
+                        f"Top New Sentry Issues "
                         f"({now})*"
                     )
                 }
@@ -502,7 +495,7 @@ def main_unhandled_issues(
 
 def _write_longform_threaded(
     rows, project, icon, product, now,
-    sentry_issues_url, project_id, environment, package,
+    project_id, environment, package,
 ):
     """Long-form report posted as a Slack thread.
 
@@ -516,7 +509,7 @@ def _write_longform_threaded(
     )
     header_block_text = (
         f"*:sentry: {icon} {product} "
-        f"<{sentry_issues_url}|Top New Sentry Issues> (Detailed) ({now})* "
+        f"Top New Sentry Issues (Detailed) ({now})* "
         f":thread:"
     )
     header_data = {
