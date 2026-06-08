@@ -88,15 +88,21 @@ class APIClient:
                 data = response.json()
 
                 # Check if 'cases' or 'milestones' key exists in the response
-                if data_type in data:
-                    print(data[data_type])
+                if isinstance(data, dict) and data_type in data:
                     all_items.extend(data[data_type])  # Append cases or milestones
 
                     if len(data[data_type]) < limit:
                         break
+                elif isinstance(data, list):
+                    all_items = data  # Legacy (non-paginated) list response
+                    break
                 else:
-                    all_items = data
-                    break  # If 'cases' key is not present, exit the loop
+                    # Unexpected/error response (e.g. {"error": ...}) — the
+                    # expected key is missing. Don't leak the dict downstream;
+                    # callers expect a list.
+                    print(f"Unexpected response for '{data_type}': {data}")
+                    all_items = []
+                    break
 
                 offset += limit
 
