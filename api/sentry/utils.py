@@ -458,8 +458,7 @@ def main_unhandled_issues(
                 "text": {
                     "type": "mrkdwn",
                     "text": (
-                        f"*:sentry: {icon} {product} "
-                        f"Top New Sentry Issues "
+                        f"*:sentry: Top New Sentry Issues "
                         f"({now})*"
                     )
                 }
@@ -485,8 +484,6 @@ def main_unhandled_issues(
                 threshold=500,
                 humanize_counts=True,
             )
-
-    insert_json_footer(json_data)
 
     output_path = Path(f'sentry-slack-unhandled-{project}.json')
     output_path.write_text(json.dumps(json_data, indent=4))
@@ -560,6 +557,9 @@ def _write_longform_threaded(
             threshold=500,
             humanize_counts=True,
         )
+        # Footer goes on the last reply so it closes out the thread.
+        if i == len(versions):
+            insert_json_footer(reply_data)
         reply_path = Path(
             f'sentry-slack-unhandled-long-{project}-reply-{i:02d}.json'
         )
