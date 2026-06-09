@@ -5,7 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import requests
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, JSONDecodeError
 
 
 class APIClient:
@@ -35,7 +35,14 @@ class APIClient:
             except HTTPError:
                 return None
 
-            data = response.json()
+            try:
+                data = response.json()
+            except JSONDecodeError:
+                # 2xx/3xx response with a non-JSON body (e.g. an HTML
+                # login/error page). Match the HTTPError path and bail.
+                print(f"Non-JSON response from {url}: {response.text[:200]!r}")
+                return None
+
             if isinstance(data, list):
                 all_results.extend(data)
                 print(f"Received {len(all_results)} items")
