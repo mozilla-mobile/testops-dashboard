@@ -57,6 +57,13 @@ jobs:
         run: |
           python __main__.py --report-type sentry-rates --project firefox-ios
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios --shortform
+      - name: Get Sentry unhandled issues report (short form)
+        run: |
+          python __main__.py --report-type sentry-unhandled-issues --project firefox-ios
+          python -m api.sentry.utils \
+            --file ./sentry_unhandled_issues_firefox-ios.csv \
+            --project firefox-ios \
+            --mode unhandled-issues
       - name: Get new Github issues report
         run: |
           python __main__.py --report-type github-issues --project firefox-ios --num-days 7
@@ -66,7 +73,7 @@ jobs:
         run: echo "value=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Create Slack thread
         id: slack-health
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
@@ -87,9 +94,13 @@ jobs:
           jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV }}" \
              --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
              '. + {channel: $channel, thread_ts: $thread_ts}' \
+             sentry-slack-unhandled-firefox-ios.json > sentry-slack-unhandled-firefox-ios-thread.json
+          jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_FIREFOX_IOS_DEV }}" \
+             --arg thread_ts "${{ steps.slack-health.outputs.ts }}" \
+             '. + {channel: $channel, thread_ts: $thread_ts}' \
              github-new-issues-slack.json > github-new-issues-slack-thread.json
       - name: "Post to Slack: Looker Dashboard"
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
@@ -98,13 +109,19 @@ jobs:
             thread_ts: "${{ steps.slack-health.outputs.ts }}"
             text: ":looker: <https://mozilla.cloud.looker.com/dashboards/operational_monitoring::firefox_ios_health?Date=&Percentile=50|Looker Dashboard>"
       - name: "Post to Slack: Crash Free Rates"
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
           payload-file-path: "./sentry-slack-firefox-ios-thread.json"
+      - name: "Post to Slack: Top Sentry Issues"
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
+          payload-file-path: "./sentry-slack-unhandled-firefox-ios-thread.json"
       - name: "Post to Slack: New Github Issues"
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}

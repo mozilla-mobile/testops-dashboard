@@ -6,7 +6,7 @@
 
 import argparse
 import sys
-
+from datetime import datetime
 
 from constants import (
     PROJECTS_MOBILE,
@@ -45,11 +45,13 @@ from handlers.jira import (
     handle_jira_qa_needed,
     handle_jira_softvision_worklogs,
     handle_jira_qa_requests_desktop,
+    handle_jira_softvision_issues_qa_teams,
 )
 
 from handlers.sentry import (
     handle_sentry_issues,
     handle_sentry_rates,
+    handle_sentry_unhandled_issues,
 )
 
 from handlers.testrail import (
@@ -107,6 +109,29 @@ def parse_args(cmdln_args):
         type=str,
     )
 
+    parser.add_argument(
+        "--longform",
+        help="Generate the long-form sentry-unhandled-issues report "
+             "(top issues per sub-version) instead of the default short form",
+        required=False,
+        action="store_true",
+        default=False,
+    )
+
+    parser.add_argument(
+        "--start-date",
+        help="Start date (YYYY-MM-DD)",
+        required=False,
+        type=lambda s: datetime.strptime(s, "%Y-%m-%d").date(),
+    )
+
+    parser.add_argument(
+        "--end-date",
+        help="End date (YYYY-MM-DD). Defaults to today.",
+        required=False,
+        type=lambda s: datetime.strptime(s, "%Y-%m-%d").date(),
+    )
+
     return parser.parse_args(args=cmdln_args)
 
 
@@ -120,7 +145,7 @@ def validate_project(platform, project, report_type):
         if not platform:
             print("--platform is required for the report selected")
 
-    if (report_type in ('sentry-issues', 'sentry-rates')
+    if (report_type in ('sentry-issues', 'sentry-rates', 'sentry-unhandled-issues')
             and project not in PROJECTS_SENTRY):
         print(
             f"Error: Invalid project '{project}' for Sentry reports. "
@@ -192,12 +217,14 @@ COMMAND_MAP = {
     'confluence-build-validation': handle_confluence_build_validation,
     'github-issue-regression': handle_github_issue_regression,
     'github-issues': handle_github_issues,
+    'jira-softvision-issues-qa-teams': handle_jira_softvision_issues_qa_teams,
     'jira-qa-needed': handle_jira_qa_needed,
     'jira-qa-requests': handle_jira_qa_requests,
     'jira-qa-requests-desktop': handle_jira_qa_requests_desktop,
     'jira-softvision-worklogs': handle_jira_softvision_worklogs,
     'sentry-issues': handle_sentry_issues,
     'sentry-rates': handle_sentry_rates,
+    'sentry-unhandled-issues': handle_sentry_unhandled_issues,
     'testrail-milestones': handle_testrail_milestones,
     'testrail-users': handle_testrail_users,
     'testrail-test-health': handle_testrail_test_health,

@@ -24,7 +24,7 @@ jobs:
           - name: Update DB - test coverage
             args: --report-type testrail-test-case-coverage --platform desktop --project ALL
           - name: Query Test Plans and Runs
-            args: --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs --num-days 30
+            args: --platform desktop --project firefox-desktop --report-type testrail-test-plans-and-runs
           - name: Query Jira Features
             args: --platform desktop --project firefox-desktop --report-type jira-qa-requests-desktop
     steps:
@@ -76,7 +76,7 @@ jobs:
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
       - name: Send workflow status to Slack
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.3
         env:
           WORKFLOW_NAME: ${{ github.workflow }}
           BRANCH: ${{ github.head_ref || github.ref_name }}

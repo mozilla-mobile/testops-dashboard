@@ -7,6 +7,8 @@ from urllib.parse import urlencode
 import requests
 import yaml
 
+from packaging.version import Version
+
 from utils.datetime_utils import DatetimeUtils
 
 
@@ -25,6 +27,45 @@ def build_url(base_url: str, params: dict | None = None) -> str:
     if not params:
         return base_url
     return f"{base_url}?{urlencode(params)}"
+
+
+def format_count(value) -> str:
+    """Render a count compactly in thousands (e.g. 5343 -> "5k").
+
+    Values below 1000 are shown as-is to avoid misleading rounding
+    (e.g. 600 -> "600", not "1k").
+    """
+    n = int(value)
+    if n < 1000:
+        return str(n)
+    return f"{round(n / 1000)}k"
+
+
+def package_for(project: str) -> str:
+    """Parse the app package (e.g. org.mozilla.ios.Firefox) from the Sentry
+    config's query string (`release.package:<package>`)."""
+    query = (
+        project_config.get(project, {}).get('sentry', {})
+        .get('params', {}).get('query', '')
+    )
+    marker = 'release.package:'
+    if marker in query:
+        return query.split(marker, 1)[1].strip()
+    return ''
+
+
+def first_release_url(project_id, environment, package, version=None) -> str:
+    """Build a Sentry issue-list URL for new issues, matching the query used
+    to fetch them: unresolved issues first seen in the given release. When a
+    version is provided, scope to `firstRelease:<package>@<version>`."""
+    query = "is%3Aunresolved"
+    if version and package:
+        query += f"%20firstRelease%3A{package}%40{version}"
+    return (
+        f"https://mozilla.sentry.io/issues/?limit=5&project={project_id}"
+        f"&query={query}"
+        f"&environment={environment}&sort=freq&statsPeriod=7d"
+    )
 
 
 def get_all_future_versions():
@@ -288,6 +329,244 @@ def init_json(project, shortform=False):
     return json_data
 
 
+def _create_table_link_cell(text, url):
+    return {
+        "type": "rich_text",
+        "elements": [
+            {
+                "type": "rich_text_section",
+                "elements": [
+                    {"type": "link", "url": url, "text": text}
+                ]
+            }
+        ]
+    }
+
+
+def insert_unhandled_issues(
+    json_data, rows, version=None, version_url=None, limit=None,
+    sort_by_volume=False, threshold=1000, humanize_counts=False,
+):
+    if version is not None:
+        header_text = (
+            f"*<{version_url}|v{version}>*" if version_url else f"*v{version}*"
+        )
+        json_data["blocks"].append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": header_text
+            }
+        })
+
+    # Preserve the order Sentry returned (sort=freq over statsPeriod=7d).
+    # Don't re-sort by count/user_count — those are lifetime totals, so
+    # re-sorting would surface old high-volume issues over recent ones.
+    significant = [
+        row for row in rows
+        if int(row['user_count']) > threshold or int(row['count']) > threshold
+    ]
+    # The detailed report orders each version's issues by events, then
+    # users affected (both descending), rather than Sentry's 7d freq order.
+    if sort_by_volume:
+        significant.sort(
+            key=lambda row: (int(row['count']), int(row['user_count'])),
+            reverse=True,
+        )
+    if limit is not None:
+        significant = significant[:limit]
+    if not significant:
+        json_data["blocks"].append({
+            "type": "section",
+            "text": {
+                "type": "mrkdwn",
+                "text": "No significant new issue to report."
+            }
+        })
+        return json_data
+
+    header_row = [
+        _create_table_header_cell("Issue ID"),
+        _create_table_header_cell("Issue"),
+        _create_table_header_cell("Events"),
+        _create_table_header_cell("Users Affected"),
+    ]
+    MAX_TITLE_DISPLAY_LEN = 50
+    table_rows = []
+    for row in significant:
+        title = row['title']
+        if len(title) > MAX_TITLE_DISPLAY_LEN:
+            title = title[:MAX_TITLE_DISPLAY_LEN] + '…'
+        count_text = (
+            format_count(row['count']) if humanize_counts
+            else str(row['count'])
+        )
+        user_count_text = (
+            format_count(row['user_count']) if humanize_counts
+            else str(row['user_count'])
+        )
+        table_rows.append([
+            _create_table_link_cell(
+                row.get('short_id', ''), row['permalink']
+            ),
+            {"type": "raw_text", "text": title},
+            {"type": "raw_text", "text": count_text},
+            {"type": "raw_text", "text": user_count_text},
+        ])
+
+    json_data["blocks"].append({
+        "type": "table",
+        "rows": [header_row] + table_rows
+    })
+    return json_data
+
+
+def main_unhandled_issues(
+    csv_file: str, project: str, longform: bool = False
+) -> None:
+    icon = project_config.get(project).get('icon')
+    product = project_config.get(project).get('product')
+    now = DatetimeUtils.start_date('0')
+
+    with open(csv_file, 'r') as f:
+        rows = list(csv.DictReader(f))
+
+    sentry_params = project_config.get(project, {}).get('sentry', {}).get('params', {})
+    project_id = sentry_params.get('project', '')
+    environment = sentry_params.get('environment', '')
+    package = package_for(project)
+
+    # Group by exact dot release (e.g. 151.0.1) and report the most recent
+    # two, showing up to 3 significant new issues each.
+    rows_by_version = {}
+    for row in rows:
+        version = row.get('release_version', '')
+        rows_by_version.setdefault(version, []).append(row)
+    versions = sorted(rows_by_version.keys(), key=Version, reverse=True)[:2]
+
+    if longform:
+        _write_longform_threaded(
+            rows, project, icon, product, now,
+            project_id, environment, package,
+        )
+        return
+
+    json_data = {
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": (
+                        f"*:sentry: Top New Sentry Issues "
+                        f"({now})*"
+                    )
+                }
+            }
+        ]
+    }
+
+    if not versions:
+        insert_unhandled_issues(
+            json_data, [], threshold=500, humanize_counts=True
+        )
+    else:
+        for version in versions:
+            version_url = first_release_url(
+                project_id, environment, package, version
+            )
+            insert_unhandled_issues(
+                json_data,
+                rows_by_version[version],
+                version=version,
+                version_url=version_url,
+                limit=3,
+                threshold=500,
+                humanize_counts=True,
+            )
+
+    output_path = Path(f'sentry-slack-unhandled-{project}.json')
+    output_path.write_text(json.dumps(json_data, indent=4))
+    print(f"Slack message written to {output_path.resolve()}")
+
+
+def _write_longform_threaded(
+    rows, project, icon, product, now,
+    project_id, environment, package,
+):
+    """Long-form report posted as a Slack thread.
+
+    Writes a header payload plus one reply payload per dot version. The
+    workflow posts the header with chat.postMessage, captures its `ts`, and
+    posts each reply with `thread_ts` set to that value.
+    """
+    header_text = (
+        f":sentry: {icon} {product} Top New Sentry Issues "
+        f"(Detailed) ({now})"
+    )
+    header_block_text = (
+        f"*:sentry: {icon} {product} "
+        f"Top New Sentry Issues (Detailed) ({now})* "
+        f":thread:"
+    )
+    header_data = {
+        "text": header_text,
+        "blocks": [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": header_block_text,
+                },
+            }
+        ],
+    }
+    header_path = Path(
+        f'sentry-slack-unhandled-long-{project}-header.json'
+    )
+    header_path.write_text(json.dumps(header_data, indent=4))
+    print(f"Slack header written to {header_path.resolve()}")
+
+    rows_by_version = {}
+    for row in rows:
+        version = row.get('release_version', '')
+        rows_by_version.setdefault(version, []).append(row)
+
+    if not rows_by_version:
+        return
+
+    # Report the two most recent dot releases, newest first.
+    versions = sorted(
+        rows_by_version.keys(), key=Version, reverse=True
+    )[:2]
+    for i, version in enumerate(versions, start=1):
+        version_url = first_release_url(
+            project_id, environment, package, version
+        )
+        reply_data = {
+            "text": f"v{version}",
+            "blocks": [],
+        }
+        insert_unhandled_issues(
+            reply_data,
+            rows_by_version[version],
+            version=version,
+            version_url=version_url,
+            limit=3,
+            sort_by_volume=True,
+            threshold=500,
+            humanize_counts=True,
+        )
+        # Footer goes on the last reply so it closes out the thread.
+        if i == len(versions):
+            insert_json_footer(reply_data)
+        reply_path = Path(
+            f'sentry-slack-unhandled-long-{project}-reply-{i:02d}.json'
+        )
+        reply_path.write_text(json.dumps(reply_data, indent=4))
+        print(f"Slack reply written to {reply_path.resolve()}")
+
+
 def main(file_csv: str, project: str, shortform: bool = False) -> None:
     json_data = init_json(project, shortform)
     insert_rates(json_data, file_csv, project, shortform)
@@ -306,6 +585,15 @@ if __name__ == '__main__':
                         help='Sentry project name (firefox-ios or fenix)')
     parser.add_argument('--shortform', action='store_true', default=False,
                         help='Generate a shorter version of the report')
+    parser.add_argument('--longform', action='store_true', default=False,
+                        help='Generate the long-form unhandled-issues report '
+                             '(top issues per sub-version)')
+    parser.add_argument('--mode', default='rates',
+                        choices=['rates', 'unhandled-issues'],
+                        help='Report mode')
 
     args = parser.parse_args()
-    main(args.file, args.project, args.shortform)
+    if args.mode == 'unhandled-issues':
+        main_unhandled_issues(args.file, args.project, args.longform)
+    else:
+        main(args.file, args.project, args.shortform)

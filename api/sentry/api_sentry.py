@@ -6,6 +6,7 @@
 
 import os
 import sys
+import tomllib
 import requests
 import pandas as pd
 
@@ -21,6 +22,14 @@ from database import (
 
 # The 2 major versions are beta and release.
 NUM_MAJOR_VERSIONS = 2
+
+# Notifications query this many of the most recent dot releases.
+NUM_DOT_RELEASES = 2
+
+# Minimum user-adoption percentage for a release to count as "live". Releases
+# registered in Sentry but not yet shipped sit near 0% and are skipped. Matches
+# the crash-free-rate report's threshold in api/sentry/utils.py insert_rates.
+MIN_ADOPTION_RATE = 1
 
 
 class Sentry:
@@ -62,6 +71,16 @@ class Sentry:
             print(f"ERROR: Missing environment variable {missing}")
             sys.exit(1)
 
+        try:
+            with open('config/sentry/projects.toml', 'rb') as f:
+                _projects_config = tomllib.load(f)
+            self.excluded_issue_titles = (
+                _projects_config.get(project, {})
+                .get('excluded_issue_titles', [])
+            )
+        except (FileNotFoundError, tomllib.TOMLDecodeError):
+            self.excluded_issue_titles = []
+
     # API: Issues
     # Only the unassigned issues past day sorted by frequency:
     # organization/mozilla/issues/
@@ -85,7 +104,7 @@ class Sentry:
         return self.client.http_get(
             (
                 '/organizations/mozilla/releases/'
-                '?adoptionStages=1&project={1}&environment={0}'
+                '?adoptionStages=1&project={1}&environment={0}&health=1'
                 '&query=release.package:{2}&status=open&summaryStatsPeriod=7d'
                 '&adoptionStages=1&sort=adoption'
             ).format(self.environment, self.sentry_project_id, self.package)
@@ -100,6 +119,28 @@ class Sentry:
         response = requests.get(
             'https://whattrainisitnow.com/api/firefox/releases/esr/future/')
         return list(response.json().keys())
+
+    # API: Top unresolved issues first seen in a given release, sorted by
+    # frequency over the past 7 days. Matches Sentry's release "New Issues"
+    # tab, which includes both the "new" and "escalating" substatuses.
+    # first_release is the URL-encoded "<package>%40<version>" value.
+    def unhandled_issues(self, limit=5, first_release=None):
+        query = 'is%3Aunresolved'
+        if first_release:
+            query += '%20firstRelease%3A' + first_release
+        return self.client.http_get(
+            (
+                'organizations/{0}/issues/'
+                '?project={1}'
+                '&query={4}'
+                '&sort=freq&statsPeriod=7d'
+                '&environment={2}&limit={3}'
+            ).format(
+                self.organization_slug, self.sentry_project_id,
+                self.environment, limit, query
+            ),
+            paginate=False
+        )
 
     # API: Session (crash free rate (session) and crash free rate (user))
     # The crash free rate for the past 24 hours
@@ -192,6 +233,117 @@ class SentryClient(Sentry):
         # Insert into database
         self.db.issue_insert(df_issues)
 
+    def _adopted_dot_releases(self, n):
+        """Return the newest n dot-release versions (e.g. 151.3) whose user
+        adoption exceeds MIN_ADOPTION_RATE percent.
+
+        Releases are registered in Sentry as soon as a build is uploaded, so
+        the highest version number is often a not-yet-shipped build sitting
+        near 0% adoption. Filtering by adoption keeps the actually-live
+        release(s) instead of those future builds.
+        """
+        releases = self.releases()
+        if not releases:
+            return []
+        latest = self.get_latest_train_release()[-1]
+        # Map raw version -> adoption percent from the same (health=1) response.
+        adoption = {}
+        for release in releases:
+            try:
+                raw = release['versionInfo']['version']['raw']
+            except (KeyError, TypeError):
+                continue
+            projects = release.get('projects') or []
+            match = next(
+                (p for p in projects
+                 if str(p.get('id')) == str(self.sentry_project_id)),
+                projects[0] if projects else None,
+            )
+            health = (match or {}).get('healthData') or {}
+            adoption[raw] = float(health.get('adoption', 0) or 0)
+        selected = []
+        seen = set()
+        for raw in self._report_version_strings(releases, latest):
+            dot = raw.split('+')[0]
+            if dot in seen:
+                continue
+            seen.add(dot)
+            rate = adoption.get(raw, 0.0)
+            if rate > MIN_ADOPTION_RATE:
+                print(f"Live release {dot}: adoption {rate}%")
+                selected.append(dot)
+            else:
+                print(f"Skipping low-adoption release {dot}: {rate}%")
+            if len(selected) >= n:
+                break
+        return selected
+
+    def sentry_unhandled_issues(self, limit=3, longform=False):
+        print(f"SentryClient.sentry_unhandled_issues(longform={longform})")
+        if self.sentry_project == 'fenix-beta':
+            # Beta is intentionally low-adoption; use the upcoming train
+            # release rather than filtering on adoption.
+            dot_releases = [
+                self.get_future_train_release()[0].split('+')[0]
+            ][:NUM_DOT_RELEASES]
+        else:
+            dot_releases = self._adopted_dot_releases(NUM_DOT_RELEASES)
+            if not dot_releases:
+                print(
+                    f"Warning: No live (adopted) releases found for "
+                    f"'{self.sentry_project}', skipping."
+                )
+                return
+
+        fetch_limit = limit + len(self.excluded_issue_titles) + 5
+        MAX_STRING_LEN = 250
+        payload = []
+
+        queries = [(v, v) for v in dot_releases]
+
+        for query_version, stored_version in queries:
+            print(f"Filtering by release: {query_version}")
+            first_release = f"{self.package}%40{query_version}"
+            raw_issues = (
+                self.unhandled_issues(
+                    limit=fetch_limit,
+                    first_release=first_release,
+                )
+                or []
+            )
+            # Keep all candidates (already freq-sorted) after the exclusion
+            # list; the Slack formatter applies the >500 threshold before
+            # selecting the top 3 per dot release.
+            issues = [
+                issue for issue in raw_issues
+                if not any(
+                    excl.lower() in issue['title'].lower()
+                    for excl in self.excluded_issue_titles
+                )
+            ]
+            for issue in issues:
+                payload.append([
+                    issue['id'],
+                    issue.get('shortId', ''),
+                    issue['title'][:MAX_STRING_LEN],
+                    issue.get('culprit', ''),
+                    issue.get('count', 0),
+                    issue.get('userCount', 0),
+                    issue.get('permalink', ''),
+                    stored_version,
+                ])
+        df = pd.DataFrame(
+            data=payload,
+            columns=['sentry_id', 'short_id', 'title', 'culprit', 'count',
+                     'user_count', 'permalink', 'release_version']
+        )
+        suffix = '_long' if longform else ''
+        csv_path = (
+            f'sentry_unhandled_issues{suffix}_{self.sentry_project}.csv'
+        )
+        df.to_csv(csv_path, index=False)
+        print(f"Unhandled issues written to {csv_path}")
+
     def sentry_rates(self, releases=[]):
         print("SentryClient.sentry_rates()")
 
@@ -226,9 +378,16 @@ class SentryClient(Sentry):
                 )
 
         if df_rates.empty:
-            raise ValueError(
-                "No rates retrieved for project '{0}'.".format(
-                    self.sentry_project))
+            print(
+                "Warning: No rates retrieved for project '{0}', generating empty CSV."
+                .format(self.sentry_project)
+            )
+            pd.DataFrame(columns=[
+                "crash_free_rate_user", "crash_free_rate_session",
+                "adoption_rate_user", "release_version",
+                "created_at", "sentry_project_id"
+            ]).to_csv("sentry_rates.csv", index=False)
+            return
 
         # Output for Slack message
         df_rates.to_csv(
@@ -280,7 +439,7 @@ class DatabaseSentry:
     def report_issue_payload(self, issues, release_version):
         payload = []
         MAX_STRING_LEN = 250
-        for issue in issues:
+        for issue in issues or []:
             sentry_id = issue['id']
             culprit = issue['culprit']
             title = issue['title'][:MAX_STRING_LEN]

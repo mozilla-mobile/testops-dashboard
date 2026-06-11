@@ -5,7 +5,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 import requests
-from requests.exceptions import HTTPError
+from requests.exceptions import HTTPError, JSONDecodeError
 
 
 class APIClient:
@@ -18,7 +18,7 @@ class APIClient:
                 '{0}api/0/'
             ).format(base_url)
 
-    def http_get(self, uri):
+    def http_get(self, uri, paginate=True):
         headers = {
             'Authorization': f'Bearer {self.api_token}',
             'Content-Type': 'application/json'
@@ -35,12 +35,22 @@ class APIClient:
             except HTTPError:
                 return None
 
-            data = response.json()
+            try:
+                data = response.json()
+            except JSONDecodeError:
+                # 2xx/3xx response with a non-JSON body (e.g. an HTML
+                # login/error page). Match the HTTPError path and bail.
+                print(f"Non-JSON response from {url}: {response.text[:200]!r}")
+                return None
+
             if isinstance(data, list):
                 all_results.extend(data)
                 print(f"Received {len(all_results)} items")
             else:
                 return data  # For non-list endpoints
+
+            if not paginate:
+                break
 
             link_header = response.headers.get("Link", "")
             links = requests.utils.parse_header_links(

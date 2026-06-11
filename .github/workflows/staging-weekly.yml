@@ -60,9 +60,133 @@ jobs:
         run: |
           python -m api.github.utils github_new_bugs_firefox-ios_*.csv > github-new-issues-slack.json
       - name: Send notification to Slack
-        uses: slackapi/slack-github-action@v3.0.1
+        uses: slackapi/slack-github-action@v3.0.3
         with:
           payload-file-path: "./github-new-issues-slack.json"
           payload-templated: true
           webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
           webhook-type: incoming-webhook
+
+  sentry-unhandled-issues:
+    name: Sentry unhandled issues notifications
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+      - uses: mattes/gce-cloudsql-proxy-action@v1
+        with:
+          creds: ${{ secrets.GCLOUD_AUTH }}
+          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
+          proxy_version: "1.37.11"
+      - run: pip install -r requirements.txt
+
+      - name: Sentry unhandled issues query (iOS)
+        run: python __main__.py --report-type sentry-unhandled-issues --project firefox-ios
+
+      - name: Construct JSON for Slack - unhandled issues (iOS)
+        run: |
+          python -m api.sentry.utils \
+            --file ./sentry_unhandled_issues_firefox-ios.csv \
+            --project firefox-ios \
+            --mode unhandled-issues
+
+      - name: Sentry unhandled issues query - short form (iOS)
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          payload-file-path: "./sentry-slack-unhandled-firefox-ios.json"
+          payload-templated: true
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+
+      - name: Sentry unhandled issues query - long form (iOS)
+        run: python __main__.py --report-type sentry-unhandled-issues --project firefox-ios --longform
+
+      - name: Construct JSON for Slack - unhandled issues long form (iOS)
+        run: |
+          python -m api.sentry.utils \
+            --file ./sentry_unhandled_issues_long_firefox-ios.csv \
+            --project firefox-ios \
+            --mode unhandled-issues \
+            --longform
+
+      - name: Inject channel into long-form header (iOS)
+        run: |
+          jq --arg channel "${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX_SENTRY }}" \
+             '. + {channel: $channel}' \
+             sentry-slack-unhandled-long-firefox-ios-header.json \
+             > sentry-slack-unhandled-long-firefox-ios-header-out.json
+
+      - name: Post long-form header to Slack (iOS)
+        id: slack-long-header-ios
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
+          payload-file-path: "./sentry-slack-unhandled-long-firefox-ios-header-out.json"
+
+      - name: Post long-form threaded replies to Slack (iOS)
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_TESTOPS_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID_MOBILE_ALERTS_SANDBOX_SENTRY }}
+          THREAD_TS: ${{ steps.slack-long-header-ios.outputs.ts }}
+        run: |
+          set -euo pipefail
+          for f in sentry-slack-unhandled-long-firefox-ios-reply-*.json; do
+            [ -e "$f" ] || continue
+            jq --arg channel "$SLACK_CHANNEL_ID" \
+               --arg thread_ts "$THREAD_TS" \
+               '. + {channel: $channel, thread_ts: $thread_ts}' \
+               "$f" > /tmp/reply-payload.json
+            response=$(curl -sS -X POST \
+              -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+              -H "Content-Type: application/json; charset=utf-8" \
+              --data @/tmp/reply-payload.json \
+              https://slack.com/api/chat.postMessage)
+            echo "$response"
+            if [ "$(echo "$response" | jq -r '.ok')" != "true" ]; then
+              echo "Slack reply failed for $f" >&2
+              exit 1
+            fi
+          done
+
+      # - name: Sentry unhandled issues query (Android)
+      #   run: python __main__.py --report-type sentry-unhandled-issues --project fenix
+
+      # - name: Construct JSON for Slack - unhandled issues (Android)
+      #   run: |
+      #     python -m api.sentry.utils \
+      #       --file ./sentry_unhandled_issues_fenix.csv \
+      #       --project fenix \
+      #       --mode unhandled-issues
+
+      # - name: Send unhandled issues notification to Slack (Android)
+      #   uses: slackapi/slack-github-action@v3.0.3
+      #   with:
+      #     payload-file-path: "./sentry-slack-unhandled-fenix.json"
+      #     payload-templated: true
+      #     webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+      #     webhook-type: incoming-webhook
+
+      # - name: Sentry unhandled issues query (Android Beta)
+      #   run: python __main__.py --report-type sentry-unhandled-issues --project fenix-beta
+
+      # - name: Construct JSON for Slack - unhandled issues (Android Beta)
+      #   run: |
+      #     python -m api.sentry.utils \
+      #       --file ./sentry_unhandled_issues_fenix-beta.csv \
+      #       --project fenix-beta \
+      #       --mode unhandled-issues
+
+      # - name: Send unhandled issues notification to Slack (Android Beta)
+      #   uses: slackapi/slack-github-action@v3.0.3
+      #   with:
+      #     payload-file-path: "./sentry-slack-unhandled-fenix-beta.json"
+      #     payload-templated: true
+      #     webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+      #     webhook-type: incoming-webhook
+
