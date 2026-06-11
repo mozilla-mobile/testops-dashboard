@@ -156,18 +156,42 @@ class Sentry:
             )
         )
 
-    # API: Adoption Rate (Users)
-    def sentry_adoption_rate(self, release):
-        health_info_release = self.client.http_get(
+    # API: Total distinct app users over the past 24 hours.
+    # Used as the denominator for the user-adoption rate. Sentry's
+    # release-health `adoption` field divides each release's users by the
+    # whole project's user count, but this project also receives Focus and
+    # Klar (org.mozilla.ios.Focus / .Klar) sessions, which would understate
+    # Firefox adoption by ~25%. Scope to release.package so the denominator
+    # is Firefox-only, and use the same 24h window as the crash-free queries.
+    def sentry_total_users(self):
+        return self.client.http_get(
             (
-                "organizations/{0}/releases/{1}%40{2}/"
-                "?health=1&summaryStatsPeriod=7d&project={3}"
-                "&environment={4}&adoptionStages=1"
+                'organizations/{0}/sessions/?field=count_unique%28user%29'
+                '&interval=1d&project={1}&environment={2}'
+                '&query=release.package%3A{3}&statsPeriod=24h'
             ).format(
-                self.organization_slug, self.package,
-                release, self.sentry_project_id, self.environment)
+                self.organization_slug, self.sentry_project_id,
+                self.environment, self.package
+            )
         )
-        return health_info_release
+
+    # API: Distinct users for a single release over the past 24 hours.
+    # Numerator for the user-adoption rate. Scoped to package + version (and
+    # the same environment / 24h window as sentry_total_users) so the ratio
+    # numerator/denominator is consistent and the numerator is a strict
+    # subset of the denominator.
+    def sentry_release_users(self, release):
+        return self.client.http_get(
+            (
+                'organizations/{0}/sessions/?field=count_unique%28user%29'
+                '&interval=1d&project={1}&environment={2}'
+                '&query=release.package%3A{3}%20release.version%3A{4}'
+                '&statsPeriod=24h'
+            ).format(
+                self.organization_slug, self.sentry_project_id,
+                self.environment, self.package, release
+            )
+        )
 
 
 class SentryClient(Sentry):
@@ -352,6 +376,12 @@ class SentryClient(Sentry):
         else:
             release_versions = [releases]
 
+        # Firefox-only distinct-user total over the past 24h, used as the
+        # adoption denominator. Sentry's release-health adoption divides by
+        # the whole project, but this project also receives Focus/Klar
+        # sessions, so we scope the denominator to our package instead.
+        total_users = self.db.parse_user_count(self.sentry_total_users())
+
         df_rates = pd.DataFrame()
         for release_version in release_versions:
             short_release_version = release_version.split('+')[0]
@@ -363,13 +393,14 @@ class SentryClient(Sentry):
                 self.sentry_sessions_crash_free_rate(
                     "user", short_release_version)
             )
-            response_adoption_rate = self.sentry_adoption_rate(
-                release_version
+            response_release_users = self.sentry_release_users(
+                short_release_version
             )
             df_rate = self.db.report_rates_payload(
                 response_crash_free_rate_user,
                 response_crash_free_rate_session,
-                response_adoption_rate, short_release_version
+                response_release_users, total_users,
+                short_release_version
             )
             # If any of the rate is null, do not insert into the database.
             if df_rate is not None:
@@ -481,11 +512,22 @@ class DatabaseSentry:
             self.db.session.add(issue)
             self.db.session.commit()
 
+    def parse_user_count(self, response):
+        """Pull the distinct-user total (count_unique(user)) out of a Sentry
+        sessions response, or 0 if it is missing/empty."""
+        if response and response.get('groups'):
+            return (
+                response['groups'][0]['totals'].get('count_unique(user)', 0)
+                or 0
+            )
+        return 0
+
     def report_rates_payload(
         self,
         response_crash_free_rate_user,
         response_crash_free_rate_session,
-        response_adoption_rate,
+        response_release_users,
+        total_users,
         release_version
     ):
         crash_free_rate_session = None
@@ -502,14 +544,14 @@ class DatabaseSentry:
                     'crash_free_rate(user)', None
                 )
             )
-        # Sometimes the REST API calls return null values in the field
-        # Return None if either rate is null
+        # Adoption = this release's distinct users / all distinct users for
+        # the app over the same 24h window. total_users is the package-scoped
+        # denominator (excludes Focus/Klar, which also report into this
+        # project). None if we cannot compute it (no denominator).
         adoption_rate_user = None
-        if response_adoption_rate:
-            adoption_rate_user = (
-                response_adoption_rate['projects'][0]['healthData']
-                .get('adoption', 0) or 0.0
-            )
+        if total_users:
+            release_users = self.parse_user_count(response_release_users)
+            adoption_rate_user = release_users / total_users * 100
 
         # Let me use -1 to indicate null values
         percentage_crash_free_rate_session = -1
@@ -523,13 +565,13 @@ class DatabaseSentry:
                 crash_free_rate_user * 100, 2
             )
         percentage_adoption_rate_user = -1
-        if adoption_rate_user:
+        if adoption_rate_user is not None:
             percentage_adoption_rate_user = round(adoption_rate_user, 2)
 
         now = datetime.now()
         row = [
-            percentage_crash_free_rate_session,
             percentage_crash_free_rate_user,
+            percentage_crash_free_rate_session,
             percentage_adoption_rate_user,
             release_version,
             now,
