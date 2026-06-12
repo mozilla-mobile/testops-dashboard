@@ -8,4 +8,5 @@ __pycache__*
 cloud_sql_proxy
 .python-version*
 db/cloud-sql-proxy
+docs/
 .zshrc
