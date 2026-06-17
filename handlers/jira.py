@@ -1,4 +1,5 @@
 import api.jira.report_softvision_issues_qa_teams as softvision_issues_qa_teams
+import api.jira.report_softvision_issues_other_teams as softvision_issues_other_teams
 import api.jira.report_qa_needed as qa_needed
 import api.jira.report_qa_requests as requests
 import api.jira.report_qa_requests_desktop as requests_desktop
@@ -24,3 +25,7 @@ def handle_jira_qa_requests_desktop(args):
 
 def handle_jira_softvision_issues_qa_teams(args):
     softvision_issues_qa_teams.jira_softvision_issues_qa_teams()
+
+
+def handle_jira_softvision_issues_other_teams(args):
+    softvision_issues_other_teams.jira_softvision_issues_other_teams()
