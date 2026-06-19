@@ -441,6 +441,7 @@ CREATE TABLE `report_test_case_coverage` (
   `test_sub_suites_id` int NOT NULL DEFAULT '1',
   `test_automation_status_id` int NOT NULL,
   `test_automation_coverage_id` int NOT NULL,
+  `test_automation_tae` int NOT NULL DEFAULT '0',
   `test_count` int NOT NULL DEFAULT '0',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

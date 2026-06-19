@@ -37,6 +37,23 @@ def _tr() -> TestRail():
     return _TR
 
 
+def _has_tae_label(labels):
+    """
+    Return 1 if the TestRail case's `labels` list contains the TAE label
+    (case-insensitive on the label's title/name), else 0.
+    """
+    if not isinstance(labels, list):
+        return 0
+    for lbl in labels:
+        if isinstance(lbl, dict):
+            name = lbl.get('title') or lbl.get('name') or ''
+        else:
+            name = str(lbl)
+        if name.strip().lower() == 'tae':
+            return 1
+    return 0
+
+
 # ===================================================================
 # ORCHESTRATOR (BATCH)
 # ===================================================================
@@ -127,20 +144,21 @@ def report_test_coverage_payload(cases):
 
         stat = case['custom_automation_status']
         cov = case['custom_automation_coverage']
+        tae = _has_tae_label(case.get('labels'))
 
         # iterate through multi-select sub_suite data
         # we need to create a separate row for each
         # test case that belongs to multiple sub suites
         for sub in subs:
-            row = [suit, sub, stat, cov, 1]
+            row = [suit, sub, stat, cov, tae, 1]
             payload.append(row)
 
     df = pd.DataFrame(
         data=payload,
-        columns=['suit', 'sub', 'status', 'cov', 'tally']
+        columns=['suit', 'sub', 'status', 'cov', 'tae', 'tally']
     )
     return (
-        df.groupby(['suit', 'sub', 'status', 'cov'])['tally']
+        df.groupby(['suit', 'sub', 'status', 'cov', 'tae'])['tally']
           .sum()
           .reset_index()
     )
@@ -203,6 +221,7 @@ def report_test_coverage_insert(projects_id, payload):
             test_automation_status_id=row['status'],
             test_automation_coverage_id=row['cov'],
             test_sub_suites_id=row['sub'],
+            test_automation_tae=row['tae'],
             test_count=row['tally']
         )
         db.session.add(report)
