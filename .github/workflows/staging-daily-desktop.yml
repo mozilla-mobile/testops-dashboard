@@ -29,7 +29,7 @@ jobs:
             args: --platform desktop --project firefox-desktop --report-type jira-qa-requests-desktop
     steps:
       - name: Check out source repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup python
         uses: actions/setup-python@v6
@@ -71,7 +71,7 @@ jobs:
     needs: [ reports ]
     if: always()
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Set job log URL
         run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
