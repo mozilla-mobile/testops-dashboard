@@ -1,10 +1,9 @@
 name: Mobile Testops Report DAILY - Staging
 
-# Daily @4am UTC
+# Daily @8am UTC
 on:
   schedule:
-    - cron:  "0 4 * * *"
-
+    - cron:  "0 8 * * *" 
   workflow_dispatch:
     inputs:
       branchName:
@@ -36,46 +35,6 @@ env:
   SENTRY_FENIX_BETA_PROJECT_ID: ${{ secrets.SENTRY_FENIX_BETA_PROJECT_ID }}
 
 jobs:
-  reports:
-    name: Daily reports (${{ matrix.name }})
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      max-parallel: 6
-      matrix:
-        include:
-          - name: Jira QA Requests
-            args: --platform mobile --project ALL --report-type jira-qa-requests
-          - name: Jira Worklogs
-            args: --report-type jira-softvision-worklogs
-          - name: Bugzilla Desktop Bugs
-            args: --report-type bugzilla-desktop-bugs
-          - name: Bugzilla Release Flags
-            args: --report-type bugzilla-desktop-release-flags-for-bugs
-          - name: Bugzilla Android Memory Leaks
-            args: --report-type bugzilla-meta-bugs --meta-bug-id 1935100
-          - name: Bugzilla Android UI Tests
-            args: --report-type bugzilla-query-by-keyword --bz-keyword "ui-test-bug-auto-found"
-          - name: Bitrise Builds Count
-            args: --report-type bitrise-builds
-
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
-          cache: "pip"
-          cache-dependency-path: requirements.txt
-      - uses: mattes/gce-cloudsql-proxy-action@v1
-        with:
-          creds: ${{ secrets.GCLOUD_AUTH }}
-          instance: ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
-          port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
-          proxy_version: "1.37.11"
-      - run: pip install -r requirements.txt
-      - run: python ./__main__.py ${{ matrix.args }}
-
   sentry:
     name: Sentry reports and notifications
     runs-on: ubuntu-latest
@@ -93,35 +52,95 @@ jobs:
           port: ${{ secrets.CLOUD_SQL_DATABASE_PORT }}
           proxy_version: "1.37.11"
       - run: pip install -r requirements.txt
-      
+
+      - name: Authenticate to Google Cloud (GCS uploads)
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: ${{ secrets.GCLOUD_AUTH }}
+
       - name: Sentry query (iOS)
         run: |
           python __main__.py --report-type sentry-issues --project firefox-ios
           python __main__.py --report-type sentry-rates --project firefox-ios
+        continue-on-error: true
 
       - name: Construct JSON for Slack (iOS)
+        id: construct-json-firefox-ios
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
-          ls sentry-slack-firefox-ios.json
+          echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Upload Firefox (iOS) Sentry data to GCS
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+          path: ./sentry_rates.csv
+          destination: testops-llm-artifacts/sentry/firefox-ios
+
+      - name: Send health notification to Slack (iOS)
+        id: slack-sentry-ios
+        if: steps.construct-json-firefox-ios.outputs.has_data == 'true'
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          payload-file-path: "./sentry-slack-firefox-ios.json"
+          payload-templated: true
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
+        continue-on-error: true
 
       - name: Sentry query (Android)
         run: |
           python __main__.py --report-type sentry-issues --project fenix
           python __main__.py --report-type sentry-rates --project fenix
       - name: Construct JSON for Slack (Android)
+        id: construct-json-fenix
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
           ls sentry-slack-fenix.json
+          echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
+      - name: Upload Firefox (Android) Sentry data to GCS
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+          path: ./sentry_rates.csv
+          destination: testops-llm-artifacts/sentry/fenix
+
+      - name: Send health notification to Slack (Android)
+        id: slack-sentry-fenix
+        if: steps.construct-json-fenix.outputs.has_data == 'true'
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          payload-file-path: "./sentry-slack-fenix.json"
+          payload-templated: true
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
 
       - name: Sentry query (Android Beta)
         run: |
           python __main__.py --report-type sentry-issues --project fenix-beta
           python __main__.py --report-type sentry-rates --project fenix-beta
       - name: Construct JSON for Slack (Android Beta)
+        id: construct-json-fenix-beta
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
           ls sentry-slack-fenix-beta.json
+          echo "has_data=$([ $(wc -l < sentry_rates.csv) -gt 1 ] && echo true || echo false)" >> $GITHUB_OUTPUT
 
+      - name: Upload Firefox Beta (Android) Sentry data to GCS
+        uses: google-github-actions/upload-cloud-storage@v3
+        with:
+          path: ./sentry_rates.csv
+          destination: testops-llm-artifacts/sentry/fenix-beta
+
+      - name: Send health notification to Slack (Android Beta)
+        id: slack-sentry-fenix-beta
+        if: steps.construct-json-fenix-beta.outputs.has_data == 'true'
+        uses: slackapi/slack-github-action@v3.0.3
+        with:
+          payload-file-path: "./sentry-slack-fenix-beta.json"
+          payload-templated: true
+          webhook:  ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
+          webhook-type: incoming-webhook
       - name: Notify Slack on any type of failure
         if: failure()
         uses: slackapi/slack-github-action@v3.0.3
