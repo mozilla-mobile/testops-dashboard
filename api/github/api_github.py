@@ -4,7 +4,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import re
 import sys
 import requests
 from datetime import datetime, timedelta, UTC
@@ -18,17 +17,6 @@ from database import (
 from sqlalchemy.exc import IntegrityError
 
 import pandas as pd
-
-
-EMOJI_PATTERN = re.compile(
-    '[\U00010000-\U0010ffff]', flags=re.UNICODE
-)
-
-
-def sanitize_title(title):
-    if not title:
-        return title
-    return EMOJI_PATTERN.sub('', title).strip()
 
 
 API_BASE = 'https://api.github.com'
@@ -252,9 +240,7 @@ class GithubClient(Github):
         for bug in all_bugs:
             bug_data.append({
                 'github_number': bug.get('number', ''),
-                'github_title': sanitize_title(
-                    bug.get('title', '(No title)')
-                ),
+                'github_title': bug.get('title', '(No title)'),
                 'github_state': bug.get('state', ''),
                 'github_url': bug.get('html_url', ''),
                 'github_created_at': bug.get('created_at', ''),
@@ -379,7 +365,7 @@ class DatabaseGithub(Database):
 
         fmt = '%Y-%m-%dT%H:%M:%SZ'
 
-        record.github_title = sanitize_title(issue_data.get('title'))
+        record.github_title = issue_data.get('title')
         record.github_url = issue_data.get('html_url')
         record.github_state = issue_data.get('state')
         record.github_user = issue_data.get('user', {}).get('login')
