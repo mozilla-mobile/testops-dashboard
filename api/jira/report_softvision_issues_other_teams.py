@@ -208,6 +208,17 @@ def jira_softvision_issues_other_teams():
         else v
     )
 
+    # Jira pagination can return the same issue on adjacent pages when its
+    # updated timestamp advances mid-scan. Dedupe by jira_key, keeping the
+    # last occurrence (most likely the freshest snapshot).
+    before = len(payload)
+    payload = payload.drop_duplicates(subset=["jira_key"], keep="last")
+    dropped = before - len(payload)
+    if dropped:
+        logger.warning(
+            "Dropped %d duplicate jira_key rows from payload", dropped
+        )
+
     # Derive flag columns (verified / wontfix / duplicate / invalid /
     # qa_not_actionable) from jira_labels. jira_labels itself is kept
     # intact so the full label list is still available for debugging.

@@ -130,8 +130,16 @@ def jira_softvision_issues_qa_teams():
         lambda v: dt.convert_to_utc(v) if isinstance(v, str) else v
     )
 
-    print(f"DIAGNOSTIC - wrote {len(df)} rows to softvision_issues_qa_teams_raw_df.csv "
-          f"and {len(payload)} rows to softvision_issues_qa_teams_payload.csv")
+    # Jira pagination can return the same issue on adjacent pages when its
+    # statusCategoryChangedDate is updated mid-scan. Dedupe by jira_key,
+    # keeping the last occurrence (most likely the freshest snapshot).
+    before = len(payload)
+    payload = payload.drop_duplicates(subset=['jira_key'], keep='last')
+    dropped = before - len(payload)
+    if dropped:
+        logger.warning(
+            "Dropped %d duplicate jira_key rows from payload", dropped
+        )
 
     report_jira_softvision_issues_qa_teams_insert(payload)
 
@@ -182,7 +190,6 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                             or status_changed_remote > status_changed_existing
                         )
                     ):
-                        print(f"Updating issue {jira_key}")
                         existing.jira_summary = row['jira_summary']
                         existing.jira_project_key = row['jira_project_key']
                         existing.jira_project_name = row['jira_project_name']
@@ -198,7 +205,6 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                     else:
                         skipped += 1
                 else:
-                    print(f"Inserting new issue {jira_key}")
                     new_issue = ReportJiraSoftvisionIssuesQATeams(
                         jira_key=jira_key,
                         jira_summary=row['jira_summary'],
