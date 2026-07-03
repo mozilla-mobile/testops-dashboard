@@ -4,21 +4,15 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-# NOTE: DB persistence is intentionally disabled until the preflight table
-# `report_jira_softvision_issues_other_teams` is created and the
-# `ReportJiraSoftvisionIssuesOtherTeams` model is enabled in database.py.
-# The script currently writes a CSV snapshot only. Re-enable by uncommenting
-# the marked blocks below.
-
-# import inspect
+import inspect
 import logging
 
 import pandas as pd
 
-# from database import (
-#     Database,
-#     ReportJiraSoftvisionIssuesOtherTeams,
-# )
+from database import (
+    Database,
+    ReportJiraSoftvisionIssuesOtherTeams,
+)
 
 from api.jira.client import Jira
 from constants import (
@@ -33,17 +27,17 @@ from api.jira.helpers import (
 from utils.datetime_utils import DatetimeUtils as dt
 
 
-# _DB = None
+_DB = None
 _JIRA = None
 
 logger = logging.getLogger(__name__)
 
 
-# def _db() -> Database():
-#     global _DB
-#     if _DB is None:
-#         _DB = Database()
-#     return _DB
+def _db() -> Database():
+    global _DB
+    if _DB is None:
+        _DB = Database()
+    return _DB
 
 
 def _jira() -> Jira():
@@ -224,128 +218,111 @@ def jira_softvision_issues_other_teams():
     )
     payload = payload.join(categorized)
 
-    # Persist CSV snapshots of the raw Jira df and the transformed payload
-    # so we can validate the output while DB integration is staged.
-    df.to_csv("softvision_issues_other_teams_raw_df.csv", index=False)
-    payload.to_csv("softvision_issues_other_teams_payload.csv", index=False)
-    print(
-        f"DIAGNOSTIC - wrote {len(df)} rows to "
-        f"softvision_issues_other_teams_raw_df.csv and "
-        f"{len(payload)} rows to "
-        f"softvision_issues_other_teams_payload.csv"
-    )
-
-    # Uncomment once the preflight table and the
-    # ReportJiraSoftvisionIssuesOtherTeams model are enabled.
-    # report_jira_softvision_issues_other_teams_insert(payload)
+    report_jira_softvision_issues_other_teams_insert(payload)
 
 
 # ===================================================================
-# DB UPSERT  (disabled until preflight table exists)
+# DB UPSERT
 # ===================================================================
 
-# def report_jira_softvision_issues_other_teams_insert(payload):
-#     print("--------------------------------------")
-#     print("Running: report_jira_softvision_issues_other_teams")
-#     print(inspect.currentframe().f_code.co_name)
-#     print("--------------------------------------")
-#
-#     db = _db()
-#
-#     inserted = 0
-#     updated = 0
-#     skipped = 0
-#
-#     try:
-#         for index, row in payload.iterrows():
-#             try:
-#                 jira_key = row["jira_key"]
-#
-#                 existing = (
-#                     db.session.query(ReportJiraSoftvisionIssuesOtherTeams)
-#                     .filter_by(jira_key=jira_key)
-#                     .one_or_none()
-#                 )
-#
-#                 remote_updated = _to_naive_utc(row["jira_updated_at"])
-#
-#                 if existing:
-#                     existing_updated = _to_naive_utc(existing.jira_updated_at)
-#
-#                     if (
-#                         remote_updated is not None
-#                         and (
-#                             existing_updated is None
-#                             or remote_updated > existing_updated
-#                         )
-#                     ):
-#                         print(f"Updating issue {jira_key}")
-#
-#                         existing.jira_summary = row["jira_summary"]
-#                         existing.jira_project_key = row["jira_project_key"]
-#                         existing.jira_project_name = row["jira_project_name"]
-#                         existing.jira_reporter_name = row["jira_reporter_name"]
-#                         existing.jira_reporter_username = row["jira_reporter_username"]  # noqa: E501
-#                         existing.jira_status = row["jira_status"]
-#                         existing.jira_priority = row["jira_priority"]
-#                         existing.jira_labels = row["jira_labels"]
-#                         existing.jira_label_verified = row["jira_label_verified"]
-#                         existing.jira_label_wontfix = row["jira_label_wontfix"]
-#                         existing.jira_label_duplicate = row["jira_label_duplicate"]
-#                         existing.jira_label_invalid = row["jira_label_invalid"]
-#                         existing.jira_label_qa_not_actionable = row["jira_label_qa_not_actionable"]  # noqa: E501
-#                         existing.jira_created_at = row["jira_created_at"]
-#                         existing.jira_updated_at = row["jira_updated_at"]
-#                         existing.jira_status_changed_at = row["jira_status_changed_at"]  # noqa: E501
-#
-#                         updated += 1
-#                     else:
-#                         skipped += 1
-#                 else:
-#                     print(f"Inserting new issue {jira_key}")
-#
-#                     new_issue = ReportJiraSoftvisionIssuesOtherTeams(
-#                         jira_key=jira_key,
-#                         jira_summary=row["jira_summary"],
-#                         jira_project_key=row["jira_project_key"],
-#                         jira_project_name=row["jira_project_name"],
-#                         jira_reporter_name=row["jira_reporter_name"],
-#                         jira_reporter_username=row["jira_reporter_username"],
-#                         jira_status=row["jira_status"],
-#                         jira_priority=row["jira_priority"],
-#                         jira_labels=row["jira_labels"],
-#                         jira_label_verified=row["jira_label_verified"],
-#                         jira_label_wontfix=row["jira_label_wontfix"],
-#                         jira_label_duplicate=row["jira_label_duplicate"],
-#                         jira_label_invalid=row["jira_label_invalid"],
-#                         jira_label_qa_not_actionable=row["jira_label_qa_not_actionable"],  # noqa: E501
-#                         jira_created_at=row["jira_created_at"],
-#                         jira_updated_at=row["jira_updated_at"],
-#                         jira_status_changed_at=row["jira_status_changed_at"],
-#                     )
-#
-#                     db.session.add(new_issue)
-#                     inserted += 1
-#
-#             except KeyError as e:
-#                 print(f"Missing key: {e} in row {index}")
-#
-#         db.session.commit()
-#
-#         print(
-#             f"Summary, inserted: {inserted}, "
-#             f"updated: {updated}, skipped: {skipped}"
-#         )
-#
-#     except Exception:
-#         db.session.rollback()
-#
-#         logger.exception(
-#             "Upsert failed for report_jira_softvision_issues_other_teams; "
-#             "rolled back. inserted=%d updated=%d skipped=%d",
-#             inserted,
-#             updated,
-#             skipped,
-#         )
-#
-#         raise
+def report_jira_softvision_issues_other_teams_insert(payload):
+    print("--------------------------------------")
+    print("Running: report_jira_softvision_issues_other_teams")
+    print(inspect.currentframe().f_code.co_name)
+    print("--------------------------------------")
+
+    db = _db()
+
+    inserted = 0
+    updated = 0
+    skipped = 0
+
+    try:
+        for index, row in payload.iterrows():
+            try:
+                jira_key = row["jira_key"]
+
+                existing = (
+                    db.session.query(ReportJiraSoftvisionIssuesOtherTeams)
+                    .filter_by(jira_key=jira_key)
+                    .one_or_none()
+                )
+
+                remote_updated = _to_naive_utc(row["jira_updated_at"])
+
+                if existing:
+                    existing_updated = _to_naive_utc(existing.jira_updated_at)
+
+                    if (
+                        remote_updated is not None
+                        and (
+                            existing_updated is None
+                            or remote_updated > existing_updated
+                        )
+                    ):
+                        existing.jira_summary = row["jira_summary"]
+                        existing.jira_project_key = row["jira_project_key"]
+                        existing.jira_project_name = row["jira_project_name"]
+                        existing.jira_reporter_name = row["jira_reporter_name"]
+                        existing.jira_reporter_username = row["jira_reporter_username"]  # noqa: E501
+                        existing.jira_status = row["jira_status"]
+                        existing.jira_priority = row["jira_priority"]
+                        existing.jira_labels = row["jira_labels"]
+                        existing.jira_label_verified = row["jira_label_verified"]
+                        existing.jira_label_wontfix = row["jira_label_wontfix"]
+                        existing.jira_label_duplicate = row["jira_label_duplicate"]
+                        existing.jira_label_invalid = row["jira_label_invalid"]
+                        existing.jira_label_qa_not_actionable = row["jira_label_qa_not_actionable"]  # noqa: E501
+                        existing.jira_created_at = row["jira_created_at"]
+                        existing.jira_updated_at = row["jira_updated_at"]
+                        existing.jira_status_changed_at = row["jira_status_changed_at"]  # noqa: E501
+
+                        updated += 1
+                    else:
+                        skipped += 1
+                else:
+                    new_issue = ReportJiraSoftvisionIssuesOtherTeams(
+                        jira_key=jira_key,
+                        jira_summary=row["jira_summary"],
+                        jira_project_key=row["jira_project_key"],
+                        jira_project_name=row["jira_project_name"],
+                        jira_reporter_name=row["jira_reporter_name"],
+                        jira_reporter_username=row["jira_reporter_username"],
+                        jira_status=row["jira_status"],
+                        jira_priority=row["jira_priority"],
+                        jira_labels=row["jira_labels"],
+                        jira_label_verified=row["jira_label_verified"],
+                        jira_label_wontfix=row["jira_label_wontfix"],
+                        jira_label_duplicate=row["jira_label_duplicate"],
+                        jira_label_invalid=row["jira_label_invalid"],
+                        jira_label_qa_not_actionable=row["jira_label_qa_not_actionable"],  # noqa: E501
+                        jira_created_at=row["jira_created_at"],
+                        jira_updated_at=row["jira_updated_at"],
+                        jira_status_changed_at=row["jira_status_changed_at"],
+                    )
+
+                    db.session.add(new_issue)
+                    inserted += 1
+
+            except KeyError as e:
+                print(f"Missing key: {e} in row {index}")
+
+        db.session.commit()
+
+        print(
+            f"Summary, inserted: {inserted}, "
+            f"updated: {updated}, skipped: {skipped}"
+        )
+
+    except Exception:
+        db.session.rollback()
+
+        logger.exception(
+            "Upsert failed for report_jira_softvision_issues_other_teams; "
+            "rolled back. inserted=%d updated=%d skipped=%d",
+            inserted,
+            updated,
+            skipped,
+        )
+
+        raise
