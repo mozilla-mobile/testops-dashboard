@@ -202,3 +202,33 @@ Purpose: export of Jira issues filed by a defined list of Softvision QAs across 
   - **Insert** if no row exists for the `jira_key`.
   - **Update** only if the remote `jira_status_changed_at` is newer than the value stored in the database (i.e. the issue moved through its workflow since the last run). Otherwise the row is skipped.
 - Counts of inserted / updated / skipped rows are printed at the end of each run.
+
+## Jira Softvision Issues from Other Teams - report_jira_softvision_issues_other_teams
+The Softvision QA team also verifies issues that were filed by *other* teams (engineering, product, external contributors) in the projects they support. This module gathers issues that the Softvision QA team did NOT file but that landed in those supported projects, so the team can monitor the extra verification and closure effort they contribute beyond their own intake.
+
+### Table name & purpose
+Table: *ReportJiraSoftvisionIssuesOtherTeams*
+
+Purpose: export of Jira issues *not* filed by the Softvision QA team, restricted to a curated set of projects (VPN, FXVPN, FXVPN2, GS, SYNC, SACI, FXA, PAY, MNTOR, MPP, FXIOS, EXP) and issue types (Bug, Task, Enhancement). The dataset captures volume, status, priority, reporter, timestamps (created, last update, last status change), and a set of pre-computed label flags used to slice the verification / closure effort in Looker.
+
+### Build & update logic
+
+- Calls `jira.filters()` using `FILTER_ID_SOFTVISION_ISSUES_OTHER_TEAMS` — Jira filter `35755` ("Issues in supported projects NOT filed by QA team") — fetching the following extra fields: `project`, `reporter`, `priority`, `updated`, and `statuscategorychangedate`.
+- Payload is normalized into a DataFrame via `prepare_jira_df()`.
+- If the payload is empty, a `ValueError` is raised and no database changes are made — same defensive guard as the sibling module.
+- The following field transformations are applied before insertion:
+  - **`jira_updated_at`** and **`jira_status_changed_at`** – converted to UTC via `DatetimeUtils.convert_to_utc()`, since `select_and_transform_jira_df()` handles only a subset of datetime fields by default.
+  - **`jira_label_*`** – 5 boolean flag columns derived from `jira_labels` via `_categorize_labels()`:
+    - `jira_label_verified` — labels `verified`, `qa-verified`, `qa:verified`, `moved`
+    - `jira_label_wontfix` — labels `wontfix`, `qa-not-reproducible`, `cannot-reproduce`
+    - `jira_label_duplicate` — label `duplicate`
+    - `jira_label_invalid` — label `invalid`
+    - `jira_label_qa_not_actionable` — label `qa-not-actionable`, plus any other `qa-*` label not absorbed by the buckets above
+
+    The full `jira_labels` string is preserved alongside the flags for debugging and cross-referencing.
+  - **Duplicate `jira_key` rows are dropped** (`drop_duplicates(keep='last')`) before the upsert to defend against Jira pagination returning the same issue on adjacent pages when its `updated` timestamp advances mid-scan. A `logger.warning` reports how many duplicates were removed on each run.
+- Rows are upserted using an update-aware strategy:
+  - **Insert** if no row exists for the `jira_key`.
+  - **Update** only if the remote `jira_updated_at` is newer than the value stored in the database. Otherwise the row is skipped.
+  - `updated` is used as the cursor (rather than `statusCategoryChangedDate` like the sibling module) because this dataset needs to catch label-only changes such as `qa-verified` being applied on close, which don't cross a status category boundary.
+- Counts of inserted / updated / skipped rows are printed at the end of each run.
