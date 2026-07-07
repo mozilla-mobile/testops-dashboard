@@ -617,6 +617,7 @@ CREATE TABLE `report_testrail_test_runs` (
   `suite_id` int NOT NULL,
   `name` varchar(75) NOT NULL,
   `config` varchar(55) NOT NULL,
+  `category` varchar(20) NOT NULL DEFAULT 'Functional',
   `test_case_passed_count` int NOT NULL DEFAULT '0',
   `test_case_retest_count` int NOT NULL DEFAULT '0',
   `test_case_failed_count` int NOT NULL DEFAULT '0',
