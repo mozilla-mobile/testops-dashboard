@@ -47,22 +47,6 @@ def _jira() -> Jira():
     return _JIRA
 
 
-def _to_naive_utc(value):
-    """
-    MySQL DATETIME columns are tz-naive; convert_to_utc returns tz-aware.
-    Normalize both sides of the comparison to naive UTC.
-    """
-    if value is None or pd.isna(value):
-        return None
-
-    ts = pd.Timestamp(value)
-
-    if ts.tzinfo is not None:
-        ts = ts.tz_convert("UTC").tz_localize(None)
-
-    return ts
-
-
 def _categorize_labels(labels_str):
     """
     Derive flag columns from a comma-joined labels string. The original
@@ -259,10 +243,10 @@ def report_jira_softvision_issues_other_teams_insert(payload):
                     .one_or_none()
                 )
 
-                remote_updated = _to_naive_utc(row["jira_updated_at"])
+                remote_updated = dt.to_naive_utc(row["jira_updated_at"])
 
                 if existing:
-                    existing_updated = _to_naive_utc(existing.jira_updated_at)
+                    existing_updated = dt.to_naive_utc(existing.jira_updated_at)
 
                     if (
                         remote_updated is not None

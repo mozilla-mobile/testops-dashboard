@@ -7,8 +7,6 @@
 import inspect
 import logging
 
-import pandas as pd
-
 from database import (
     Database,
     ReportJiraSoftvisionIssuesQATeams,
@@ -57,17 +55,6 @@ def _extract_linked_issue_keys(links):
             keys.append(inward.get('key'))
     joined = ','.join(k for k in keys if k)
     return joined or None
-
-
-def _to_naive_utc(value):
-    # MySQL DATETIME columns are tz-naive; convert_to_utc returns tz-aware.
-    # Normalize both sides of the comparison to naive UTC.
-    if value is None or pd.isna(value):
-        return None
-    ts = pd.Timestamp(value)
-    if ts.tzinfo is not None:
-        ts = ts.tz_convert('UTC').tz_localize(None)
-    return ts
 
 
 # ===================================================================
@@ -172,7 +159,7 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                     .one_or_none()
                 )
 
-                status_changed_remote = _to_naive_utc(row['jira_status_changed_at'])
+                status_changed_remote = dt.to_naive_utc(row['jira_status_changed_at'])
 
                 linked = (
                     row['jira_linked_issues']
@@ -180,7 +167,7 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                 )
 
                 if existing:
-                    status_changed_existing = _to_naive_utc(
+                    status_changed_existing = dt.to_naive_utc(
                         existing.jira_status_changed_at
                     )
                     if (
