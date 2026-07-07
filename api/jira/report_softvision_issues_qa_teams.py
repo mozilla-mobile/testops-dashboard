@@ -7,6 +7,8 @@
 import inspect
 import logging
 
+import pandas as pd
+
 from database import (
     Database,
     ReportJiraSoftvisionIssuesQATeams,
@@ -17,6 +19,7 @@ from constants import (
     FILTER_ID_SOFTVISION_ISSUES_QA_TEAMS,
 )
 from api.jira.helpers import (
+    categorize_labels,
     prepare_jira_df,
     select_and_transform_jira_df,
 )
@@ -72,6 +75,7 @@ def jira_softvision_issues_qa_teams():
                 "reporter",
                 "priority",
                 "issuelinks",
+                "updated",
                 "statuscategorychangedate",
             ],
         )
@@ -99,6 +103,7 @@ def jira_softvision_issues_qa_teams():
         'fields_labels': 'jira_labels',
         'fields_issuelinks': 'jira_linked_issues',
         'fields_created': 'jira_created_at',
+        'fields_updated': 'jira_updated_at',
         'fields_statuscategorychangedate': 'jira_status_changed_at',
     }
     missing_inputs = [c for c in selected_columns.keys() if c not in df.columns]
@@ -117,9 +122,19 @@ def jira_softvision_issues_qa_teams():
         lambda v: dt.convert_to_utc(v) if isinstance(v, str) else v
     )
 
+    # Derive flag columns (verified / wontfix / duplicate / invalid /
+    # qa_not_actionable) from jira_labels. jira_labels itself is kept
+    # intact so the full label list is still available for debugging.
+    categorized = (
+        payload['jira_labels']
+        .apply(categorize_labels)
+        .apply(pd.Series)
+    )
+    payload = payload.join(categorized)
+
     # Jira pagination can return the same issue on adjacent pages when its
-    # statusCategoryChangedDate is updated mid-scan. Dedupe by jira_key,
-    # keeping the last occurrence (most likely the freshest snapshot).
+    # updated timestamp advances mid-scan. Dedupe by jira_key, keeping the
+    # last occurrence (most likely the freshest snapshot).
     before = len(payload)
     payload = payload.drop_duplicates(subset=['jira_key'], keep='last')
     dropped = before - len(payload)
@@ -159,7 +174,7 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                     .one_or_none()
                 )
 
-                status_changed_remote = dt.to_naive_utc(row['jira_status_changed_at'])
+                remote_updated = dt.to_naive_utc(row['jira_updated_at'])
 
                 linked = (
                     row['jira_linked_issues']
@@ -167,14 +182,14 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                 )
 
                 if existing:
-                    status_changed_existing = dt.to_naive_utc(
-                        existing.jira_status_changed_at
+                    existing_updated = dt.to_naive_utc(
+                        existing.jira_updated_at
                     )
                     if (
-                        status_changed_remote is not None
+                        remote_updated is not None
                         and (
-                            status_changed_existing is None
-                            or status_changed_remote > status_changed_existing
+                            existing_updated is None
+                            or remote_updated > existing_updated
                         )
                     ):
                         existing.jira_summary = row['jira_summary']
@@ -185,8 +200,14 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                         existing.jira_status = row['jira_status']
                         existing.jira_priority = row['jira_priority']
                         existing.jira_labels = row['jira_labels']
+                        existing.jira_label_verified = row['jira_label_verified']
+                        existing.jira_label_wontfix = row['jira_label_wontfix']
+                        existing.jira_label_duplicate = row['jira_label_duplicate']
+                        existing.jira_label_invalid = row['jira_label_invalid']
+                        existing.jira_label_qa_not_actionable = row['jira_label_qa_not_actionable']  # noqa: E501
                         existing.jira_linked_issues = linked
                         existing.jira_created_at = row['jira_created_at']
+                        existing.jira_updated_at = row['jira_updated_at']
                         existing.jira_status_changed_at = row['jira_status_changed_at']
                         updated += 1
                     else:
@@ -202,8 +223,14 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                         jira_status=row['jira_status'],
                         jira_priority=row['jira_priority'],
                         jira_labels=row['jira_labels'],
+                        jira_label_verified=row['jira_label_verified'],
+                        jira_label_wontfix=row['jira_label_wontfix'],
+                        jira_label_duplicate=row['jira_label_duplicate'],
+                        jira_label_invalid=row['jira_label_invalid'],
+                        jira_label_qa_not_actionable=row['jira_label_qa_not_actionable'],  # noqa: E501
                         jira_linked_issues=linked,
                         jira_created_at=row['jira_created_at'],
+                        jira_updated_at=row['jira_updated_at'],
                         jira_status_changed_at=row['jira_status_changed_at'],
                     )
                     db.session.add(new_issue)
