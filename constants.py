@@ -50,6 +50,7 @@ REPORT_TYPES = [
     "github-issue-regression",
     "github-issues",
     "jira-softvision-issues-qa-teams",
+    "jira-softvision-issues-other-teams",
     "jira-qa-needed",
     "jira-qa-requests",
     "jira-qa-requests-new-issue-types",
@@ -92,6 +93,7 @@ WORKLOG_URL_TEMPLATE = "issue/{issue_key}/worklog"
 
 # JQL Ecosystem and Service QA Issues
 FILTER_ID_SOFTVISION_ISSUES_QA_TEAMS = "35754"
+FILTER_ID_SOFTVISION_ISSUES_OTHER_TEAMS = "35755"
 
 # JQL Extra fields needed
 JQL_QUERY = "jql=filter="

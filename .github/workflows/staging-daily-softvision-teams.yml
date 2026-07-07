@@ -23,6 +23,8 @@ jobs:
         include:
           - name: Query Jira Softvision Issues from QA Teams
             args: --report-type jira-softvision-issues-qa-teams
+          - name: Query Jira Softvision Issues from Other Teams
+            args: --report-type jira-softvision-issues-other-teams
     steps:
       - name: Check out source repository
         uses: actions/checkout@v6

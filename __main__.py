@@ -46,6 +46,7 @@ from handlers.jira import (
     handle_jira_softvision_worklogs,
     handle_jira_qa_requests_desktop,
     handle_jira_softvision_issues_qa_teams,
+    handle_jira_softvision_issues_other_teams,
 )
 
 from handlers.sentry import (
@@ -218,6 +219,7 @@ COMMAND_MAP = {
     'github-issue-regression': handle_github_issue_regression,
     'github-issues': handle_github_issues,
     'jira-softvision-issues-qa-teams': handle_jira_softvision_issues_qa_teams,
+    'jira-softvision-issues-other-teams': handle_jira_softvision_issues_other_teams,
     'jira-qa-needed': handle_jira_qa_needed,
     'jira-qa-requests': handle_jira_qa_requests,
     'jira-qa-requests-desktop': handle_jira_qa_requests_desktop,

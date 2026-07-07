@@ -309,6 +309,38 @@ CREATE TABLE `report_jira_qa_requests_new_issue_types` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `report_jira_softvision_issues_other_teams`
+--
+
+DROP TABLE IF EXISTS `report_jira_softvision_issues_other_teams`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `report_jira_softvision_issues_other_teams` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `jira_key` varchar(25) NOT NULL,
+  `jira_summary` varchar(500) NOT NULL,
+  `jira_project_key` varchar(50) NOT NULL,
+  `jira_project_name` varchar(255) NOT NULL,
+  `jira_reporter_name` varchar(255) DEFAULT NULL,
+  `jira_reporter_username` varchar(255) DEFAULT NULL,
+  `jira_status` varchar(100) NOT NULL,
+  `jira_priority` varchar(50) DEFAULT NULL,
+  `jira_labels` varchar(500) DEFAULT NULL,
+  `jira_label_verified` tinyint(1) NOT NULL DEFAULT '0',
+  `jira_label_wontfix` tinyint(1) NOT NULL DEFAULT '0',
+  `jira_label_duplicate` tinyint(1) NOT NULL DEFAULT '0',
+  `jira_label_invalid` tinyint(1) NOT NULL DEFAULT '0',
+  `jira_label_qa_not_actionable` tinyint(1) NOT NULL DEFAULT '0',
+  `jira_created_at` datetime NOT NULL,
+  `jira_updated_at` datetime NOT NULL,
+  `jira_status_changed_at` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `jira_key` (`jira_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `report_jira_softvision_issues_qa_teams`
 --
 

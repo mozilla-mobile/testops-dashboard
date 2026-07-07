@@ -1,3 +1,4 @@
+import pandas as pd
 import pytz
 
 from datetime import datetime, timedelta
@@ -22,6 +23,18 @@ class DatetimeUtils:
         """Convert datetime string with timezone offset to UTC."""
         dt = datetime.strptime(datetime_str, "%Y-%m-%dT%H:%M:%S.%f%z")
         return dt.astimezone(pytz.UTC)
+
+    def to_naive_utc(value):
+        """Normalize a datetime / pd.Timestamp / None to a tz-naive UTC
+        pd.Timestamp. MySQL DATETIME columns are tz-naive, but
+        convert_to_utc returns tz-aware — use this to reconcile both
+        sides of an upsert cursor comparison."""
+        if value is None or pd.isna(value):
+            return None
+        ts = pd.Timestamp(value)
+        if ts.tzinfo is not None:
+            ts = ts.tz_convert("UTC").tz_localize(None)
+        return ts
 
     def start_date(num_days, end_date=''):
         """ given num_days, calculate a start_date

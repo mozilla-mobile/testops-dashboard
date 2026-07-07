@@ -7,8 +7,6 @@
 import inspect
 import logging
 
-import pandas as pd
-
 from database import (
     Database,
     ReportJiraSoftvisionIssuesQATeams,
@@ -57,17 +55,6 @@ def _extract_linked_issue_keys(links):
             keys.append(inward.get('key'))
     joined = ','.join(k for k in keys if k)
     return joined or None
-
-
-def _to_naive_utc(value):
-    # MySQL DATETIME columns are tz-naive; convert_to_utc returns tz-aware.
-    # Normalize both sides of the comparison to naive UTC.
-    if value is None or pd.isna(value):
-        return None
-    ts = pd.Timestamp(value)
-    if ts.tzinfo is not None:
-        ts = ts.tz_convert('UTC').tz_localize(None)
-    return ts
 
 
 # ===================================================================
@@ -130,8 +117,16 @@ def jira_softvision_issues_qa_teams():
         lambda v: dt.convert_to_utc(v) if isinstance(v, str) else v
     )
 
-    print(f"DIAGNOSTIC - wrote {len(df)} rows to softvision_issues_qa_teams_raw_df.csv "
-          f"and {len(payload)} rows to softvision_issues_qa_teams_payload.csv")
+    # Jira pagination can return the same issue on adjacent pages when its
+    # statusCategoryChangedDate is updated mid-scan. Dedupe by jira_key,
+    # keeping the last occurrence (most likely the freshest snapshot).
+    before = len(payload)
+    payload = payload.drop_duplicates(subset=['jira_key'], keep='last')
+    dropped = before - len(payload)
+    if dropped:
+        logger.warning(
+            "Dropped %d duplicate jira_key rows from payload", dropped
+        )
 
     report_jira_softvision_issues_qa_teams_insert(payload)
 
@@ -164,7 +159,7 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                     .one_or_none()
                 )
 
-                status_changed_remote = _to_naive_utc(row['jira_status_changed_at'])
+                status_changed_remote = dt.to_naive_utc(row['jira_status_changed_at'])
 
                 linked = (
                     row['jira_linked_issues']
@@ -172,7 +167,7 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                 )
 
                 if existing:
-                    status_changed_existing = _to_naive_utc(
+                    status_changed_existing = dt.to_naive_utc(
                         existing.jira_status_changed_at
                     )
                     if (
@@ -182,7 +177,6 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                             or status_changed_remote > status_changed_existing
                         )
                     ):
-                        print(f"Updating issue {jira_key}")
                         existing.jira_summary = row['jira_summary']
                         existing.jira_project_key = row['jira_project_key']
                         existing.jira_project_name = row['jira_project_name']
@@ -198,7 +192,6 @@ def report_jira_softvision_issues_qa_teams_insert(payload):
                     else:
                         skipped += 1
                 else:
-                    print(f"Inserting new issue {jira_key}")
                     new_issue = ReportJiraSoftvisionIssuesQATeams(
                         jira_key=jira_key,
                         jira_summary=row['jira_summary'],
