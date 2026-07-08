@@ -65,6 +65,7 @@ def jira_softvision_issues_other_teams():
                 "project",
                 "reporter",
                 "priority",
+                "issuetype",
                 "updated",
                 "statuscategorychangedate",
             ],
@@ -98,6 +99,7 @@ def jira_softvision_issues_other_teams():
 
         "fields_status_name": "jira_status",
         "fields_priority_name": "jira_priority",
+        "fields_issuetype_name": "jira_issue_type",
 
         "fields_labels": "jira_labels",
 
@@ -209,6 +211,7 @@ def report_jira_softvision_issues_other_teams_insert(payload):
                         existing.jira_reporter_username = row["jira_reporter_username"]  # noqa: E501
                         existing.jira_status = row["jira_status"]
                         existing.jira_priority = row["jira_priority"]
+                        existing.jira_issue_type = row["jira_issue_type"]
                         existing.jira_labels = row["jira_labels"]
                         existing.jira_label_verified = row["jira_label_verified"]
                         existing.jira_label_wontfix = row["jira_label_wontfix"]
@@ -232,6 +235,7 @@ def report_jira_softvision_issues_other_teams_insert(payload):
                         jira_reporter_username=row["jira_reporter_username"],
                         jira_status=row["jira_status"],
                         jira_priority=row["jira_priority"],
+                        jira_issue_type=row["jira_issue_type"],
                         jira_labels=row["jira_labels"],
                         jira_label_verified=row["jira_label_verified"],
                         jira_label_wontfix=row["jira_label_wontfix"],
