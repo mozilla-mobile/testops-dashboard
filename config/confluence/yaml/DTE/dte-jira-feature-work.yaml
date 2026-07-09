@@ -17,22 +17,22 @@ wiki_page:
 
         - report-title: "Features that missed Manual QA Request milestone"
           report-description: "Represents the number of features that missed the QA request deadline across releases"
-          attachment-filename: "features-missed-manual-qa-request-milestone.png"
+          attachment-filename: "features-that-missed-manual-qa-request-milestone-look.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3262"
 
         - report-title: "Features that missed the tech documentation milestone"
           report-description: "Represents the number of Features that missed the technical documentation deadline"
-          attachment-filename: "features-missed-tech-documentation-milestone.png"
+          attachment-filename: "features-that-missed-the-tech-documentation-milestone-look.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3263"
 
         - report-title: "Features that missed the ready for QA milestone"
           report-description: "Represents the number of Features that missed the ready-for-QA deadline"
-          attachment-filename: "features-missed-ready-qa-milestone.png"
+          attachment-filename: "features-that-missed-the-ready-for-qa-milestone.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3264"
 
         - report-title: "Features that got their target release deferred"
           report-description: "Indicates the number of Features that got their target release deferred"
-          attachment-filename: "features-target-release-deferred.png"
+          attachment-filename: "features-that-got-their-target-release-deferred-look.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3265"
 
 
@@ -50,5 +50,5 @@ wiki_page:
 
         - report-title: "Total features tested all the way through Beta/Release"
           report-description: "Represents the total number of features tested all the way through Beta cycle (tested both during Nightly, and during Beta or Release.)"
-          attachment-filename: "total-features-tested-all-the-way-beta-release.png"
+          attachment-filename: "total-features-tested-all-the-way-through-betarelease.png"
           looker-graph-url: "https://mozilla.cloud.looker.com/looks/3268"
