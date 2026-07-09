@@ -1,58 +1,54 @@
 wiki_page:
-  page_id: 111111
+  page_id: 2858123281
   page_title: "DTE - Jira Feature Work"
   show_approval_status: false
   sections:
     - name: "General overview of supported new features"
       reports:
         - report-title: "Total Features Supported"
-          report-description: ""
+          report-description: "Displays the total number of features supported across releases."
           attachment-filename: "total-features-supported.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3258"
 
         - report-title: "High-priority Features [High or Highest]"
-          report-description: ""
+          report-description: 'Represents the number of features considered with **High** priority, that have the Priority field set to "High" or "Highest" or "P1"/"P2"'
           attachment-filename: "high-priority-features.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3261"
 
         - report-title: "Features that missed Manual QA Request milestone"
-          report-description: ""
+          report-description: "Represents the number of features that missed the QA request deadline across releases"
           attachment-filename: "features-missed-manual-qa-request-milestone.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3262"
 
         - report-title: "Features that missed the tech documentation milestone"
-          report-description: ""
-          attachment-filename: "features-missed-tech-documentation-mileston.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/"
+          report-description: "Represents the number of Features that missed the technical documentation deadline"
+          attachment-filename: "features-missed-tech-documentation-milestone.png"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3263"
 
         - report-title: "Features that missed the ready for QA milestone"
-          report-description: ""
+          report-description: "Represents the number of Features that missed the ready-for-QA deadline"
           attachment-filename: "features-missed-ready-qa-milestone.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3264"
 
         - report-title: "Features that got their target release deferred"
-          report-description: ""
+          report-description: "Indicates the number of Features that got their target release deferred"
           attachment-filename: "features-target-release-deferred.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3265"
 
 
     - name: "Effort based on feature size, complexity, and testing phase"
       reports:
         - report-title: "Size-based breakdown"
-          report-description: ""
+          report-description: "Shows the total number of supported features across releases, broken down by feature **size**."
           attachment-filename: "size-based-breakdown.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3266"
 
         - report-title: "Complexity-based breakdown"
-          report-description: ""
+          report-description: "Shows the total number of supported features across releases, broken down by feature **complexity**."
           attachment-filename: "complexity-based-breakdown.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/"
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3267"
 
         - report-title: "Total features tested all the way through Beta/Release"
-          report-description: ""
+          report-description: "Represents the total number of features tested all the way through Beta cycle (tested both during Nightly, and during Beta or Release.)"
           attachment-filename: "total-features-tested-all-the-way-beta-release.png"
-          looker-graph-url: "https://mozilla.cloud.looker.com/looks/"
-
-
-
-
+          looker-graph-url: "https://mozilla.cloud.looker.com/looks/3268"
