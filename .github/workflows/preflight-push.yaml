@@ -42,6 +42,13 @@ jobs:
   unit-tests:
     name: Run Unit Tests
     runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request'
+      || github.event.pull_request.user.login != 'dependabot[bot]'
+      || (
+        github.event.action == 'labeled'
+        && github.event.label.name == 'run-testops'
+      )
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v5
