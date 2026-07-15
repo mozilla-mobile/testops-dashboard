@@ -35,6 +35,8 @@ jobs:
 
       - name: Setup python
         uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
 
       - name: Establish Cloud SQL Proxy
         uses: mattes/gce-cloudsql-proxy-action@v1
