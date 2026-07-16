@@ -111,3 +111,53 @@ def select_and_transform_jira_df(
         )
 
     return df_selected.astype(object).where(pd.notnull(df_selected), None)
+
+
+def categorize_labels(labels_str):
+    """
+    Derive Jira label flag columns from a comma-joined labels string.
+
+    Returns a dict with these 0/1 keys, meant to be joined into the
+    payload DataFrame via `.apply(pd.Series)`:
+      - jira_label_verified          — verified / qa-verified / qa:verified / moved
+      - jira_label_wontfix           — wontfix / qa-not-reproducible / cannot-reproduce
+      - jira_label_duplicate         — duplicate
+      - jira_label_invalid           — invalid
+      - jira_label_qa_not_actionable — qa-not-actionable, plus any other `qa-*`
+                                        label not absorbed by the buckets above
+
+    Matching is case-insensitive. The original `jira_labels` column is
+    left intact by the caller so the full label list is preserved
+    alongside the flags for debugging / cross-referencing.
+    """
+    out = {
+        "jira_label_verified": 0,
+        "jira_label_wontfix": 0,
+        "jira_label_duplicate": 0,
+        "jira_label_invalid": 0,
+        "jira_label_qa_not_actionable": 0,
+    }
+
+    if not isinstance(labels_str, str) or not labels_str:
+        return out
+
+    labels = [
+        item.strip()
+        for item in labels_str.split(",")
+        if item.strip()
+    ]
+
+    for label in labels:
+        ll = label.lower()
+        if ll in {"verified", "qa-verified", "qa:verified", "moved"}:
+            out["jira_label_verified"] = 1
+        elif ll in {"wontfix", "qa-not-reproducible", "cannot-reproduce"}:
+            out["jira_label_wontfix"] = 1
+        elif ll == "duplicate":
+            out["jira_label_duplicate"] = 1
+        elif ll == "invalid":
+            out["jira_label_invalid"] = 1
+        elif ll.startswith("qa-"):
+            out["jira_label_qa_not_actionable"] = 1
+
+    return out

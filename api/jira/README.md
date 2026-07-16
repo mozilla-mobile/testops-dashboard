@@ -192,15 +192,25 @@ Purpose: export of Jira issues filed by a defined list of Softvision QAs across 
 
 ### Build & update logic
 
-- Calls `jira.filters()` using `FILTER_ID_SOFTVISION_ISSUES_QA_TEAMS` — Jira filter `35754` ("All issues logged by QA team in all projects") — fetching the following extra fields: `project`, `reporter`, `priority`, `issuelinks`, and `statuscategorychangedate`.
+- Calls `jira.filters()` using `FILTER_ID_SOFTVISION_ISSUES_QA_TEAMS` — Jira filter `35754` ("All issues logged by QA team in all projects") — fetching the following extra fields: `project`, `reporter`, `priority`, `issuelinks`, `updated`, and `statuscategorychangedate`.
 - Payload is normalized into a DataFrame via `prepare_jira_df()`.
 - If the payload is empty, a `ValueError` is raised and no database changes are made — this is a defensive guard against silent wipes when Jira credentials or the filter break.
 - The following field transformations are applied before insertion:
   - **`jira_linked_issues`** – flattened from the `issuelinks` array (both `inwardIssue` and `outwardIssue`) into a comma-separated string of linked issue keys.
   - **`jira_status_changed_at`** – converted to UTC via `DatetimeUtils.convert_to_utc()`, since `select_and_transform_jira_df()` only converts `jira_created_at` / `jira_updated_at` by default.
-- Rows are upserted using a status-change-aware strategy:
+  - **`jira_label_*`** – 5 boolean flag columns derived from `jira_labels` via the shared `categorize_labels()` helper in `api/jira/helpers.py`:
+    - `jira_label_verified` — labels `verified`, `qa-verified`, `qa:verified`, `moved`
+    - `jira_label_wontfix` — labels `wontfix`, `qa-not-reproducible`, `cannot-reproduce`
+    - `jira_label_duplicate` — label `duplicate`
+    - `jira_label_invalid` — label `invalid`
+    - `jira_label_qa_not_actionable` — label `qa-not-actionable`, plus any other `qa-*` label not absorbed by the buckets above
+
+    The full `jira_labels` string is preserved alongside the flags for debugging and cross-referencing.
+  - **Duplicate `jira_key` rows are dropped** (`drop_duplicates(keep='last')`) before the upsert to defend against Jira pagination returning the same issue on adjacent pages when its `updated` timestamp advances mid-scan. A `logger.warning` reports how many duplicates were removed on each run.
+- Rows are upserted using an update-aware strategy:
   - **Insert** if no row exists for the `jira_key`.
-  - **Update** only if the remote `jira_status_changed_at` is newer than the value stored in the database (i.e. the issue moved through its workflow since the last run). Otherwise the row is skipped.
+  - **Update** only if the remote `jira_updated_at` is newer than the value stored in the database. Otherwise the row is skipped.
+  - `updated` is used as the cursor (rather than `statusCategoryChangedDate` as originally introduced) so label-only changes such as `qa-verified` being applied on close are picked up on the next run — otherwise the label flag columns would go stale for issues whose status category no longer moves.
 - Counts of inserted / updated / skipped rows are printed at the end of each run.
 
 ## Jira Softvision Issues from Other Teams - report_jira_softvision_issues_other_teams

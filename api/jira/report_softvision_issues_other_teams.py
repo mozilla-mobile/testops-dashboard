@@ -20,6 +20,7 @@ from constants import (
 )
 
 from api.jira.helpers import (
+    categorize_labels,
     prepare_jira_df,
     select_and_transform_jira_df,
 )
@@ -47,60 +48,6 @@ def _jira() -> Jira():
     return _JIRA
 
 
-def _categorize_labels(labels_str):
-    """
-    Derive flag columns from a comma-joined labels string. The original
-    `jira_labels` column is left intact so we keep the full label list
-    alongside the flags for debugging / cross-referencing.
-
-    Returns a dict suitable for pd.Series expansion with these keys:
-      - jira_label_verified (0/1):
-            verified, qa-verified, qa:verified, moved
-      - jira_label_wontfix (0/1):
-            wontfix, qa-not-reproducible, cannot-reproduce
-      - jira_label_duplicate (0/1):
-            duplicate
-      - jira_label_invalid (0/1):
-            invalid
-      - jira_label_qa_not_actionable (0/1):
-            qa-not-actionable, plus any other `qa-*` label that wasn't
-            already absorbed by the verified or wontfix buckets.
-
-    Matching is case-insensitive.
-    """
-    out = {
-        "jira_label_verified": 0,
-        "jira_label_wontfix": 0,
-        "jira_label_duplicate": 0,
-        "jira_label_invalid": 0,
-        "jira_label_qa_not_actionable": 0,
-    }
-
-    if not isinstance(labels_str, str) or not labels_str:
-        return out
-
-    labels = [
-        item.strip()
-        for item in labels_str.split(",")
-        if item.strip()
-    ]
-
-    for label in labels:
-        ll = label.lower()
-        if ll in {"verified", "qa-verified", "qa:verified", "moved"}:
-            out["jira_label_verified"] = 1
-        elif ll in {"wontfix", "qa-not-reproducible", "cannot-reproduce"}:
-            out["jira_label_wontfix"] = 1
-        elif ll == "duplicate":
-            out["jira_label_duplicate"] = 1
-        elif ll == "invalid":
-            out["jira_label_invalid"] = 1
-        elif ll.startswith("qa-"):
-            out["jira_label_qa_not_actionable"] = 1
-
-    return out
-
-
 # ===================================================================
 # ORCHESTRATOR (BATCH)
 # ===================================================================
@@ -118,6 +65,7 @@ def jira_softvision_issues_other_teams():
                 "project",
                 "reporter",
                 "priority",
+                "issuetype",
                 "updated",
                 "statuscategorychangedate",
             ],
@@ -151,6 +99,7 @@ def jira_softvision_issues_other_teams():
 
         "fields_status_name": "jira_status",
         "fields_priority_name": "jira_priority",
+        "fields_issuetype_name": "jira_issue_type",
 
         "fields_labels": "jira_labels",
 
@@ -208,7 +157,7 @@ def jira_softvision_issues_other_teams():
     # intact so the full label list is still available for debugging.
     categorized = (
         payload["jira_labels"]
-        .apply(_categorize_labels)
+        .apply(categorize_labels)
         .apply(pd.Series)
     )
     payload = payload.join(categorized)
@@ -262,6 +211,7 @@ def report_jira_softvision_issues_other_teams_insert(payload):
                         existing.jira_reporter_username = row["jira_reporter_username"]  # noqa: E501
                         existing.jira_status = row["jira_status"]
                         existing.jira_priority = row["jira_priority"]
+                        existing.jira_issue_type = row["jira_issue_type"]
                         existing.jira_labels = row["jira_labels"]
                         existing.jira_label_verified = row["jira_label_verified"]
                         existing.jira_label_wontfix = row["jira_label_wontfix"]
@@ -285,6 +235,7 @@ def report_jira_softvision_issues_other_teams_insert(payload):
                         jira_reporter_username=row["jira_reporter_username"],
                         jira_status=row["jira_status"],
                         jira_priority=row["jira_priority"],
+                        jira_issue_type=row["jira_issue_type"],
                         jira_labels=row["jira_labels"],
                         jira_label_verified=row["jira_label_verified"],
                         jira_label_wontfix=row["jira_label_wontfix"],
