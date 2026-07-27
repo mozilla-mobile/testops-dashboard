@@ -454,8 +454,21 @@ class SentryClient(Sentry):
 
         payload.sort(key=Version, reverse=True)
 
+        # A version can be respun with a higher buildCode; the sort above
+        # puts the highest buildCode first, so keep only the first
+        # occurrence of each version (without its build suffix) to drop
+        # the older respins.
+        seen = set()
+        deduped = []
+        for raw_version in payload:
+            short_version = raw_version.split('+')[0]
+            if short_version in seen:
+                continue
+            seen.add(short_version)
+            deduped.append(raw_version)
+
         # Just a list of released versions, not a dataframe
-        return payload
+        return deduped
 
 
 class DatabaseSentry:
