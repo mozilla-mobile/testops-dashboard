@@ -104,14 +104,6 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project firefox-ios
           ls sentry-slack-firefox-ios.json
 
-      - name: Send Sentry rates to Slack sandbox (iOS)
-        uses: slackapi/slack-github-action@v3.0.3
-        with:
-          payload-file-path: "./sentry-slack-firefox-ios.json"
-          payload-templated: true
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
-          webhook-type: incoming-webhook
-
       - name: Sentry query (Android)
         run: |
           python __main__.py --report-type sentry-issues --project fenix
@@ -121,14 +113,6 @@ jobs:
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix
           ls sentry-slack-fenix.json
 
-      - name: Send Sentry rates to Slack sandbox (Android)
-        uses: slackapi/slack-github-action@v3.0.3
-        with:
-          payload-file-path: "./sentry-slack-fenix.json"
-          payload-templated: true
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
-          webhook-type: incoming-webhook
-
       - name: Sentry query (Android Beta)
         run: |
           python __main__.py --report-type sentry-issues --project fenix-beta
@@ -137,14 +121,6 @@ jobs:
         run: |
           python -m api.sentry.utils --file ./sentry_rates.csv --project fenix-beta
           ls sentry-slack-fenix-beta.json
-
-      - name: Send Sentry rates to Slack sandbox (Android Beta)
-        uses: slackapi/slack-github-action@v3.0.3
-        with:
-          payload-file-path: "./sentry-slack-fenix-beta.json"
-          payload-templated: true
-          webhook: ${{ secrets.SLACK_WEBHOOK_URL_TEST_ALERTS_SANDBOX }}
-          webhook-type: incoming-webhook
 
       - name: Notify Slack on any type of failure
         if: failure()
