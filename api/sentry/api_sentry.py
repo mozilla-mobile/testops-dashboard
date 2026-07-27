@@ -556,17 +556,13 @@ class DatabaseSentry:
         # Let me use -1 to indicate null values
         percentage_crash_free_rate_session = -1
         if crash_free_rate_session:
-            percentage_crash_free_rate_session = round(
-                crash_free_rate_session * 100, 2
-            )
+            percentage_crash_free_rate_session = crash_free_rate_session * 100
         percentage_crash_free_rate_user = -1
         if crash_free_rate_user:
-            percentage_crash_free_rate_user = round(
-                crash_free_rate_user * 100, 2
-            )
+            percentage_crash_free_rate_user = crash_free_rate_user * 100
         percentage_adoption_rate_user = -1
         if adoption_rate_user is not None:
-            percentage_adoption_rate_user = round(adoption_rate_user, 2)
+            percentage_adoption_rate_user = adoption_rate_user
 
         now = datetime.now()
         row = [

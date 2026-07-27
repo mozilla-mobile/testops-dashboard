@@ -100,15 +100,15 @@ def insert_rates(json_data, csv_file, project, shortform=False):
             if float(row['adoption_rate_user']) > 1:
                 crash_free_rate_user = (
                     "NaN" if float(row['crash_free_rate_user']) < 0
-                    else row['crash_free_rate_user']
+                    else f"{float(row['crash_free_rate_user']):.4f}"
                 )
                 crash_free_rate_session = (
                     "NaN" if float(row['crash_free_rate_session']) < 0
-                    else row['crash_free_rate_session']
+                    else f"{float(row['crash_free_rate_session']):.4f}"
                 )
                 adoption_rate_user = (
                     "NaN" if float(row['adoption_rate_user']) < 0
-                    else row['adoption_rate_user']
+                    else f"{float(row['adoption_rate_user']):.2f}"
                 )
                 release_version = row['release_version']
                 if all_future_versions is not None:
