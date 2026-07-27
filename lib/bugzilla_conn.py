@@ -31,8 +31,10 @@ class BugzillaAPIClient:
         if not self.key:
             raise Exception("Missing BUGZILLA_API_KEY")
         if self.key:
+            # Force REST backend; XMLRPC is being decommissioned by BMO.
             self.bz_client = with_retry(
                 bugzilla.Bugzilla,
                 self.URL,
                 api_key=self.key,
+                force_rest=True,
             )

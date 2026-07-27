@@ -698,8 +698,10 @@ class BugzillaClient(Bugz):
             # Create the DataFrame
             df = pd.DataFrame(rows)
 
-            df['modification_date'] = pd.to_datetime(df['modification_date'], format='%Y%m%dT%H:%M:%S') # noqa
-            df['creation_date'] = pd.to_datetime(df['creation_date'], format='%Y%m%dT%H:%M:%S') # noqa
+            # REST returns ISO 8601 (2026-07-22T19:54:17Z); XMLRPC used
+            # the compact 20260722T19:54:17 form. Accept ISO 8601.
+            df['modification_date'] = pd.to_datetime(df['modification_date'], format='ISO8601') # noqa
+            df['creation_date'] = pd.to_datetime(df['creation_date'], format='ISO8601') # noqa
 
             # Drop the columns 'type_id' and 'id'
             df_cleaned = df.drop(columns=["type_id", "id"])
@@ -922,9 +924,16 @@ class DatabaseBugzilla(Database):
 
                 if existing:
                     print(f"Updating bug {bug_id}")
-                    # Compare last_change_time to update
-                    last_change_remote = pd.to_datetime(row['last_change_time'])
-                    if last_change_remote > existing.bugzilla_bug_last_change_time:
+                    # Compare last_change_time to update.
+                    # REST returns tz-aware timestamps; MySQL DATETIME
+                    # comes back tz-naive. Normalize both sides.
+                    last_change_remote = DatetimeUtils.to_naive_utc(
+                        row['last_change_time']
+                    )
+                    last_change_existing = DatetimeUtils.to_naive_utc(
+                        existing.bugzilla_bug_last_change_time
+                    )
+                    if last_change_remote > last_change_existing:
                         existing.bugzilla_summary = row['summary']
                         existing.bugzilla_product = row['product']
                         existing.bugzilla_qa_whiteboard = row['qa_whiteboard']
