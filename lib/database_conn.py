@@ -63,7 +63,18 @@ def _sanitize_string_values(session, flush_context, instances):
         if mapper is None:
             continue
         for col in mapper.columns:
-            if isinstance(col.type, String):
-                val = getattr(obj, col.key, None)
-                if isinstance(val, str) and _FOUR_BYTE_UTF8.search(val):
-                    setattr(obj, col.key, _FOUR_BYTE_UTF8.sub('', val))
+            if not isinstance(col.type, String):
+                continue
+            val = getattr(obj, col.key, None)
+            if not isinstance(val, str):
+                continue
+
+            new_val = val
+            if _FOUR_BYTE_UTF8.search(new_val):
+                new_val = _FOUR_BYTE_UTF8.sub('', new_val)
+            # Prevent inserting strings that are too long for the column
+            if col.type.length and len(new_val) > col.type.length:
+                new_val = new_val[:col.type.length]
+
+            if new_val != val:
+                setattr(obj, col.key, new_val)
