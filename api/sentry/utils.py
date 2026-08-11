@@ -1,6 +1,7 @@
 import json
 import csv
 import argparse
+import math
 import tomllib
 from pathlib import Path
 from urllib.parse import urlencode
@@ -39,6 +40,13 @@ def format_count(value) -> str:
     if n < 1000:
         return str(n)
     return f"{round(n / 1000)}k"
+
+
+def truncate(value: float, decimals: int) -> str:
+    """Truncate (not round) a float to the given number of decimal places."""
+    factor = 10 ** decimals
+    truncated = math.floor(value * factor) / factor
+    return f"{truncated:.{decimals}f}"
 
 
 def package_for(project: str) -> str:
@@ -100,11 +108,11 @@ def insert_rates(json_data, csv_file, project, shortform=False):
             if float(row['adoption_rate_user']) > 1:
                 crash_free_rate_user = (
                     "NaN" if float(row['crash_free_rate_user']) < 0
-                    else f"{float(row['crash_free_rate_user']):.4f}"
+                    else truncate(float(row['crash_free_rate_user']), 4)
                 )
                 crash_free_rate_session = (
                     "NaN" if float(row['crash_free_rate_session']) < 0
-                    else f"{float(row['crash_free_rate_session']):.4f}"
+                    else truncate(float(row['crash_free_rate_session']), 4)
                 )
                 adoption_rate_user = (
                     "NaN" if float(row['adoption_rate_user']) < 0
