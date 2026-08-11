@@ -1,0 +1,87 @@
+name: Confluence Update - DEMO
+
+on:
+  pull_request:
+  push:
+    branches: [ rpapa-new-conf-space ]
+  workflow_dispatch:
+    inputs:
+      branchName:
+        description: 'rpapa-new-conf-space'
+        required: true
+        default: 'rpapa-new-conf-space'
+
+jobs:
+  deploy:
+    name: Confluence Update (DEMO) 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v5
+
+      - name: Setup python 
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11' 
+
+      - name: Install requirements 
+        run: pip install -r requirements.txt
+
+      - name: Set env vars 
+        run: |
+            echo "CLOUD_SQL_DATABASE_USERNAME=${{ secrets.CLOUD_SQL_DATABASE_USERNAME }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_PASSWORD=${{ secrets.CLOUD_SQL_DATABASE_PASSWORD }}" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_NAME=staging" >> $GITHUB_ENV
+            echo "CLOUD_SQL_DATABASE_PORT=${{ secrets.CLOUD_SQL_DATABASE_PORT }}" >> $GITHUB_ENV
+            echo "TESTRAIL_HOST=${{ secrets.TESTRAIL_HOST }}" >> $GITHUB_ENV
+            echo "TESTRAIL_USERNAME=${{ secrets.TESTRAIL_USERNAME }}" >> $GITHUB_ENV
+            echo "TESTRAIL_PASSWORD=${{ secrets.TESTRAIL_PASSWORD }}" >> $GITHUB_ENV
+            echo "GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
+            echo "JIRA_HOST=${{ secrets.JIRA_HOST }}" >> $GITHUB_ENV
+            echo "JIRA_USER=${{ secrets.JIRA_USER }}" >> $GITHUB_ENV
+            echo "JIRA_PASSWORD=${{ secrets.JIRA_PASSWORD }}" >> $GITHUB_ENV
+
+            echo "BUGZILLA_API_KEY=${{ secrets.BUGZILLA_API_KEY }}" >> $GITHUB_ENV
+
+            echo "ATLASSIAN_API_TOKEN=${{ secrets.ATLASSIAN_API_TOKEN }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_HOST=${{ secrets.ATLASSIAN_HOST }}" >> $GITHUB_ENV
+            echo "ATLASSIAN_USERNAME=${{ secrets.ATLASSIAN_USERNAME }}" >> $GITHUB_ENV
+            echo "LOOKER_HOST=${{ secrets.LOOKER_HOST}}" >> $GITHUB_ENV
+            echo "LOOKER_CLIENT_ID=${{ secrets.LOOKER_CLIENT_ID}}" >> $GITHUB_ENV
+            echo "LOOKER_SECRET=${{ secrets.LOOKER_SECRET}}" >> $GITHUB_ENV
+            
+            echo "BITRISE_APP_SLUG=${{ secrets.BITRISE_APP_SLUG }}" >> $GITHUB_ENV
+            echo "BITRISE_HOST=${{ secrets.BITRISE_HOST }}" >> $GITHUB_ENV
+            echo "BITRISE_TOKEN=${{ secrets.BITRISE_TOKEN }}" >> $GITHUB_ENV: Generate Looker Thumbnails
+
+      - name: Update Looker Thumbnails 
+        run: |
+            python3 ./api/looker/api_looker.py
+            ls
+            ls ./config/confluence/images/
+
+      - name: Update Confluence Page
+        run: python3 ./api/confluence/api_confluence.py
+
+      - name: Set job log URL
+        if: always()
+        run: echo "JOB_LOG_URL=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+
+      - name: Send custom JSON data to Slack workflow
+        if: always()
+        id: slack
+        uses: slackapi/slack-github-action@v2.1.1
+        env:
+          WORKFLOW_NAME: ${{ github.workflow }}
+          BRANCH: ${{ github.ref_name }}
+          JOB_STATUS: ${{ job.status == 'success' && ':white_check_mark:' || job.status == 'failure' && ':x:' }}
+          JOB_STATUS_COLOR: ${{ job.status == 'success' && '#36a64f' || job.status == 'failure' && '#FF0000' }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL_MOBILE_ALERTS_TOOLING }}
+          webhook-type: webhook-trigger
+          payload-templated: true
+          payload-file-path: "./config/payload-slack-content.json"
