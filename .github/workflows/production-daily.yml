@@ -145,15 +145,15 @@ jobs:
           path: ./sentry_rates.csv
           destination: testops-llm-artifacts/sentry/fenix
 
-      - name: Send health notification to Slack (Android)
-        id: slack-sentry-fenix
-        if: steps.construct-json-fenix.outputs.has_data == 'true'
-        uses: slackapi/slack-github-action@v4.0.0
-        with:
-          payload-file-path: "./sentry-slack-fenix.json"
-          payload-templated: true
-          webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
-          webhook-type: incoming-webhook
+      # - name: Send health notification to Slack (Android)
+      #   id: slack-sentry-fenix
+      #   if: steps.construct-json-fenix.outputs.has_data == 'true'
+      #   uses: slackapi/slack-github-action@v4.0.0
+      #   with:
+      #     payload-file-path: "./sentry-slack-fenix.json"
+      #     payload-templated: true
+      #     webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
+      #     webhook-type: incoming-webhook
 
       - name: Sentry query (Android Beta)
         run: |
@@ -172,15 +172,15 @@ jobs:
           path: ./sentry_rates.csv
           destination: testops-llm-artifacts/sentry/fenix-beta
 
-      - name: Send health notification to Slack (Android Beta)
-        id: slack-sentry-fenix-beta
-        if: steps.construct-json-fenix-beta.outputs.has_data == 'true'
-        uses: slackapi/slack-github-action@v4.0.0
-        with:
-          payload-file-path: "./sentry-slack-fenix-beta.json"
-          payload-templated: true
-          webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
-          webhook-type: incoming-webhook
+      # - name: Send health notification to Slack (Android Beta)
+      #   id: slack-sentry-fenix-beta
+      #   if: steps.construct-json-fenix-beta.outputs.has_data == 'true'
+      #   uses: slackapi/slack-github-action@v4.0.0
+      #   with:
+      #     payload-file-path: "./sentry-slack-fenix-beta.json"
+      #     payload-templated: true
+      #     webhook:  ${{ secrets.SLACK_WEBHOOK_PRODUCT_HEALTH }}
+      #     webhook-type: incoming-webhook
       - name: Notify Slack on any type of failure
         if: failure()
         uses: slackapi/slack-github-action@v4.0.0
