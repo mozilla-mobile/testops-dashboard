@@ -635,10 +635,15 @@ def image_attachments_upload(page_id):
             file_path = os.path.join(image_dir, filename)
             print(f"Uploading: {filename}...")
 
-            with open(file_path, "rb"):
-                response = confluence.attach_file(
-                    filename=file_path,
-                    page_id=page_id
+            with open(file_path, "rb") as image_file:
+                response = requests.post(
+                    url_attachments(page_id),
+                    auth=auth,
+                    headers={
+                        **headers,
+                        "X-Atlassian-Token": "no-check",
+                    },
+                    files={"file": (filename, image_file)},
                 )
 
             if response:
