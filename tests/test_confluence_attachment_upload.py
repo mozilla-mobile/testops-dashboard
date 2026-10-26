@@ -31,8 +31,11 @@ class TestConfluenceAttachmentUpload(unittest.TestCase):
         api_confluence.headers.update(self._orig_headers)
 
     @patch.object(api_confluence.requests, "post")
-    def test_uploads_image_using_confluence_rest_api(self, mock_post):
-        mock_post.return_value = MagicMock()
+    @patch.object(api_confluence.requests, "put")
+    def test_uploads_image_using_confluence_rest_api(
+        self, mock_put, mock_post
+    ):
+        mock_put.return_value = MagicMock()
         with tempfile.TemporaryDirectory() as image_dir:
             image_path = Path(image_dir) / "dashboard.png"
             image_path.write_bytes(b"image data")
@@ -40,8 +43,9 @@ class TestConfluenceAttachmentUpload(unittest.TestCase):
             with patch.object(api_confluence, "PATH_IMAGES", Path(image_dir)):
                 api_confluence.image_attachments_upload("12345")
 
-        mock_post.assert_called_once()
-        args, kwargs = mock_post.call_args
+        mock_put.assert_called_once()
+        mock_post.assert_not_called()
+        args, kwargs = mock_put.call_args
         self.assertEqual(args[0], api_confluence.url_attachments("12345"))
         self.assertEqual(kwargs["auth"], api_confluence.auth)
         self.assertEqual(
@@ -52,13 +56,12 @@ class TestConfluenceAttachmentUpload(unittest.TestCase):
         self.assertEqual(uploaded_filename, "dashboard.png")
         self.assertTrue(uploaded_file.closed)
 
-    @patch.object(api_confluence.requests, "post")
     @patch.object(api_confluence.requests, "put")
     def test_page_write_does_not_leak_content_type_into_upload(
-        self, mock_put, mock_post
+        self, mock_put
     ):
-        mock_put.return_value = MagicMock(status_code=200)
-        mock_post.return_value = MagicMock(ok=True, status_code=200)
+        mock_put.return_value = MagicMock(
+            ok=True, status_code=200)
         before = dict(api_confluence.headers)
 
         api_confluence.page_payload_write("1", {"title": "t"})
@@ -73,13 +76,14 @@ class TestConfluenceAttachmentUpload(unittest.TestCase):
             with patch.object(api_confluence, "PATH_IMAGES", Path(image_dir)):
                 api_confluence.image_attachments_upload("1")
 
-        sent = mock_post.call_args.kwargs["headers"]
+        self.assertEqual(mock_put.call_count, 2)
+        sent = mock_put.call_args.kwargs["headers"]
         self.assertNotIn("content-type", {k.lower() for k in sent})
 
     @patch.object(api_confluence.time, "sleep")
-    @patch.object(api_confluence.requests, "post")
-    def test_retries_upload_on_429(self, mock_post, mock_sleep):
-        mock_post.side_effect = [
+    @patch.object(api_confluence.requests, "put")
+    def test_retries_upload_on_429(self, mock_put, mock_sleep):
+        mock_put.side_effect = [
             MagicMock(ok=False, status_code=429, text="slow",
                       headers={"Retry-After": "0"}),
             MagicMock(ok=True, status_code=200),
@@ -89,7 +93,7 @@ class TestConfluenceAttachmentUpload(unittest.TestCase):
             with patch.object(api_confluence, "PATH_IMAGES", Path(image_dir)):
                 api_confluence.image_attachments_upload("1")
 
-        self.assertEqual(mock_post.call_count, 2)
+        self.assertEqual(mock_put.call_count, 2)
         mock_sleep.assert_called_once_with(0)
 
 
@@ -108,9 +112,9 @@ class TestConfluenceFailureReporting(unittest.TestCase):
         api_confluence.headers.clear()
         api_confluence.headers.update(self._orig_headers)
 
-    @patch.object(api_confluence.requests, "post")
-    def test_upload_returns_failure_for_415(self, mock_post):
-        mock_post.return_value = MagicMock(
+    @patch.object(api_confluence.requests, "put")
+    def test_upload_returns_failure_for_415(self, mock_put):
+        mock_put.return_value = MagicMock(
             ok=False, status_code=415, text="unsupported")
         with tempfile.TemporaryDirectory() as d, _images(d, "a.png"):
             failures = api_confluence.image_attachments_upload("1")
@@ -119,14 +123,14 @@ class TestConfluenceFailureReporting(unittest.TestCase):
         self.assertIn("a.png", failures[0])
         self.assertIn("415", failures[0])
 
-    @patch.object(api_confluence.requests, "post")
-    def test_upload_records_exception_and_continues(self, mock_post):
-        mock_post.side_effect = requests.ConnectionError("boom")
+    @patch.object(api_confluence.requests, "put")
+    def test_upload_records_exception_and_continues(self, mock_put):
+        mock_put.side_effect = requests.ConnectionError("boom")
         with tempfile.TemporaryDirectory() as d, _images(d, "a.png", "b.png"):
             failures = api_confluence.image_attachments_upload("1")
 
         self.assertEqual(len(failures), 2)
-        self.assertEqual(mock_post.call_count, 2)
+        self.assertEqual(mock_put.call_count, 2)
         self.assertTrue(all("boom" in f for f in failures))
 
     @patch.object(api_confluence.requests, "delete")
@@ -188,3 +192,25 @@ class TestConfluenceFailureReporting(unittest.TestCase):
     def test_no_exit_when_all_succeed(self):
         self._run_pages([], [])
         self.assertEqual(self.write_calls, 2)
+
+    @patch.object(api_confluence.requests, "delete")
+    @patch.object(api_confluence.requests, "get")
+    def test_delete_follows_pagination(self, mock_get, mock_delete):
+        mock_get.side_effect = [
+            MagicMock(status_code=200, json=lambda: {
+                "results": [{"id": "1"}, {"id": "2"}],
+                "_links": {"next": "/next"}}),
+            MagicMock(status_code=200, json=lambda: {
+                "results": [{"id": "3"}], "_links": {}}),
+        ]
+        mock_delete.return_value = MagicMock(status_code=204)
+
+        failures = api_confluence.image_attachments_delete("1")
+
+        self.assertEqual(failures, [])
+        self.assertEqual(mock_get.call_count, 2)
+        self.assertEqual(
+            mock_get.call_args_list[1].kwargs["params"]["start"], 2)
+        deleted = [c.args[0].rsplit("/", 1)[1]
+                   for c in mock_delete.call_args_list]
+        self.assertEqual(deleted, ["1", "2", "3"])

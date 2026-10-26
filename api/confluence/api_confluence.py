@@ -576,15 +576,37 @@ def page_payload(page_id, page_title, page_data, current_version, new_content):
 # ------------------------------------------------------------------
 
 
+ATTACHMENTS_PAGE_SIZE = 100
+
+
+def _attachments_all(page_id):
+    """Follow pagination; return (attachments, failed_response or None)."""
+    url = url_attachments(page_id)
+    attachments = []
+    start = 0
+    while True:
+        response = requests.get(
+            url,
+            headers=headers,
+            auth=auth,
+            params={"start": start, "limit": ATTACHMENTS_PAGE_SIZE},
+        )
+        if response.status_code != 200:
+            return attachments, response
+        data = response.json()
+        results = data["results"]
+        attachments.extend(results)
+        if not results or "next" not in data.get("_links", {}):
+            return attachments, None
+        start += len(results)
+
+
 def image_attachments_delete(page_id):
     failures = []
-    # get list of attachments for page
-    url = url_attachments(page_id)
-    response = requests.get(url, headers=headers, auth=auth)
+    # collect all attachments first so deletes don't shift pagination
+    attachments, response = _attachments_all(page_id)
 
-    if response.status_code == 200:
-        attachments = response.json()['results']
-
+    if response is None:
         # delete each attachment
         for attachment in attachments:
             attachment_id = attachment['id']
@@ -618,14 +640,12 @@ def image_attachments_delete(page_id):
 
 def image_attachments_list(page_id):
     # fetch all page attachments
-    url = url_attachments(page_id)
-    response = requests.get(f"{url}", auth=auth, headers=headers)
+    attachments, response = _attachments_all(page_id)
 
-    if response.status_code == 200:
-        attachments = response.json()["results"]
+    if response is None:
         for att in attachments:
             print(f"Filename: {att['title']} - ID: {att['id']}")
-        return response
+        return attachments
     else:
         print("❌ Failed to retrieve attachments")
         print(response.text)
@@ -665,7 +685,7 @@ def image_attachments_upload(page_id):
             try:
                 for attempt in range(UPLOAD_MAX_RETRIES + 1):
                     with open(file_path, "rb") as image_file:
-                        response = requests.post(
+                        response = requests.put(
                             url_attachments(page_id),
                             auth=auth,
                             headers={
