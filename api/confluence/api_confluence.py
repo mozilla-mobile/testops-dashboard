@@ -10,6 +10,7 @@ import logging
 import re
 import requests
 import sys
+import time
 import yaml
 
 from atlassian import Confluence
@@ -536,10 +537,13 @@ def page_object(page_url):
 
 def page_payload_write(page_id, update_payload):
     update_url = f"{URL_WIKI_REST_API}/content/{page_id}"
-    headers.update({"Content-Type": "application/json"})
 
-    update_response = requests.put(update_url, auth=auth, headers=headers,
-                                   data=json.dumps(update_payload))
+    update_response = requests.put(
+        update_url,
+        auth=auth,
+        headers={**headers, "Content-Type": "application/json"},
+        data=json.dumps(update_payload),
+    )
 
     if update_response.status_code == 200:
         print("Page updated successfully!")
@@ -572,14 +576,37 @@ def page_payload(page_id, page_title, page_data, current_version, new_content):
 # ------------------------------------------------------------------
 
 
-def image_attachments_delete(page_id):
-    # get list of attachments for page
+ATTACHMENTS_PAGE_SIZE = 100
+
+
+def _attachments_all(page_id):
+    """Follow pagination; return (attachments, failed_response or None)."""
     url = url_attachments(page_id)
-    response = requests.get(url, headers=headers, auth=auth)
+    attachments = []
+    start = 0
+    while True:
+        response = requests.get(
+            url,
+            headers=headers,
+            auth=auth,
+            params={"start": start, "limit": ATTACHMENTS_PAGE_SIZE},
+        )
+        if response.status_code != 200:
+            return attachments, response
+        data = response.json()
+        results = data["results"]
+        attachments.extend(results)
+        if not results or "next" not in data.get("_links", {}):
+            return attachments, None
+        start += len(results)
 
-    if response.status_code == 200:
-        attachments = response.json()['results']
 
+def image_attachments_delete(page_id):
+    failures = []
+    # collect all attachments first so deletes don't shift pagination
+    attachments, response = _attachments_all(page_id)
+
+    if response is None:
         # delete each attachment
         for attachment in attachments:
             attachment_id = attachment['id']
@@ -594,29 +621,49 @@ def image_attachments_delete(page_id):
                 print(f"Attachment {attachment_id} deleted successfully.")
             else:
                 print(f"Failed to delete attachment {attachment_id}.")
+                failures.append(
+                    f"delete attachment {attachment_id}: "
+                    f"HTTP {delete_response.status_code}: "
+                    f"{delete_response.text[:500]}"
+                )
     else:
         print(
             f"Failed to fetch attachments: {response.status_code}"
         )
         print(response.text)
+        failures.append(
+            f"fetch attachments: HTTP {response.status_code}: "
+            f"{response.text[:500]}"
+        )
+    return failures
 
 
 def image_attachments_list(page_id):
     # fetch all page attachments
-    url = url_attachments(page_id)
-    response = requests.get(f"{url}", auth=auth, headers=headers)
+    attachments, response = _attachments_all(page_id)
 
-    if response.status_code == 200:
-        attachments = response.json()["results"]
+    if response is None:
         for att in attachments:
             print(f"Filename: {att['title']} - ID: {att['id']}")
-        return response
+        return attachments
     else:
         print("❌ Failed to retrieve attachments")
         print(response.text)
 
 
+UPLOAD_MAX_RETRIES = 3
+
+
+def _retry_after_seconds(response, default=5, cap=60):
+    try:
+        delay = float(response.headers.get("Retry-After", default))
+    except (TypeError, ValueError):
+        delay = default
+    return max(0, min(delay, cap))
+
+
 def image_attachments_upload(page_id):
+    failures = []
     script_dir = os.path.dirname(os.path.abspath(__file__))
     image_dir = os.path.join(script_dir, PATH_IMAGES)
 
@@ -635,23 +682,42 @@ def image_attachments_upload(page_id):
             file_path = os.path.join(image_dir, filename)
             print(f"Uploading: {filename}...")
 
-            with open(file_path, "rb") as image_file:
-                response = requests.post(
-                    url_attachments(page_id),
-                    auth=auth,
-                    headers={
-                        **headers,
-                        "X-Atlassian-Token": "no-check",
-                    },
-                    files={"file": (filename, image_file)},
-                )
+            try:
+                for attempt in range(UPLOAD_MAX_RETRIES + 1):
+                    with open(file_path, "rb") as image_file:
+                        response = requests.put(
+                            url_attachments(page_id),
+                            auth=auth,
+                            headers={
+                                **headers,
+                                "X-Atlassian-Token": "no-check",
+                            },
+                            files={"file": (filename, image_file)},
+                        )
 
-            if response:
+                    if (response.status_code == 429
+                            and attempt < UPLOAD_MAX_RETRIES):
+                        delay = _retry_after_seconds(response)
+                        print(f"Rate limited uploading {filename}; "
+                              f"retrying in {delay}s...")
+                        time.sleep(delay)
+                        continue
+                    break
+            except requests.RequestException as exc:
+                print(f"Failed to upload: {filename} ({exc})")
+                failures.append(f"upload {filename}: {exc}")
+                continue
+
+            if response.ok:
                 print(f"Successfully uploaded: {filename}")
             else:
-                print(f"Failed to upload: {filename}")
+                detail = (f"HTTP {response.status_code}: "
+                          f"{response.text[:500]}")
+                print(f"Failed to upload: {filename} ({detail})")
+                failures.append(f"upload {filename}: {detail}")
 
     print("Upload process completed!")
+    return failures
 
 # ------------------------------------------------------------------
 # Page rendering: Looker Reports (YAML)
@@ -787,6 +853,7 @@ def pages_looker_graphs():
     """
     team_path = "" if TEAM_ID == 'MTE' else f"{TEAM_ID}/"
     all_yaml_files = glob.glob(f"{PATH_YAML_FILES}/{team_path}*.yaml")
+    failures_by_page = {}
     for filepath in all_yaml_files:  # Only YAML files
         with open(filepath, 'r', encoding='utf-8') as file:
             print(f"LOAD CONFIG FILE - {filepath}")
@@ -798,9 +865,11 @@ def pages_looker_graphs():
 
             print(f"PROCESS ATTACHMENTS - page_id: {page_id}")
             image_attachments_list(page_id)
-            image_attachments_delete(page_id)
+            page_failures = image_attachments_delete(page_id) or []
             image_attachments_list(page_id)
-            image_attachments_upload(page_id)
+            page_failures += image_attachments_upload(page_id) or []
+            if page_failures:
+                failures_by_page[page_id] = page_failures
 
             print(f"UPDATE PAGE - page_id: {page_id}")
             page_data = page_object(url_page_content_storage(page_id))
@@ -949,6 +1018,16 @@ def pages_looker_graphs():
             )
 
             page_payload_write(page_id, payload)
+
+    if failures_by_page:
+        total = sum(len(f) for f in failures_by_page.values())
+        print(f"::error::Confluence attachment failures: {total} "
+              f"across {len(failures_by_page)} page(s)")
+        for failed_page_id, page_failures in failures_by_page.items():
+            print(f"page_id {failed_page_id}:")
+            for failure in page_failures:
+                print(f"  - {failure}")
+        sys.exit(1)
 
 
 # ------------------------------------------------------------------
